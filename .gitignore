@@ -1,0 +1,23 @@
+# LoL client files (too large for git)
+client/
+League_of_Legends_Backup.zip
+
+# .NET build artifacts
+server/src/*/bin/
+server/src/*/obj/
+server/tests/*/bin/
+server/tests/*/obj/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
