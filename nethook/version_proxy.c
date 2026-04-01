@@ -12,6 +12,7 @@
 #include <ws2tcpip.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <tlhelp32.h>
 
 // === Real version.dll forwarding ===
 static HMODULE realVersionDll = NULL;
@@ -224,29 +225,190 @@ static char lastSendBuf[1024];
 static int lastSendLen = 0;
 static int injectMode = 0;
 static int injectCount = 0;
+static volatile BYTE *connStructAddr = NULL;  // RBX = connection struct address
+static volatile int crcDumpCount = 0;
 
-// CRC BYPASS: patch the nonce check EARLY (in DllMain, before stub.dll protects memory)
+// CRC BYPASS via Hardware Breakpoint + Vectored Exception Handler
+// This does NOT modify any code pages, so stub.dll guard pages can't detect it.
+static volatile DWORD hwBpThreadIds[64] = {0};
+static volatile int hwBpThreadCount = 0;
+static volatile int pendingDr0Setup = 0;
+//
+// Target: RVA 0x572827 = "CMP R12D,EAX" (44 3B E0) in FUN_1405725f0
+// After this instruction: "SETE AL" (0F 94 C0) at RVA 0x57282A
+// We set a HW breakpoint on the SETE instruction and force AL=1 (always pass CRC)
+//
+// The CMP sets ZF=1 if CRC matches. SETE AL sets AL=1 if ZF=1.
+// We skip SETE and just set AL=1, making the CRC always "match".
+
 static int crcPatched = 0;
-static void PatchCrcCheckEarly(void) {
-    if (crcPatched) return;
-    HMODULE hMod = GetModuleHandleA(NULL); // main exe
+static void *vehHandle = NULL;
+static BYTE *crcBreakpointAddr = NULL;  // Address of SETE AL (0F 94 C0) = base + 0x57282A
+
+static LONG CALLBACK CrcBypassVEH(PEXCEPTION_POINTERS exc) {
+    // Handle SINGLE_STEP exceptions (both DR0 setup and CRC bypass)
+    if (exc->ExceptionRecord->ExceptionCode == EXCEPTION_SINGLE_STEP &&
+        crcBreakpointAddr != NULL) {
+
+        // Check if this is our TF-triggered setup (RIP is NOT at our target)
+        if (pendingDr0Setup && (BYTE*)exc->ContextRecord->Rip != crcBreakpointAddr) {
+            exc->ContextRecord->Dr0 = (DWORD64)crcBreakpointAddr;
+            exc->ContextRecord->Dr7 = (exc->ContextRecord->Dr7 & ~0xF) | 0x1;
+            exc->ContextRecord->Dr7 &= ~(0xF << 16);
+            pendingDr0Setup = 0;
+
+            if (hwBpThreadCount < 64) {
+                hwBpThreadIds[hwBpThreadCount++] = GetCurrentThreadId();
+            }
+
+            return EXCEPTION_CONTINUE_EXECUTION;
+        }
+
+        // Hardware breakpoint hit at CRC check
+        if ((BYTE*)exc->ContextRecord->Rip == crcBreakpointAddr) {
+            // We're at "SETE AL" (0F 94 C0, 3 bytes)
+            // Force AL = 1 (CRC always valid) and skip the instruction
+            exc->ContextRecord->Rax = (exc->ContextRecord->Rax & ~0xFFULL) | 1;
+            exc->ContextRecord->Rip += 3;  // skip SETE AL (3 bytes)
+
+            // Re-enable the hardware breakpoint (single-step clears it)
+            exc->ContextRecord->Dr0 = (DWORD64)crcBreakpointAddr;
+            exc->ContextRecord->Dr7 |= 0x1;  // enable DR0 local
+
+            if (!crcPatched) {
+                crcPatched = 1;
+                OutputDebugStringA("*** CRC BYPASS VEH: First hit! AL forced to 1 ***");
+            }
+            return EXCEPTION_CONTINUE_EXECUTION;
+        }
+    }
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+static void EnsureHwBpOnThisThread(void);  // forward declaration
+
+static void SetHardwareBreakpoint(void) {
+    HMODULE hMod = GetModuleHandleA(NULL);
     if (!hMod) return;
 
-    BYTE *target = (BYTE*)hMod + 0x572827;
+    // Point at SETE AL instruction (RVA 0x57282A = 0x572827 + 3)
+    crcBreakpointAddr = (BYTE*)hMod + 0x57282A;
 
-    // Verify bytes
-    if (target[0] == 0x44 && target[1] == 0x3B && target[2] == 0xE0 &&
-        target[3] == 0x0F && target[4] == 0x94 && target[5] == 0xC0) {
+    // Verify the target bytes: 0F 94 C0 = SETE AL
+    if (crcBreakpointAddr[0] == 0x0F && crcBreakpointAddr[1] == 0x94 && crcBreakpointAddr[2] == 0xC0) {
+        OutputDebugStringA("*** CRC target bytes verified: 0F 94 C0 (SETE AL) ***");
+    } else {
+        char msg[128];
+        snprintf(msg, sizeof(msg), "*** CRC target bytes MISMATCH: %02X %02X %02X ***",
+            crcBreakpointAddr[0], crcBreakpointAddr[1], crcBreakpointAddr[2]);
+        OutputDebugStringA(msg);
+        // Still try - bytes may be readable but not match our expectation
+    }
+
+    // Register VEH (first handler, priority over SEH)
+    vehHandle = AddVectoredExceptionHandler(1, CrcBypassVEH);
+
+    // Set hardware breakpoint on the CURRENT thread via real handle
+    EnsureHwBpOnThisThread();
+
+    // Also try all threads
+    HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+    if (hSnap == INVALID_HANDLE_VALUE) {
+        Log("CreateToolhelp32Snapshot failed (err=%lu)", GetLastError());
+        return;
+    }
+
+    DWORD myPid = GetCurrentProcessId();
+    DWORD myTid = GetCurrentThreadId();
+    THREADENTRY32 te;
+    te.dwSize = sizeof(te);
+    int threadCount = 0;
+    int totalThreads = 0;
+    int openFails = 0;
+
+    if (Thread32First(hSnap, &te)) {
+        do {
+            if (te.th32OwnerProcessID == myPid && te.th32ThreadID != myTid) {
+                totalThreads++;
+                HANDLE hThread = OpenThread(THREAD_GET_CONTEXT | THREAD_SET_CONTEXT | THREAD_SUSPEND_RESUME, FALSE, te.th32ThreadID);
+                if (hThread) {
+                    SuspendThread(hThread);
+                    CONTEXT ctx;
+                    ctx.ContextFlags = CONTEXT_DEBUG_REGISTERS;
+                    if (GetThreadContext(hThread, &ctx)) {
+                        ctx.Dr0 = (DWORD64)crcBreakpointAddr;
+                        ctx.Dr7 = (ctx.Dr7 & ~0xF) | 0x1;
+                        ctx.Dr7 &= ~(0xF << 16);
+                        SetThreadContext(hThread, &ctx);
+                        threadCount++;
+                    }
+                    ResumeThread(hThread);
+                    CloseHandle(hThread);
+                } else {
+                    openFails++;
+                }
+            }
+            te.dwSize = sizeof(te);
+        } while (Thread32Next(hSnap, &te));
+    }
+    CloseHandle(hSnap);
+    Log("HW Breakpoint: %d/%d threads set (OpenThread fails: %d)", threadCount, totalThreads, openFails);
+}
+
+static volatile int hwBpInstalled = 0;
+
+// EnsureHwBpOnThisThread: set DR0/DR7 directly via inline assembly
+// This bypasses ALL Windows API hooks including stub.dll
+// Note: writing DR registers from ring 3 causes #GP, so we use the VEH trick:
+// We set the TF (trap flag) bit to trigger SINGLE_STEP exception, then in
+// the VEH handler we set DR0/DR7 in the exception context.
+
+static void EnsureHwBpOnThisThread(void) {
+    if (!crcBreakpointAddr) return;
+    DWORD tid = GetCurrentThreadId();
+
+    // Check if already installed on this thread
+    for (int i = 0; i < hwBpThreadCount; i++) {
+        if (hwBpThreadIds[i] == tid) return;
+    }
+
+    // Set Trap Flag (TF=1) to trigger SINGLE_STEP on next instruction
+    // Our VEH will see SINGLE_STEP with RIP != crcBreakpointAddr
+    // and check pendingSetup flag to know it should set DR0
+    pendingDr0Setup = 1;
+    __asm__ volatile (
+        "pushfq\n\t"
+        "orq $0x100, (%%rsp)\n\t"   // Set TF (bit 8)
+        "popfq\n\t"
+        "nop\n\t"                    // TF fires after this NOP
+        ::: "memory", "cc"
+    );
+    // After the NOP, SINGLE_STEP fires and our VEH sets DR0
+}
+static void PatchCrcCheckEarly(void) {
+    if (crcPatched || hwBpInstalled) return;
+    hwBpInstalled = 1;
+
+    HMODULE hMod = GetModuleHandleA(NULL);
+    if (!hMod) return;
+
+    // Try VirtualProtect first (unlikely to work due to stub.dll)
+    BYTE *target = (BYTE*)hMod + 0x572827;
+    if (target[0] == 0x44 && target[1] == 0x3B && target[2] == 0xE0) {
         DWORD oldProtect;
         if (VirtualProtect(target, 6, PAGE_EXECUTE_READWRITE, &oldProtect)) {
             target[0] = 0x90; target[1] = 0x90; target[2] = 0x90;
             target[3] = 0xB0; target[4] = 0x01; target[5] = 0x90;
             VirtualProtect(target, 6, oldProtect, &oldProtect);
             crcPatched = 1;
-            // Can't use Log() here (logfile not open yet), use OutputDebugString
-            OutputDebugStringA("*** CRC CHECK PATCHED IN DllMain! ***");
+            Log("CRC PATCHED via VirtualProtect!");
+            return;
         }
+        Log("VirtualProtect failed (err=%lu), using HW breakpoint", GetLastError());
     }
+
+    // Set HW breakpoints (this also registers the VEH)
+    SetHardwareBreakpoint();
 }
 
 int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
@@ -255,8 +417,10 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
         SavePacket("SEND", buf, len, to);
         // Patch CRC check on first sendto (game is already initialized by now)
         // Try to patch CRC (may already be done in DllMain)
-        if (!crcPatched) {
+        if (!crcPatched && !hwBpInstalled) {
+            Log("About to call PatchCrcCheckEarly...");
             PatchCrcCheckEarly();
+            Log("PatchCrcCheckEarly returned OK");
         }
         if (crcPatched) {
             Log("CRC PATCH: ACTIVE (patched successfully!)");
@@ -276,9 +440,13 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
             lastSendLen = len;
             Log("Captured first 519B CONNECT for echo injection");
         }
-        // Capture RBX register - should be param_1 of NET_58e860
+        // Capture RBX register - should be param_1 (connection struct)
         if (len == 519 && pktCount <= 3) {
             register void* rbx_val asm("rbx");
+            if (!connStructAddr) {
+                connStructAddr = (BYTE*)rbx_val;
+                Log("  CONN STRUCT captured: %p", connStructAddr);
+            }
             register void* r12_val asm("r12");
             register void* r13_val asm("r13");
             register void* r14_val asm("r14");
@@ -564,6 +732,10 @@ static int recvCallLogged = 0;
 
 int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                          struct sockaddr *from, int *fromlen) {
+    // Ensure HW breakpoint on this thread (recv thread handles CRC check)
+    if (hwBpInstalled && !crcPatched) {
+        EnsureHwBpOnThisThread();
+    }
     int r = real_recvfrom(s, buf, len, flags, from, fromlen);
     if (r > 0 && from && from->sa_family == AF_INET) {
         struct sockaddr_in *sin = (struct sockaddr_in*)from;
@@ -583,6 +755,46 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
         }
 
         if (isLocalhost) {
+            // Dump CRC struct fields on first few packets
+            if (connStructAddr && crcDumpCount < 20 && !IsBadReadPtr((void*)connStructAddr, 0x170)) {
+                crcDumpCount++;
+                BYTE *cs = (BYTE*)connStructAddr;
+                // Offsets from FUN_140577f10 Ghidra analysis:
+                // +0x8: peerID (2 bytes)
+                // +0x18: local_res10 (8 bytes)
+                // +0x48: pointer to payload
+                // +0x52: payload length (2 bytes)
+                BYTE peerID_lo = cs[0x8];
+                BYTE peerID_hi = cs[0x9];
+                UINT64 local_res10 = *(UINT64*)(cs + 0x18);
+                UINT64 payloadPtr = *(UINT64*)(cs + 0x48);
+                USHORT payloadLen = *(USHORT*)(cs + 0x52);
+                Log("  CRC_STRUCT #%d: peerID=%02X%02X local_res10=%016llX payloadPtr=%p payloadLen=%u",
+                    crcDumpCount, peerID_hi, peerID_lo,
+                    (unsigned long long)local_res10, (void*)payloadPtr, payloadLen);
+
+                // Dump first 16 bytes of payload if available
+                if (payloadPtr && payloadLen > 0 && !IsBadReadPtr((void*)payloadPtr, payloadLen < 16 ? payloadLen : 16)) {
+                    BYTE *pl = (BYTE*)payloadPtr;
+                    int dumpLen = payloadLen < 16 ? payloadLen : 16;
+                    char hexBuf[128];
+                    int off = 0;
+                    for (int i = 0; i < dumpLen; i++)
+                        off += snprintf(hexBuf + off, sizeof(hexBuf) - off, "%02X ", pl[i]);
+                    Log("  CRC_PAYLOAD[0:%d]: %s", dumpLen, hexBuf);
+                }
+
+                // Key offsets from FUN_140588f70 Ghidra analysis:
+                // param_1 + 0x138 → lVar10 → local_c8 (offset 0x00 of CRC struct)
+                // param_1 + 0x144 → used for local_e8[0]
+                // param_1 + 0x146 → uVar1
+                UINT64 offset_138 = *(UINT64*)(cs + 0x138);
+                USHORT offset_144 = *(USHORT*)(cs + 0x144);
+                USHORT offset_146 = *(USHORT*)(cs + 0x146);
+                Log("  CONN[0x138]=%016llX CONN[0x144]=%04X CONN[0x146]=%04X",
+                    (unsigned long long)offset_138, offset_144, offset_146);
+            }
+
             // Detailed logging for packets from our server
             Log("RECV_SERVER #%d: %dB from 127.0.0.1:%d",
                 pktCount + 1, r, ntohs(sin->sin_port));
@@ -675,6 +887,7 @@ int WINAPI Hook_WSASendTo(SOCKET s, LPWSABUF bufs, DWORD bufCount, LPDWORD bytes
 int WINAPI Hook_WSARecvFrom(SOCKET s, LPWSABUF bufs, DWORD bufCount, LPDWORD bytesRecv,
                             LPDWORD flags, struct sockaddr *from, LPINT fromlen,
                             LPWSAOVERLAPPED ovl, LPWSAOVERLAPPED_COMPLETION_ROUTINE cr) {
+    if (hwBpInstalled && !crcPatched) EnsureHwBpOnThisThread();
     int r = real_WSARecvFrom(s, bufs, bufCount, bytesRecv, flags, from, fromlen, ovl, cr);
     if (r == 0 && bytesRecv && *bytesRecv > 0 && from && from->sa_family == AF_INET) {
         SavePacket("WSARECV", bufs[0].buf, *bytesRecv, from);
@@ -799,8 +1012,7 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(hinst);
 
-        // PATCH CRC CHECK IMMEDIATELY - before stub.dll loads and sets guard pages!
-        PatchCrcCheckEarly();
+        // CRC bypass will be installed on first sendto (not in DllMain - too early)
 
         // Load real version.dll from system directory
         char sysDir[MAX_PATH];

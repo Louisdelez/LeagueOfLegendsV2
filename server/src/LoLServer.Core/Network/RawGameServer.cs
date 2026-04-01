@@ -174,27 +174,15 @@ public class RawGameServer : IGameServer, IDisposable
         // MINIMAL PLAINTEXT: 7 bytes after token = 0 CFB blocks = NO encryption!
         // Format: [4B token][2B peerID=0][4B nonce][1B flags=0x03] = 11 bytes total
         {
-            uint nonce = 0xB5053BE0; // CRC with local_res10=1, peerID=0, no payload
+            // Correct CRC nonce from Ghidra: peerID=0, local_c8=1, local_res10=0xFFFF..., no payload
+            uint nonce = 0x8DFE1964;
             var minimal = new byte[11];
             WriteBE32(minimal, 0, peer.ConnectToken); // token (4B, skipped by client)
             WriteLE16(minimal, 4, 0); // peerID = 0
-            WriteBE32(minimal, 6, nonce); // CRC nonce
+            WriteBE32(minimal, 6, nonce); // CRC nonce BE
             minimal[10] = 0x03; // flags = VERIFY_CONNECT
-            Log($"  [MINIMAL-VC] 11B plaintext, nonce=0x{nonce:X8}");
+            Log($"  [MINIMAL-VC] 11B nonce=0x{nonce:X8}");
             Send(minimal, peer);
-
-            // Also try with nonce in LE
-            var minimalLE = (byte[])minimal.Clone();
-            WriteLE32(minimalLE, 6, nonce);
-            Log($"  [MINIMAL-VC-LE] 11B nonce_LE");
-            Send(minimalLE, peer);
-
-            // Try with local_res10 = 0 (nonce = 0xB2F3D8E6)
-            uint nonce0 = 0xB2F3D8E6;
-            var min0 = (byte[])minimal.Clone();
-            WriteBE32(min0, 6, nonce0);
-            Log($"  [MINIMAL-VC-LR0] 11B nonce=0x{nonce0:X8} (local_res10=0)");
-            Send(min0, peer);
         }
 
         // CORRECT FORMAT: Double CFB with computed CRC nonce
@@ -213,14 +201,33 @@ public class RawGameServer : IGameServer, IDisposable
                 0x00, 0x00, 0x00, 0x02,  // throttleDec
             };
 
-            // Compute CRC nonce: peerID=0, local_res10=1, no timestamp, payload=verifyBody
-            byte peerLo = 0, peerHi = 0;
+            // CRC nonce computation based on Ghidra analysis of FUN_140577f10:
+            // The CRC is computed over a STACK struct in FUN_140588f70, NOT the packet payload!
+            //
+            // Stack struct layout (param_1 of FUN_140577f10 = &local_c8):
+            //   offset 0x00 (local_c8) = *(conn+0x138) = connection sequence (starts at 1)
+            //   offset 0x08 (local_c0) = 0 (when local_c8 != 0)
+            //   offset 0x18 (local_b0) = 0xFFFFFFFFFFFFFFFF
+            //   offset 0x48 (local_80) = 0 (payload ptr)
+            //   offset 0x52             = 0 (payload len)
+            //
+            // FUN_140577f10 processes: byte[8], byte[9], byte[0..7], local_res10[0..7]
+            // where byte[8..9] = first 2 bytes of local_c0 = {0, 0}
+            //       byte[0..7] = local_c8 = 1 as int64 LE
+            //       local_res10 = 0xFFFFFFFFFFFFFFFF
+
+            byte peerLo = 0, peerHi = 0; // local_c0 bytes = 0
             uint crc = ((uint)peerLo | 0xFFFFFF00u) ^ 0xB1F740B4u;
             crc = CrcByte(crc, peerHi);
-            byte[] lr = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-            foreach (var b in lr) crc = CrcByte(crc, b);
-            for (int i = 0; i < 8; i++) crc = CrcByte(crc, 0); // timestamp
-            foreach (var b in verifyBody) crc = CrcByte(crc, b);
+
+            // bytes[0..7] = local_c8 = *(conn+0x138) = 1 as int64 LE
+            byte[] localC8 = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+            foreach (var b in localC8) crc = CrcByte(crc, b);
+
+            // local_res10 at offset 0x18 = 0xFFFFFFFFFFFFFFFF
+            for (int i = 0; i < 8; i++) crc = CrcByte(crc, 0xFF);
+
+            // NO payload in CRC (payloadLen = 0 in the stack struct)
             uint nonceBits = ~crc;
             // htonl(~crc) is what FUN_140577f10 returns
             // iVar20 = *(int*)(data+2) reads nonce as LE int
@@ -443,36 +450,34 @@ public class RawGameServer : IGameServer, IDisposable
         WriteBE32(body, off, 2); off += 4;             // throttleDec
 
         // --- Compute CRC_NONCE ---
-        // Virtual struct layout (as byte array):
-        //   [0..7]  = local_res10 = 1 (uint64 LE)
-        //   [8..9]  = peerID (LE)
+        // Based on Ghidra analysis of FUN_140577f10 + FUN_140588f70:
+        // The CRC is computed over a STACK struct, NOT the packet payload.
         //
-        // CRC processing order: byte[8], byte[9], byte[0..7], 8 timestamp bytes, payload bytes
-        // Init: (byte[8] | 0xFFFFFF00) ^ 0xB1F740B4
-        byte peerLo = (byte)(peerID & 0xFF);
-        byte peerHi = (byte)((peerID >> 8) & 0xFF);
+        // Stack struct (param_1 of FUN_140577f10):
+        //   byte[8..9]  = first 2 bytes of local_c0 = {0, 0} (when conn+0x138 != 0)
+        //   byte[0..7]  = local_c8 = *(conn+0x138) = 1 as int64 LE
+        //   offset 0x18 = local_b0 = 0xFFFFFFFFFFFFFFFF
+        //   payload_len = 0 (no payload in CRC)
+        //
+        // Processing order: init(byte[8]), byte[9], byte[0..7], local_res10[0..7]
 
-        // CRC init from byte[8] (peerID low byte)
+        byte peerLo = 0; // byte[8] of stack struct = 0
+        byte peerHi = 0; // byte[9] of stack struct = 0
         uint crc = ((uint)peerLo | 0xFFFFFF00u) ^ 0xB1F740B4u;
-
-        // Process byte[9] (peerID high byte)
         crc = CrcByte(crc, peerHi);
 
-        // Process bytes[0..7] = local_res10 = 1 as uint64 LE
-        byte[] localRes10 = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        // bytes[0..7] = local_c8 = 1 as int64 LE
+        byte[] localC8 = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
         for (int i = 0; i < 8; i++)
-            crc = CrcByte(crc, localRes10[i]);
+            crc = CrcByte(crc, localC8[i]);
 
-        // Process 8 timestamp bytes (all zeros - no timestamp since bit7 of flags is 0)
+        // local_res10 = 0xFFFFFFFFFFFFFFFF
         for (int i = 0; i < 8; i++)
-            crc = CrcByte(crc, 0x00);
+            crc = CrcByte(crc, 0xFF);
 
-        // Process payload bytes (the VERIFY_CONNECT body)
-        for (int i = 0; i < body.Length; i++)
-            crc = CrcByte(crc, body[i]);
-
-        // Finalize: htonl(~crc) - store as big-endian in packet
+        // NO payload in CRC (payloadLen = 0)
         uint crcNonce = ~crc;
+        Log($"  [CRC] nonce=0x{crcNonce:X8} (peerLo=0, peerHi=0, localC8=1, res10=0xFF*8)");
 
         // --- Build plaintext packet ---
         // [2B peerID LE][4B CRC_NONCE BE][1B flags][36B body] = 43 bytes
@@ -595,27 +600,15 @@ public class RawGameServer : IGameServer, IDisposable
 
     private void SendPing(PeerInfo peer)
     {
-        // Build PING in the same confirmed format:
-        // [2B peerID LE][4B CRC_NONCE BE][1B flags][PING body]
-        // PING command_type = 0x05, no body (0 bytes payload)
+        // Same CRC as all packets: based on stack struct, not packet content
         ushort peerID = peer.PeerId;
         byte flags = 0x05; // PING, no timestamp
 
-        byte peerLo = (byte)(peerID & 0xFF);
-        byte peerHi = (byte)((peerID >> 8) & 0xFF);
-
-        uint crc = ((uint)peerLo | 0xFFFFFF00u) ^ 0xB1F740B4u;
-        crc = CrcByte(crc, peerHi);
-
-        byte[] localRes10 = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-        for (int i = 0; i < 8; i++)
-            crc = CrcByte(crc, localRes10[i]);
-
-        // 8 timestamp bytes (zeros)
-        for (int i = 0; i < 8; i++)
-            crc = CrcByte(crc, 0x00);
-
-        // No payload for PING
+        uint crc = (0xFFFFFF00u) ^ 0xB1F740B4u; // peerLo=0
+        crc = CrcByte(crc, 0); // peerHi=0
+        byte[] localC8 = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        for (int i = 0; i < 8; i++) crc = CrcByte(crc, localC8[i]);
+        for (int i = 0; i < 8; i++) crc = CrcByte(crc, 0xFF); // local_res10
         uint crcNonce = ~crc;
 
         // [2B peerID LE][4B CRC_NONCE BE][1B flags] = 7 bytes
