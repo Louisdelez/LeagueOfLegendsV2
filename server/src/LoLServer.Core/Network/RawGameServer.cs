@@ -171,19 +171,49 @@ public class RawGameServer : IGameServer, IDisposable
             EnsureClientInfo(peer);
         }
 
-        // Send VERIFY_CONNECT: try WITH token prefix (like client's format)
-        // Client sends: [LNPBlob][4B token EDE36B43][single CFB data]
-        // Server should send: [4B token][single CFB data] (no LNPBlob)
-        SendVerifyConnect(peer);
-
-        // Also echo for handshake progression
-        if (data.Length > 8)
+        // TEST: Send ONLY plaintext VERIFY_CONNECT (no echo, no encryption)
+        // Hypothesis: crypto might be disabled for recv (*param_3 == '\0')
+        // Format: [4B padding (skipped by client)][plaintext ENet data]
         {
-            var echo = new byte[data.Length - 8];
-            Array.Copy(data, 8, echo, 0, echo.Length);
-            Send(echo, peer);
+            ushort sentTime = (ushort)(Environment.TickCount & 0xFFFF);
+            var pt = new byte[4 + 48]; // 4 pad + 48 ENet
+            // Padding: use token, zeros, or session ID
+            WriteBE32(pt, 0, peer.ConnectToken); // or _sessionId or 0
+            int o = 4;
+            WriteBE32(pt, o, _sessionId); o += 4;
+            WriteBE16(pt, o, (ushort)(peer.OutgoingPeerID | 0x8000)); o += 2;
+            WriteBE16(pt, o, sentTime); o += 2;
+            pt[o] = 0x83; o++; // VERIFY_CONNECT | SENT_TIME
+            pt[o] = 0xFF; o++; // channel
+            WriteBE16(pt, o, peer.VerifySeqNo); o += 2;
+            WriteBE16(pt, o, peer.OutgoingPeerID); o += 2;
+            WriteBE16(pt, o, 996); o += 2;
+            WriteBE32(pt, o, 32768); o += 4;
+            WriteBE32(pt, o, 32); o += 4;
+            o += 20; // zeros
+            Log($"  [PLAINTEXT-ONLY] {pt.Length}B");
+            Send(pt, peer);
+
+            // Also try with zero padding
+            var pt0 = (byte[])pt.Clone();
+            WriteBE32(pt0, 0, 0);
+            Log($"  [PLAINTEXT-ZERO] {pt0.Length}B");
+            Send(pt0, peer);
+
+            // Also try single CFB encrypted (no echo for clean test)
+            var enet = new byte[48];
+            Array.Copy(pt, 4, enet, 0, 48);
+            var enc = CfbEncrypt(enet);
+            var encWithPad = new byte[4 + enc.Length];
+            WriteBE32(encWithPad, 0, peer.ConnectToken);
+            Array.Copy(enc, 0, encWithPad, 4, enc.Length);
+            Log($"  [SCFB-ONLY] {encWithPad.Length}B (no echo!)");
+            Send(encWithPad, peer);
+
+            peer.VerifySeqNo++;
         }
-        else if (!peer.GameInitSent)
+
+        if (!peer.GameInitSent && peer.PacketCount > 15)
         {
             ScheduleGameInit(peer);
         }
