@@ -223,13 +223,56 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                        const struct sockaddr *to, int tolen) {
     if (to && to->sa_family == AF_INET) {
         SavePacket("SEND", buf, len, to);
-        void *ret = __builtin_return_address(0);
-        HMODULE mod = NULL;
-        GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCSTR)ret, &mod);
-        char n[256]={0};
-        if (mod) GetModuleFileNameA(mod, n, 256);
-        Log("  CALLER: %p = %s +0x%llX", ret, n, (UINT64)ret - (UINT64)mod);
-        Log("  buf=%p len=%d", buf, len);
+        // Search ALL process memory for ENet CONNECT pattern (0x82 0xFF 0x00 0x01)
+        // This is: cmd=CONNECT|SENT_TIME, channel=0xFF, seqNo=1
+        // If plaintext ENet exists anywhere in memory, we'll find it
+        if (len == 519 && pktCount <= 3) {
+            Log("  === MEMORY SCAN for MTU+Window LE (E4030000 00800000 20000000) ===");
+            // Try LITTLE-ENDIAN: MTU=996=E403, Window=32768=00800000, Chan=32=20000000
+            BYTE pattern[] = { 0xE4, 0x03, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00 };
+            MEMORY_BASIC_INFORMATION mbi;
+            BYTE *addr = NULL;
+            int found = 0;
+            while (VirtualQuery(addr, &mbi, sizeof(mbi)) && found < 20) {
+                if (mbi.State == MEM_COMMIT && mbi.RegionSize > 0 &&
+                    (mbi.Protect & (PAGE_READWRITE | PAGE_EXECUTE_READWRITE | PAGE_READONLY))) {
+                    BYTE *base = (BYTE*)mbi.BaseAddress;
+                    SIZE_T size = mbi.RegionSize;
+                    for (SIZE_T i = 0; i + 48 <= size; i++) {
+                        if (!IsBadReadPtr(base + i, 64) &&
+                            base[i] == 0xE4 && base[i+1] == 0x03 &&
+                            base[i+2] == 0x00 && base[i+3] == 0x00 &&
+                            base[i+4] == 0x00 && base[i+5] == 0x80 &&
+                            base[i+6] == 0x00 && base[i+7] == 0x00 &&
+                            base[i+8] == 0x20 && base[i+9] == 0x00 &&
+                            base[i+10] == 0x00 && base[i+11] == 0x00) {
+                            BYTE *p = base + i;
+                            // WindowSize+ChannelCount found!
+                            // MTU should be 4 bytes before: p[-4] p[-3] = 03 E4
+                            int hasMtu = 1; // We're already matching MTU in the pattern
+                            found++;
+                            if (found <= 10) {
+                                char hex[512] = {0};
+                                int start = (i >= 16) ? -16 : 0;
+                                for (int j = 0; j < 64; j++)
+                                    sprintf(hex + j*3, "%02X ", p[start + j]);
+                                Log("    WIN+CHAN at %p MTU_ok=%d: %s", p, hasMtu, hex);
+                                if (hasMtu) {
+                                    Log("    *** FULL ENet CONNECT PLAINTEXT FOUND! ***");
+                                    // Save 128 bytes starting 16 before
+                                    char fn[MAX_PATH];
+                                    snprintf(fn, MAX_PATH, "%s\\CONNECT_PLAIN_%p.bin", logDir, p-16);
+                                    FILE *f = fopen(fn, "wb");
+                                    if (f) { fwrite(p - 16, 1, 128, f); fclose(f); }
+                                }
+                            }
+                        }
+                    }
+                }
+                addr = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
+            }
+            Log("  Scan done: %d matches", found);
+        }
     }
     return real_sendto(s, buf, len, flags, to, tolen);
 }
