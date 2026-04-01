@@ -248,6 +248,78 @@ public static class PacketCrack
             CheckAllPatterns(dd3, "dbl-LE");
         }
 
+        // Decrypt Riot server's VERIFY_CONNECT response to see the real format
+        System.Console.WriteLine("=== RIOT SERVER RESPONSE DECRYPTION ===");
+        {
+            var riotKey = "jNdWPAc3Vb5AyjoYdkar/g==";
+            var riotCipher = BlowFish.FromBase64(riotKey);
+            var riotResp = HexToBytes("b2cc6caa8092ade003dc4263fda135da21cbdd3b0eb45076a328cb7bf8a0616d2e4a28822d6385e3b2440080a1ba6c9abd2077359378807a969aa3c42f4deb7f2e2f3fc54c9ae6e82328982b6f5a074eaf7ca425c590a0fa050dccf9fb0a78dd804d02d9964515bf9a074c4c069280");
+            System.Console.WriteLine($"  Riot response: {riotResp.Length} bytes");
+
+            // Try single CFB with IV=0
+            var riotDec = CfbDecryptWith(riotCipher, riotResp, new byte[8]);
+            System.Console.WriteLine($"  CFB decrypt: {BitConverter.ToString(riotDec, 0, Math.Min(48, riotDec.Length))}");
+
+            // Parse as ENet
+            uint sess = ReadBE32(riotDec, 0);
+            ushort peerRaw = ReadBE16(riotDec, 4);
+            bool hasTime = (peerRaw & 0x8000) != 0;
+            ushort peer = (ushort)(peerRaw & 0x7FFF);
+            int off = hasTime ? 8 : 6;
+            System.Console.Write($"  sessID=0x{sess:X8} peer=0x{peer:X4} hasTime={hasTime}");
+            if (hasTime) System.Console.Write($" time={ReadBE16(riotDec, 6)}");
+            System.Console.WriteLine();
+
+            // Parse commands
+            while (off + 4 <= riotDec.Length)
+            {
+                byte cmdByte = riotDec[off];
+                byte ch = riotDec[off + 1];
+                ushort seq = ReadBE16(riotDec, off + 2);
+                int cmd = cmdByte & 0x0F;
+                int flags = (cmdByte >> 4) & 0x0F;
+                string[] cmdNames = {"?","ACK","CONNECT","VERIFY_CONNECT","DISCONNECT","PING","SEND_RELIABLE","SEND_UNRELIABLE","SEND_FRAGMENT","SEND_UNSEQUENCED","BW_LIMIT","THROTTLE","SEND_UNRELIABLE_FRAG"};
+                string name = cmd < cmdNames.Length ? cmdNames[cmd] : $"?{cmd}";
+                System.Console.Write($"  Cmd @{off}: 0x{cmdByte:X2}({name}) ch=0x{ch:X2} seq={seq}");
+
+                if (cmd == 3 && off + 40 <= riotDec.Length) // VERIFY_CONNECT
+                {
+                    int b = off + 4;
+                    System.Console.WriteLine();
+                    System.Console.WriteLine($"    outPeer={ReadBE16(riotDec, b)} MTU={ReadBE16(riotDec, b+2)} winSize={ReadBE32(riotDec, b+4)} chanCount={ReadBE32(riotDec, b+8)}");
+                    System.Console.WriteLine($"    inBW={ReadBE32(riotDec, b+12)} outBW={ReadBE32(riotDec, b+16)} throttle={ReadBE32(riotDec, b+20)}/{ReadBE32(riotDec, b+24)}/{ReadBE32(riotDec, b+28)}");
+                    if (b + 36 <= riotDec.Length) System.Console.WriteLine($"    connID=0x{ReadBE32(riotDec, b+32):X8}");
+                    off = b + 36;
+                }
+                else if (cmd == 6 && off + 6 <= riotDec.Length) // SEND_RELIABLE
+                {
+                    ushort dataLen = ReadBE16(riotDec, off + 4);
+                    System.Console.Write($" len={dataLen}");
+                    if (off + 6 + dataLen <= riotDec.Length)
+                    {
+                        System.Console.Write($" data={BitConverter.ToString(riotDec, off + 6, Math.Min(24, (int)dataLen))}");
+                    }
+                    System.Console.WriteLine();
+                    off += 6 + dataLen;
+                }
+                else if (cmd == 1 && off + 8 <= riotDec.Length) // ACK
+                {
+                    ushort ackSeq = ReadBE16(riotDec, off + 4);
+                    ushort ackTime = ReadBE16(riotDec, off + 6);
+                    System.Console.Write($" ackSeq={ackSeq} ackTime={ackTime}");
+                    System.Console.WriteLine();
+                    off += 8;
+                }
+                else
+                {
+                    System.Console.WriteLine();
+                    break;
+                }
+            }
+            System.Console.WriteLine($"  Remaining bytes from {off}: {BitConverter.ToString(riotDec, off, Math.Min(24, riotDec.Length - off))}");
+        }
+        System.Console.WriteLine();
+
         // Verify P-box and test key byte orderings
         VerifyPBox();
 
@@ -635,6 +707,36 @@ public static class PacketCrack
     // =====================================================================
     // Helpers
     // =====================================================================
+
+    static byte[] CfbDecryptWith(BlowFish cipher, byte[] data, byte[] iv)
+    {
+        var result = new byte[data.Length];
+        var feedback = (byte[])iv.Clone();
+        for (int i = 0; i < data.Length - 7; i += 8)
+        {
+            var ks = cipher.EncryptBlock(feedback);
+            Array.Copy(data, i, feedback, 0, 8);
+            for (int j = 0; j < 8; j++)
+                result[i + j] = (byte)(data[i + j] ^ ks[j]);
+        }
+        int rem = data.Length % 8;
+        if (rem > 0)
+        {
+            int off = data.Length - rem;
+            var ks = cipher.EncryptBlock(feedback);
+            for (int j = 0; j < rem; j++)
+                result[off + j] = (byte)(data[off + j] ^ ks[j]);
+        }
+        return result;
+    }
+
+    static byte[] HexToBytes(string hex)
+    {
+        var bytes = new byte[hex.Length / 2];
+        for (int i = 0; i < bytes.Length; i++)
+            bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
+        return bytes;
+    }
 
     static ushort ReadBE16(byte[] b, int o) => (ushort)((b[o] << 8) | b[o + 1]);
     static uint ReadBE32(byte[] b, int o) => (uint)((b[o] << 24) | (b[o + 1] << 16) | (b[o + 2] << 8) | b[o + 3]);
