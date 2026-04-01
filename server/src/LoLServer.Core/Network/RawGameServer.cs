@@ -171,12 +171,17 @@ public class RawGameServer : IGameServer, IDisposable
             EnsureClientInfo(peer);
         }
 
-        // ALWAYS echo back the client's data (without LNPBlob prefix)
+        // Send VERIFY_CONNECT with SINGLE CFB (confirmed by decrypt analysis)
+        // The client uses SINGLE CFB from byte 12 (after 8B LNPBlob + 4B token)
+        // For server->client, format is just [single CFB encrypted ENet data]
+        // The ENet header: [4B sessionID=0][2B peerID|flags][2B sentTime][commands...]
+        SendVerifyConnect(peer);
+
+        // Also echo for comparison
         if (data.Length > 8)
         {
             var echo = new byte[data.Length - 8];
             Array.Copy(data, 8, echo, 0, echo.Length);
-            Log($"  [ECHO] {echo.Length}B");
             Send(echo, peer);
         }
         else if (!peer.GameInitSent)
@@ -252,14 +257,30 @@ public class RawGameServer : IGameServer, IDisposable
         plaintext[p] = flags; p += 1;
         Array.Copy(body, 0, plaintext, p, body.Length);
 
-        // --- Double CFB Encrypt ---
+        // --- ALSO send standard ENet VERIFY_CONNECT with SINGLE CFB ---
+        // Analysis shows client uses SINGLE CFB, NOT double!
+        // Standard ENet: [4B sessID][2B peerID|flags][2B sentTime][cmd...][body...]
+        {
+            var enetPlain = new byte[48];
+            int ep = 0;
+            WriteBE32(enetPlain, ep, _sessionId); ep += 4;
+            WriteBE16(enetPlain, ep, (ushort)(peer.OutgoingPeerID | 0x8000)); ep += 2;
+            WriteBE16(enetPlain, ep, (ushort)(Environment.TickCount & 0xFFFF)); ep += 2;
+            enetPlain[ep] = 0x83; ep++; // VERIFY_CONNECT | SENT_TIME
+            enetPlain[ep] = 0xFF; ep++; // channel
+            WriteBE16(enetPlain, ep, peer.VerifySeqNo); ep += 2;
+            Array.Copy(body, 0, enetPlain, ep, body.Length);
+
+            var singleEnc = CfbEncrypt(enetPlain);
+            Log($"  [VC-SINGLE] ENet single CFB ({singleEnc.Length}B): enc={Hex(singleEnc, 20)}");
+            Send(singleEnc, peer);
+        }
+
+        // Also send the double CFB version (original)
         var encrypted = DoubleCfbEncrypt(plaintext);
-
-        Log($"  [VERIFY_CONNECT] peerID={peerID} flags=0x{flags:X2} crcNonce=0x{crcNonce:X8}");
-        Log($"  Plaintext ({plaintext.Length}B): {Hex(plaintext, 43)}");
-        Log($"  Encrypted ({encrypted.Length}B): {Hex(encrypted, 43)}");
-
+        Log($"  [VC-DOUBLE] CRC+dblCFB ({encrypted.Length}B): enc={Hex(encrypted, 20)}");
         Send(encrypted, peer);
+
         peer.VerifySeqNo++;
     }
 
