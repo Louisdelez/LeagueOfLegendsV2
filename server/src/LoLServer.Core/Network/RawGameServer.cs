@@ -303,9 +303,23 @@ public class RawGameServer : IGameServer, IDisposable
             Send(dblWithToken, peer);
         }
 
-        // Also send the double CFB version (original)
+        // Also send double CFB of CRC format WITH token prefix
         var encrypted = DoubleCfbEncrypt(plaintext);
-        Log($"  [VC-DOUBLE] CRC+dblCFB ({encrypted.Length}B): enc={Hex(encrypted, 20)}");
+
+        // V6: Token + double CFB of CRC format (the missing combo!)
+        var tokenCrc = new byte[4 + encrypted.Length];
+        WriteBE32(tokenCrc, 0, peer.ConnectToken);
+        Array.Copy(encrypted, 0, tokenCrc, 4, encrypted.Length);
+        Log($"  [VC-D3] Token + dblCFB CRC format ({tokenCrc.Length}B)");
+        Send(tokenCrc, peer);
+
+        // V7: Also try with LE token
+        WriteLE32(tokenCrc, 0, peer.ConnectToken);
+        Log($"  [VC-D4] Token(LE) + dblCFB CRC ({tokenCrc.Length}B)");
+        Send(tokenCrc, peer);
+
+        // V8: No prefix, just the CRC-format double CFB
+        Log($"  [VC-D5] dblCFB CRC no prefix ({encrypted.Length}B)");
         Send(encrypted, peer);
 
         peer.VerifySeqNo++;
@@ -437,9 +451,8 @@ public class RawGameServer : IGameServer, IDisposable
     {
         // Pass 1: CFB encrypt
         var result = CfbEncrypt(plaintext);
-        // Reverse processed blocks
-        int processed = (result.Length / 8) * 8;
-        Array.Reverse(result, 0, processed);
+        // Reverse ALL bytes (game reverses uVar14 = full length, not just processed blocks!)
+        Array.Reverse(result);
         // Pass 2: CFB encrypt
         result = CfbEncrypt(result);
         return result;
