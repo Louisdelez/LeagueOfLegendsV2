@@ -9,6 +9,26 @@ public static class QuickDecrypt
     public static void Run()
     {
         var cipher = BlowFish.FromBase64("17BLOhi6KZsTtldTsizvHg==");
+
+        // S-BOX VERIFICATION against captured crypto context
+        uint[] expectedS0 = { 0x52D436FF, 0xA5613C01, 0xA88AA146, 0x38319B56, 0x40C98634 };
+        System.Console.WriteLine("=== S-BOX VERIFICATION ===");
+        bool allMatch = true;
+        for (int i = 0; i < 5; i++)
+        {
+            uint ours = cipher.SBox[0, i];
+            bool m = ours == expectedS0[i];
+            if (!m) allMatch = false;
+            System.Console.WriteLine($"  S[0][{i}]: ours=0x{ours:X8} ctx=0x{expectedS0[i]:X8} {(m ? "OK" : "MISMATCH!")}");
+        }
+        System.Console.WriteLine($"  ALL S-BOX MATCH: {allMatch}");
+
+        // Test BF_encrypt of non-zero input
+        var testBlock = new byte[] { 0xED, 0xE3, 0x6B, 0x43, 0xF9, 0xED, 0x26, 0xB1 };
+        var encTest = cipher.EncryptBlock(testBlock);
+        System.Console.WriteLine($"  BF_encrypt(first ciphertext block) = {BitConverter.ToString(encTest)}");
+        System.Console.WriteLine();
+
         var logDir = @"D:\LeagueOfLegendsV2\client-private\Game\nethook_logs";
 
         // Find all SEND packets
@@ -89,3 +109,23 @@ public static class QuickDecrypt
     }
 }
 // Additional test at end of file
+
+public static class SBoxCheck {
+    public static void Verify() {
+        var cipher = LoLServer.Core.Network.BlowFish.FromBase64("17BLOhi6KZsTtldTsizvHg==");
+        // Expected from captured context (LE uint32):
+        uint[] expectedS0 = { 0x52D436FF, 0xA5613C01, 0xA88AA146, 0x38319B56, 0x40C98634 };
+
+        System.Console.WriteLine("=== S-BOX VERIFICATION ===");
+        for (int i = 0; i < 5; i++) {
+            uint ours = cipher.SBox[0, i];
+            bool match = ours == expectedS0[i];
+            System.Console.WriteLine($"  S[0][{i}]: ours=0x{ours:X8} ctx=0x{expectedS0[i]:X8} {(match ? "OK" : "MISMATCH!")}");
+        }
+
+        // Also test BF_encrypt of a non-zero value
+        var testBlock = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
+        var encrypted = cipher.EncryptBlock(testBlock);
+        System.Console.WriteLine($"\n  BF_encrypt(01020304 05060708) = {BitConverter.ToString(encrypted)}");
+    }
+}
