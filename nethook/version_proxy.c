@@ -497,11 +497,95 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
     return real_sendto(s, buf, len, flags, to, tolen);
 }
 
+// BF_encrypt(zeros) for key 17BLOhi6KZsTtldTsizvHg==
+static const BYTE bf_enc_zeros[8] = {0xF9, 0xED, 0x26, 0xC0, 0xF2, 0x2A, 0x52, 0xB4};
+
+static int recvCallLogged = 0;
+
 int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                          struct sockaddr *from, int *fromlen) {
     int r = real_recvfrom(s, buf, len, flags, from, fromlen);
-    if (r > 0 && from && from->sa_family == AF_INET)
-        SavePacket("RECV", buf, r, from);
+    if (r > 0 && from && from->sa_family == AF_INET) {
+        struct sockaddr_in *sin = (struct sockaddr_in*)from;
+        int isLocalhost = (ntohl(sin->sin_addr.s_addr) == 0x7F000001); // 127.0.0.1
+
+        if (isLocalhost) {
+            // Detailed logging for packets from our server
+            Log("RECV_SERVER #%d: %dB from 127.0.0.1:%d",
+                pktCount + 1, r, ntohs(sin->sin_port));
+
+            // Hex dump first 32 bytes
+            if (logfile) {
+                EnterCriticalSection(&logLock);
+                fprintf(logfile, "  RAW[0:32]: ");
+                for (int i = 0; i < r && i < 32; i++)
+                    fprintf(logfile, "%02X ", (unsigned char)buf[i]);
+                fprintf(logfile, "\n");
+
+                // XOR first 8 bytes with BF_encrypt(zeros) to decrypt header
+                if (r >= 8) {
+                    BYTE decrypted[8];
+                    for (int i = 0; i < 8; i++)
+                        decrypted[i] = (unsigned char)buf[i] ^ bf_enc_zeros[i];
+                    fprintf(logfile, "  XOR_DEC[0:8]: ");
+                    for (int i = 0; i < 8; i++)
+                        fprintf(logfile, "%02X ", decrypted[i]);
+                    fprintf(logfile, "\n");
+
+                    // ENet encrypted header: first 2 bytes = sessionID (LE), byte 2 or 3 = command
+                    // After XOR: decrypted[0..1] = sessionID, decrypted[2] = possible cmd byte
+                    UINT16 sessionID = decrypted[0] | (decrypted[1] << 8);
+                    BYTE cmdByte = decrypted[2];
+                    fprintf(logfile, "  Decrypted: SessionID=0x%04X (%d), CmdByte=0x%02X (%d)\n",
+                            sessionID, sessionID, cmdByte, cmdByte);
+
+                    // Also try big-endian sessionID interpretation
+                    UINT16 sessionBE = (decrypted[0] << 8) | decrypted[1];
+                    fprintf(logfile, "  Alt (BE): SessionID=0x%04X, Cmd[2]=0x%02X Cmd[3]=0x%02X\n",
+                            sessionBE, decrypted[2], decrypted[3]);
+                }
+                fflush(logfile);
+                LeaveCriticalSection(&logLock);
+            }
+
+            // Log return addresses to find which function processes recv data
+            if (recvCallLogged < 10) {
+                recvCallLogged++;
+                void *ret0 = __builtin_return_address(0);
+                void *ret1 = __builtin_return_address(1);
+                HMODULE mod0 = NULL, mod1 = NULL;
+                GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCSTR)ret0, &mod0);
+                GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCSTR)ret1, &mod1);
+                char n0[256]={0}, n1[256]={0};
+                if(mod0) GetModuleFileNameA(mod0, n0, 256);
+                if(mod1) GetModuleFileNameA(mod1, n1, 256);
+                Log("  recvfrom CALLSTACK:");
+                Log("    ret0=%p %s +0x%llX", ret0, n0, (UINT64)ret0-(UINT64)mod0);
+                Log("    ret1=%p %s +0x%llX", ret1, n1, (UINT64)ret1-(UINT64)mod1);
+            }
+
+            // Save with decrypted cmd byte in filename
+            BYTE cmdTag = 0;
+            if (r >= 8) {
+                cmdTag = (unsigned char)buf[2] ^ bf_enc_zeros[2]; // decrypted byte 2
+            }
+            pktCount++;
+            char fn[MAX_PATH];
+            snprintf(fn, MAX_PATH, "%s\\RECV_SRV_%04d_%dB_cmd%02X.bin",
+                     logDir, pktCount, r, cmdTag);
+            FILE *f = fopen(fn, "wb");
+            if (f) { fwrite(buf, 1, r, f); fclose(f); }
+
+            // Also log via standard SavePacket for the hex dump
+            // (don't increment pktCount again, just log)
+            char addrStr[64];
+            snprintf(addrStr, 64, "127.0.0.1:%d", ntohs(sin->sin_port));
+            Log("RECV_SRV #%d: %dB %s cmd=0x%02X", pktCount, r, addrStr, cmdTag);
+        } else {
+            // Non-localhost: use standard logging
+            SavePacket("RECV", buf, r, from);
+        }
+    }
     return r;
 }
 

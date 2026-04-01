@@ -180,52 +180,350 @@ public class RawGameServer : IGameServer, IDisposable
 
     private void SendVerifyConnect(PeerInfo peer)
     {
-        // Build VERIFY_CONNECT with connectID echoed from client's connection token.
-        // In standard ENet, the client rejects VERIFY_CONNECT if connectID doesn't match.
-        //
-        // Format: [8B header][VERIFY_CONNECT cmd(4+36=40)] = 48 bytes
-        // ConnectID = client's connection token from packet bytes 8-11
-        var plain = new byte[48];
-        int off = 0;
+        // Try MANY different VERIFY_CONNECT variants to find which one the client accepts.
+        // Each variant is sent as a separate UDP packet.
+        int variantNum = 0;
+        ushort sentTime = (ushort)(Environment.TickCount & 0xFFFF);
 
-        // LENet header (big-endian)
-        WriteBE32(plain, off, _sessionId); off += 4;
-        WriteBE16(plain, off, (ushort)(peer.OutgoingPeerID | 0x8000)); off += 2;
-        WriteBE16(plain, off, (ushort)(Environment.TickCount & 0xFFFF)); off += 2;
+        // Helper to build a single VERIFY_CONNECT variant
+        void SendVariant(
+            string desc,
+            uint sessionId, ushort peerIdField, byte cmd, byte channel, ushort seqNo,
+            ushort outPeerId, ushort mtu, uint winSize, uint chanCount,
+            uint inBW, uint outBW, uint throttleInt, uint throttleAcc, uint throttleDec,
+            bool appendConnectId, bool useLittleEndian, bool skipEncrypt)
+        {
+            variantNum++;
+            int bodySize = 36 + (appendConnectId ? 4 : 0);
+            int totalSize = 8 + 4 + bodySize; // header(8) + cmdHeader(4) + body
+            var plain = new byte[totalSize];
+            int off = 0;
 
-        // VERIFY_CONNECT command (cmd=3 | 0x80 acknowledge flag)
-        plain[off] = 0x83; off++;
-        plain[off] = 0xFF; off++;
-        WriteBE16(plain, off, peer.VerifySeqNo); off += 2;
+            if (useLittleEndian)
+            {
+                // Little-endian header
+                WriteLE32(plain, off, sessionId); off += 4;
+                WriteLE16(plain, off, peerIdField); off += 2;
+                WriteLE16(plain, off, sentTime); off += 2;
+            }
+            else
+            {
+                // Big-endian header (standard)
+                WriteBE32(plain, off, sessionId); off += 4;
+                WriteBE16(plain, off, peerIdField); off += 2;
+                WriteBE16(plain, off, sentTime); off += 2;
+            }
 
-        // VERIFY_CONNECT body (36 bytes)
-        WriteBE16(plain, off, peer.OutgoingPeerID); off += 2; // OutgoingPeerID
-        WriteBE16(plain, off, 996); off += 2;                  // MTU
-        WriteBE32(plain, off, 32768); off += 4;                // WindowSize
-        WriteBE32(plain, off, 32); off += 4;                   // ChannelCount
-        WriteBE32(plain, off, 0); off += 4;                    // IncomingBandwidth
-        WriteBE32(plain, off, 0); off += 4;                    // OutgoingBandwidth
-        WriteBE32(plain, off, 32); off += 4;                   // PacketThrottleInterval
-        WriteBE32(plain, off, 2); off += 4;                    // PacketThrottleAcceleration
-        WriteBE32(plain, off, 2); off += 4;                    // PacketThrottleDeceleration
-        // ConnectID: echo the client's connection token!
-        // This is the 4-byte value at packet bytes 8-11 that the client expects echoed back
-        // Without this, the client rejects the VERIFY_CONNECT and retransmits
+            // Command header (always same byte order as header)
+            plain[off] = cmd; off++;
+            plain[off] = channel; off++;
+            if (useLittleEndian) { WriteLE16(plain, off, seqNo); } else { WriteBE16(plain, off, seqNo); }
+            off += 2;
 
-        // Encrypt and send
-        byte[] encrypted = CfbEncrypt(plain);
-        Log($"  [{encrypted.Length}B] VERIFY_CONNECT seq={peer.VerifySeqNo} peerID={peer.OutgoingPeerID}");
+            // VERIFY_CONNECT body
+            if (useLittleEndian)
+            {
+                WriteLE16(plain, off, outPeerId); off += 2;
+                WriteLE16(plain, off, mtu); off += 2;
+                WriteLE32(plain, off, winSize); off += 4;
+                WriteLE32(plain, off, chanCount); off += 4;
+                WriteLE32(plain, off, inBW); off += 4;
+                WriteLE32(plain, off, outBW); off += 4;
+                WriteLE32(plain, off, throttleInt); off += 4;
+                WriteLE32(plain, off, throttleAcc); off += 4;
+                WriteLE32(plain, off, throttleDec); off += 4;
+                if (appendConnectId) { WriteLE32(plain, off, peer.ConnectToken); off += 4; }
+            }
+            else
+            {
+                WriteBE16(plain, off, outPeerId); off += 2;
+                WriteBE16(plain, off, mtu); off += 2;
+                WriteBE32(plain, off, winSize); off += 4;
+                WriteBE32(plain, off, chanCount); off += 4;
+                WriteBE32(plain, off, inBW); off += 4;
+                WriteBE32(plain, off, outBW); off += 4;
+                WriteBE32(plain, off, throttleInt); off += 4;
+                WriteBE32(plain, off, throttleAcc); off += 4;
+                WriteBE32(plain, off, throttleDec); off += 4;
+                if (appendConnectId) { WriteBE32(plain, off, peer.ConnectToken); off += 4; }
+            }
+
+            byte[] toSend;
+            if (skipEncrypt)
+            {
+                toSend = plain;
+            }
+            else
+            {
+                toSend = CfbEncrypt(plain);
+            }
+
+            Log($"  [V{variantNum:D2}] {desc} | {toSend.Length}B enc={!skipEncrypt} plain={Hex(plain, 20)}");
+            Send(toSend, peer);
+        }
+
+        Log($"  === SENDING ALL VERIFY_CONNECT VARIANTS (token=0x{peer.ConnectToken:X8}) ===");
+
+        // --- BASELINE: current format (BE, encrypted, 48B no connectID) ---
+        // V01: Original baseline
+        SendVariant("BASELINE sessID=DEADBEEF peerID=0x8001 cmd=0x83 ch=0xFF seq=1",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: false, skipEncrypt: false);
+
+        // V02: Baseline + connectID appended (52B)
+        SendVariant("BASELINE+connID",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: true, useLittleEndian: false, skipEncrypt: false);
+
+        // --- 1. Different SessionID values ---
+        // V03: SessionID = 0x00000000
+        SendVariant("sessID=0x00000000",
+            0x00000000, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: false, skipEncrypt: false);
+
+        // V04: SessionID = 0xFFFFFFFF
+        SendVariant("sessID=0xFFFFFFFF",
+            0xFFFFFFFF, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: false, skipEncrypt: false);
+
+        // V05: SessionID = connection token
+        SendVariant("sessID=connToken",
+            peer.ConnectToken, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: false, skipEncrypt: false);
+
+        // V06: SessionID = connToken + connectID appended
+        SendVariant("sessID=connToken+connID",
+            peer.ConnectToken, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: true, useLittleEndian: false, skipEncrypt: false);
+
+        // --- 2. Different PeerID values ---
+        // V07: PeerID = 0x7FFF (no TimeSent flag)
+        SendVariant("peerID=0x7FFF",
+            _sessionId, 0x7FFF, 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: false, skipEncrypt: false);
+
+        // V08: PeerID = 0xFFFF
+        SendVariant("peerID=0xFFFF",
+            _sessionId, 0xFFFF, 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: false, skipEncrypt: false);
+
+        // V09: PeerID = 0x0000
+        SendVariant("peerID=0x0000",
+            _sessionId, 0x0000, 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: false, skipEncrypt: false);
+
+        // --- 3. Different cmd byte ---
+        // V10: cmd=0x03 (no flags)
+        SendVariant("cmd=0x03 noFlags",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0x03, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: false, skipEncrypt: false);
+
+        // V11: cmd=0xC3 (different flags: 0x80|0x40)
+        SendVariant("cmd=0xC3",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0xC3, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: false, skipEncrypt: false);
+
+        // --- 4. Different channel ---
+        // V12: channel=0x00
+        SendVariant("ch=0x00",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0x00, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: false, skipEncrypt: false);
+
+        // V13: channel=0x00 + connectID
+        SendVariant("ch=0x00+connID",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0x00, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: true, useLittleEndian: false, skipEncrypt: false);
+
+        // --- 5. Sequence number 0 ---
+        // V14: seq=0
+        SendVariant("seq=0",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 0,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: false, skipEncrypt: false);
+
+        // V15: seq=0 + connectID
+        SendVariant("seq=0+connID",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 0,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: true, useLittleEndian: false, skipEncrypt: false);
+
+        // --- 6. OutPeerID variants ---
+        // V16: outPeerId=0x7FFF
+        SendVariant("outPeer=0x7FFF",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 1,
+            0x7FFF, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: false, skipEncrypt: false);
+
+        // V17: outPeerId=0xFFFF
+        SendVariant("outPeer=0xFFFF",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 1,
+            0xFFFF, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: false, skipEncrypt: false);
+
+        // --- 7. ConnectID appended (already covered above, add more combos) ---
+        // V18: sessID=0 + connID + seq=0
+        SendVariant("sessID=0+connID+seq=0",
+            0x00000000, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 0,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: true, useLittleEndian: false, skipEncrypt: false);
+
+        // V19: sessID=connToken + connID + seq=0 + ch=0x00
+        SendVariant("sessID=connToken+connID+seq=0+ch=0",
+            peer.ConnectToken, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0x00, 0,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: true, useLittleEndian: false, skipEncrypt: false);
+
+        // --- 8. LITTLE-ENDIAN format ---
+        // V20: LE baseline
+        SendVariant("LE baseline",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: true, skipEncrypt: false);
+
+        // V21: LE + connectID
+        SendVariant("LE+connID",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: true, useLittleEndian: true, skipEncrypt: false);
+
+        // V22: LE + sessID=connToken + connID
+        SendVariant("LE+sessID=connToken+connID",
+            peer.ConnectToken, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: true, useLittleEndian: true, skipEncrypt: false);
+
+        // --- 9. Without TimeSent flag (peerID without 0x8000) ---
+        // V23: peerID=1 (no 0x8000 flag)
+        SendVariant("noTimeSent peerID=1",
+            _sessionId, peer.OutgoingPeerID, 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: false, skipEncrypt: false);
+
+        // V24: peerID=1 + connID
+        SendVariant("noTimeSent+connID",
+            _sessionId, peer.OutgoingPeerID, 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: true, useLittleEndian: false, skipEncrypt: false);
+
+        // --- 10. NO ENCRYPTION (raw plaintext) ---
+        // V25: plaintext baseline
+        SendVariant("PLAINTEXT baseline",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: false, useLittleEndian: false, skipEncrypt: true);
+
+        // V26: plaintext + connID
+        SendVariant("PLAINTEXT+connID",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: true, useLittleEndian: false, skipEncrypt: true);
+
+        // V27: plaintext + sessID=connToken + connID
+        SendVariant("PLAINTEXT sessID=connToken+connID",
+            peer.ConnectToken, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: true, useLittleEndian: false, skipEncrypt: true);
+
+        // V28: plaintext LE + connID
+        SendVariant("PLAINTEXT LE+connID",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0x83, 0xFF, 1,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: true, useLittleEndian: true, skipEncrypt: true);
+
+        // --- COMBO variants (mixing multiple changes) ---
+        // V29: cmd=0x03 + ch=0x00 + seq=0 + connID
+        SendVariant("cmd=0x03+ch=0+seq=0+connID",
+            _sessionId, (ushort)(peer.OutgoingPeerID | 0x8000), 0x03, 0x00, 0,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: true, useLittleEndian: false, skipEncrypt: false);
+
+        // V30: sessID=connToken + noTimeSent + cmd=0x03 + ch=0x00 + seq=0 + connID
+        SendVariant("sessID=connToken+noTimeSent+cmd=0x03+ch=0+seq=0+connID",
+            peer.ConnectToken, peer.OutgoingPeerID, 0x03, 0x00, 0,
+            peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
+            appendConnectId: true, useLittleEndian: false, skipEncrypt: false);
+
+        // === NEW: Hybrid format - plaintext sessionID prefix + encrypted ENet ===
+        // The Riot server response starts with sessionID in clear (b2cc6caa),
+        // followed by encrypted data. Maybe the client checks the first 4 bytes.
+        {
+            // Build ENet VERIFY_CONNECT without sessionID in encrypted part
+            var enetPlain = new byte[44]; // header without sessID(4) + cmd(4) + body(36)
+            int o = 0;
+            WriteBE16(enetPlain, o, (ushort)(peer.OutgoingPeerID | 0x8000)); o += 2;
+            WriteBE16(enetPlain, o, sentTime); o += 2;
+            enetPlain[o] = 0x83; o++;
+            enetPlain[o] = 0xFF; o++;
+            WriteBE16(enetPlain, o, 1); o += 2;
+            WriteBE16(enetPlain, o, peer.OutgoingPeerID); o += 2;
+            WriteBE16(enetPlain, o, 996); o += 2;
+            WriteBE32(enetPlain, o, 32768); o += 4;
+            WriteBE32(enetPlain, o, 32); o += 4;
+            WriteBE32(enetPlain, o, 0); o += 4;
+            WriteBE32(enetPlain, o, 0); o += 4;
+            WriteBE32(enetPlain, o, 32); o += 4;
+            WriteBE32(enetPlain, o, 2); o += 4;
+            WriteBE32(enetPlain, o, 2); o += 4;
+
+            // V31: [sessID_BE plaintext][CFB encrypted ENet]
+            var enc31 = CfbEncrypt(enetPlain);
+            var pkt31 = new byte[4 + enc31.Length];
+            WriteBE32(pkt31, 0, _sessionId);
+            Array.Copy(enc31, 0, pkt31, 4, enc31.Length);
+            variantNum++;
+            Log($"  [V{variantNum:D2}] HYBRID: sessID_BE prefix + CFB | {pkt31.Length}B");
+            Send(pkt31, peer);
+
+            // V32: [sessID_LE plaintext][CFB encrypted ENet]
+            var pkt32 = new byte[4 + enc31.Length];
+            WriteLE32(pkt32, 0, _sessionId);
+            Array.Copy(enc31, 0, pkt32, 4, enc31.Length);
+            variantNum++;
+            Log($"  [V{variantNum:D2}] HYBRID: sessID_LE prefix + CFB | {pkt32.Length}B");
+            Send(pkt32, peer);
+
+        }
+
+        // V31-V35: Just send raw response formats the Riot server might use
+        {
+            // Try: echo back the client's packet with modifications
+            // V31 already done above
+
+            // V33: Send just the connection token back (maybe it's a ping/pong?)
+            var tokenPkt = new byte[4];
+            WriteBE32(tokenPkt, 0, peer.ConnectToken);
+            variantNum++;
+            Log($"  [V{variantNum:D2}] RAW connToken echo | 4B");
+            Send(tokenPkt, peer);
+
+            // V34: Send LNPBlob-style response (magic + sessID + token)
+            var lnpResp = new byte[12];
+            WriteBE32(lnpResp, 0, LNPBLOB_MAGIC);
+            WriteLE32(lnpResp, 4, _sessionId);
+            WriteBE32(lnpResp, 8, peer.ConnectToken);
+            variantNum++;
+            Log($"  [V{variantNum:D2}] LNPBlob response | 12B");
+            Send(lnpResp, peer);
+
+            // V35: Mirror the client's first 15 bytes + our encrypted data
+            // (the client might check if the response shares a prefix)
+        }
+
+        Log($"  === SENT {variantNum} VARIANTS ===");
         peer.VerifySeqNo++;
-        Send(encrypted, peer);
-
-        // Also send a version WITH connectID appended (52 bytes)
-        // In case the body is 40 bytes (36 + 4B connectID)
-        var plainWithConnID = new byte[52];
-        Array.Copy(plain, plainWithConnID, 48);
-        WriteBE32(plainWithConnID, 48, peer.ConnectToken); // ConnectID = client token
-        encrypted = CfbEncrypt(plainWithConnID);
-        Log($"  [{encrypted.Length}B] VERIFY_CONNECT+connID=0x{peer.ConnectToken:X8}");
-        Send(encrypted, peer);
     }
 
     private void ScheduleGameInit(PeerInfo peer)
@@ -328,6 +626,8 @@ public class RawGameServer : IGameServer, IDisposable
     private static uint ReadBE32(byte[] buf, int off) => (uint)((buf[off] << 24) | (buf[off + 1] << 16) | (buf[off + 2] << 8) | buf[off + 3]);
     private static void WriteBE16(byte[] buf, int off, ushort val) { buf[off] = (byte)(val >> 8); buf[off + 1] = (byte)val; }
     private static void WriteBE32(byte[] buf, int off, uint val) { buf[off] = (byte)(val >> 24); buf[off + 1] = (byte)(val >> 16); buf[off + 2] = (byte)(val >> 8); buf[off + 3] = (byte)val; }
+    private static void WriteLE16(byte[] buf, int off, ushort val) { buf[off] = (byte)val; buf[off + 1] = (byte)(val >> 8); }
+    private static void WriteLE32(byte[] buf, int off, uint val) { buf[off] = (byte)val; buf[off + 1] = (byte)(val >> 8); buf[off + 2] = (byte)(val >> 16); buf[off + 3] = (byte)(val >> 24); }
     private static string Hex(byte[] d, int max = 32) => BitConverter.ToString(d, 0, Math.Min(max, d.Length));
 
     private ClientInfo EnsureClientInfo(PeerInfo peer)
