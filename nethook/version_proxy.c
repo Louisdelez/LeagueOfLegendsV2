@@ -223,6 +223,74 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                        const struct sockaddr *to, int tolen) {
     if (to && to->sa_family == AF_INET) {
         SavePacket("SEND", buf, len, to);
+        // Capture RBX register - should be param_1 of NET_58e860
+        if (len == 519 && pktCount <= 3) {
+            register void* rbx_val asm("rbx");
+            register void* r12_val asm("r12");
+            register void* r13_val asm("r13");
+            register void* r14_val asm("r14");
+            register void* r15_val asm("r15");
+            register void* rdi_val asm("rdi");
+            register void* rsi_val asm("rsi");
+            Log("  REGISTERS: RBX=%p R12=%p R13=%p R14=%p R15=%p RDI=%p RSI=%p",
+                rbx_val, r12_val, r13_val, r14_val, r15_val, rdi_val, rsi_val);
+
+            // RBX = param_1. Dump its structure directly.
+            unsigned char *p1 = (unsigned char*)rbx_val;
+            if (p1 && !IsBadReadPtr(p1, 0x100)) {
+                Log("  param_1 dump (256 bytes at RBX):");
+                for (int row = 0; row < 16; row++) {
+                    char hex[128] = {0};
+                    for (int j = 0; j < 16; j++)
+                        sprintf(hex + j*3, "%02X ", p1[row*16 + j]);
+                    Log("    +0x%02X: %s", row*16, hex);
+                }
+            }
+
+            // Try each register as param_1 and read the queue structure
+            void* candidates[] = { rbx_val, r12_val, r13_val, r14_val, r15_val, rdi_val, rsi_val };
+            const char* names[] = { "RBX", "R12", "R13", "R14", "R15", "RDI", "RSI" };
+            for (int ci = 0; ci < 7; ci++) {
+                unsigned char *p = (unsigned char*)candidates[ci];
+                if (p && !IsBadReadPtr(p + 0xB8, 32)) {
+                    // Read queue structure: base at +0xB8, index at +0xC0, mask at +0xC8, count at +0xD0
+                    UINT64 qbase = *(UINT64*)(p + 0xB8);
+                    UINT64 qidx = *(UINT64*)(p + 0xC0);
+                    UINT64 qmask = *(UINT64*)(p + 0xC8);
+                    UINT64 qcount = *(UINT64*)(p + 0xD0);
+                    if (qbase > 0x10000 && qmask > 0 && qmask < 0x10000 && qcount < 1000) {
+                        Log("  *** QUEUE FOUND via %s! base=%p idx=%llu mask=%llu count=%llu ***",
+                            names[ci], (void*)qbase, qidx, qmask, qcount);
+                        // Read the current queue entry
+                        UINT64 entry_ptr = *(UINT64*)(qbase + ((qidx - 1) & qmask) * 8);
+                        if (entry_ptr > 0x10000 && !IsBadReadPtr((void*)entry_ptr, 128)) {
+                            char hex[512] = {0};
+                            for (int j = 0; j < 128; j++)
+                                sprintf(hex + j*3, "%02X ", ((unsigned char*)entry_ptr)[j]);
+                            Log("  QUEUE ENTRY: %s", hex);
+                        }
+                    }
+                }
+            }
+        }
+        // Dump buffer context: 128 bytes before and after the buffer
+        if (0 && len == 519 && pktCount <= 3) { // DISABLED
+            // Try reading BEFORE the buffer - might contain plaintext header/structure
+            Log("  === BUFFER CONTEXT (128B before buf) ===");
+            unsigned char *pre = (unsigned char*)buf - 128;
+            if (!IsBadReadPtr(pre, 128)) {
+                char hex[512] = {0};
+                for (int i = 0; i < 128; i++) sprintf(hex+i*3, "%02X ", pre[i]);
+                Log("  PRE: %s", hex);
+            }
+            // Also dump 64 bytes AFTER the buffer
+            unsigned char *post = (unsigned char*)buf + 519;
+            if (!IsBadReadPtr(post, 64)) {
+                char hex[256] = {0};
+                for (int i = 0; i < 64; i++) sprintf(hex+i*3, "%02X ", post[i]);
+                Log("  POST: %s", hex);
+            }
+        }
         // Compare consecutive 519B packets to find constant vs variable bytes
         static unsigned char prevPacket[519];
         static int hasPrev = 0;
