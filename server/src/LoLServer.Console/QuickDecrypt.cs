@@ -37,6 +37,18 @@ public static class QuickDecrypt
             {
                 var pkt = File.ReadAllBytes(testFile);
                 // Extract encrypted data: bytes 12-518 (skip LNPBlob+token)
+                // Try different encrypted region sizes (uVar16 from FUN_14058ef90)
+                foreach (int tryLen in new[] { 40, 48, 43, 39, 504, 507 })
+                {
+                    int useLen = Math.Min(tryLen, pkt.Length - 12);
+                    var tryEnc = new byte[useLen];
+                    Array.Copy(pkt, 12, tryEnc, 0, useLen);
+                    var tryDec = DoubleCfbDecrypt(cipher, tryEnc);
+                    ushort tryPeer = (ushort)(tryDec[0] | (tryDec[1] << 8));
+                    uint tryNonce = (uint)((tryDec[2] << 24) | (tryDec[3] << 16) | (tryDec[4] << 8) | tryDec[5]);
+                    byte tryFlags = tryDec[6];
+                    System.Console.WriteLine($"  DblCFB({useLen}B): peer=0x{tryPeer:X4} nonce=0x{tryNonce:X8} flags=0x{tryFlags:X2} cmd={tryFlags & 0x7F}");
+                }
                 var encrypted = new byte[pkt.Length - 12];
                 Array.Copy(pkt, 12, encrypted, 0, encrypted.Length);
                 System.Console.WriteLine($"  Encrypted data: {encrypted.Length}B, first={BitConverter.ToString(encrypted, 0, 8)}");
@@ -164,9 +176,48 @@ public static class QuickDecrypt
                     System.Console.WriteLine($"  payload ({dec.Length - payloadOff}B): {BitConverter.ToString(dec, payloadOff, Math.Min(24, dec.Length - payloadOff))}");
             }
 
-            // Also try single CFB
+            // Also try single CFB and verify CRC with FULL payload
             var singleDec = CfbDecrypt(cipher, enc);
             System.Console.WriteLine($"  SglCFB dec: {BitConverter.ToString(singleDec, 0, Math.Min(24, singleDec.Length))}");
+
+            // CRC VERIFICATION with single CFB plaintext
+            if (singleDec.Length >= 7 && data.Length == 519)
+            {
+                ushort sPeer = (ushort)(singleDec[0] | (singleDec[1] << 8));
+                uint sNonce = (uint)(singleDec[2] | (singleDec[3] << 8) | (singleDec[4] << 16) | (singleDec[5] << 24));
+                byte sFlags = singleDec[6];
+                bool sHasTS = (sFlags & 0x80) != 0;
+                int sPayOff = 7 + (sHasTS ? 8 : 0);
+
+                // Compute CRC with game formula
+                byte sLo = (byte)(sPeer & 0xFF);
+                byte sHi = (byte)((sPeer >> 8) & 0xFF);
+                uint sCrc = ((uint)sLo | 0xFFFFFF00u) ^ 0xB1F740B4u;
+                sCrc = GameCrcByte(sCrc, sHi);
+                // local_res10 bytes
+                foreach (var b in new byte[] {1,0,0,0,0,0,0,0})
+                    sCrc = GameCrcByte(sCrc, b);
+                // timestamp: if hasTS, use bytes 7-14; else use 0xFF*8 (from local_b0 init)
+                if (sHasTS && singleDec.Length >= 15)
+                    for (int ti = 7; ti < 15; ti++) sCrc = GameCrcByte(sCrc, singleDec[ti]);
+                else
+                    for (int ti = 0; ti < 8; ti++) sCrc = GameCrcByte(sCrc, 0xFF);
+                // payload
+                for (int pi = sPayOff; pi < singleDec.Length; pi++)
+                    sCrc = GameCrcByte(sCrc, singleDec[pi]);
+
+                uint sComputed = System.Net.IPAddress.HostToNetworkOrder((int)(~sCrc)) > 0
+                    ? (uint)System.Net.IPAddress.HostToNetworkOrder((int)(~sCrc))
+                    : (uint)System.Net.IPAddress.HostToNetworkOrder((int)(~sCrc));
+                // Actually just do the byte swap manually
+                uint notCrc = ~sCrc;
+                uint htonlNonce = ((notCrc & 0xFF) << 24) | (((notCrc >> 8) & 0xFF) << 16) | (((notCrc >> 16) & 0xFF) << 8) | ((notCrc >> 24) & 0xFF);
+
+                System.Console.Write($"  CRC-SINGLE: peer=0x{sPeer:X4} nonce_LE=0x{sNonce:X8}");
+                System.Console.Write($" flags=0x{sFlags:X2} hasTS={sHasTS} payLen={singleDec.Length - sPayOff}");
+                System.Console.Write($" computed_htonl=0x{htonlNonce:X8}");
+                System.Console.WriteLine(htonlNonce == sNonce ? " *** MATCH! ***" : " no match");
+            }
         }
     }
 
@@ -184,6 +235,13 @@ public static class QuickDecrypt
         Array.Reverse(result);  // reverse ALL bytes
         result = CfbEncryptFwd(cipher, result);
         return result;
+    }
+
+    // Game CRC: the Ghidra shows (crc<<8|byte)^table[crc>>24] but
+    // this doesn't match. Try STANDARD CRC-32/MPEG-2 instead:
+    static uint GameCrcByte(uint crc, byte b)
+    {
+        return ((crc << 8) & 0xFFFFFFFF) ^ CrcTableMPEG2[((crc >> 24) & 0xFF) ^ b];
     }
 
     static uint CrcByteMPEG2(uint crc, byte b)
