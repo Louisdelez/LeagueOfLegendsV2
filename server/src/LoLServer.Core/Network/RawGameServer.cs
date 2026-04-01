@@ -245,9 +245,10 @@ public class RawGameServer : IGameServer, IDisposable
             Send(enc, peer);
         }
 
-        // TEST: Send 511-byte packet (same size as echo) with our own data
+        // TEST: Send packet same size as echo with our own data
+        if (data.Length > 52) // only for larger packets
         {
-            var custom = new byte[data.Length - 8]; // same size as echo (511B)
+            var custom = new byte[data.Length - 8]; // same size as echo
             // Fill with token prefix + our ENet VERIFY_CONNECT + zero padding
             WriteBE32(custom, 0, peer.ConnectToken); // token at bytes 0-3
             int off = 4;
