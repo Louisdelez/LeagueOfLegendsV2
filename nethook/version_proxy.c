@@ -222,13 +222,49 @@ static void ScanPBox(void) {
 // Global buffer for echo injection
 static char lastSendBuf[1024];
 static int lastSendLen = 0;
-static int injectMode = 0;  // DISABLED - server handles echo
+static int injectMode = 0;
 static int injectCount = 0;
+
+// CRC BYPASS: patch the nonce check in FUN_1405725f0 at runtime
+static int crcPatched = 0;
+static void PatchCrcCheck(void) {
+    if (crcPatched) return;
+    // Find base of LoLPrivate.exe
+    HMODULE hMod = GetModuleHandleA("LoLPrivate.exe");
+    if (!hMod) hMod = GetModuleHandleA(NULL);
+    if (!hMod) { Log("CRC PATCH: Can't find module"); return; }
+
+    // RVA of the CRC check: 0x572827
+    // CMP R12D,EAX; SETZ AL = 44 3B E0 0F 94 C0
+    BYTE *target = (BYTE*)hMod + 0x572827;
+
+    // Verify bytes before patching
+    if (target[0] == 0x44 && target[1] == 0x3B && target[2] == 0xE0 &&
+        target[3] == 0x0F && target[4] == 0x94 && target[5] == 0xC0) {
+        DWORD oldProtect;
+        if (VirtualProtect(target, 6, PAGE_EXECUTE_READWRITE, &oldProtect)) {
+            // NOP NOP NOP; MOV AL,1; NOP
+            target[0] = 0x90; target[1] = 0x90; target[2] = 0x90;
+            target[3] = 0xB0; target[4] = 0x01; target[5] = 0x90;
+            VirtualProtect(target, 6, oldProtect, &oldProtect);
+            crcPatched = 1;
+            Log("*** CRC CHECK PATCHED IN MEMORY! ***");
+        } else {
+            Log("CRC PATCH: VirtualProtect failed (err=%d)", GetLastError());
+        }
+    } else {
+        Log("CRC PATCH: Bytes don't match at %p: %02X %02X %02X %02X %02X %02X",
+            target, target[0], target[1], target[2], target[3], target[4], target[5]);
+    }
+}
 
 int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                        const struct sockaddr *to, int tolen) {
     if (to && to->sa_family == AF_INET) {
         SavePacket("SEND", buf, len, to);
+        // Patch CRC check on first sendto (game is already initialized by now)
+        if (!crcPatched) PatchCrcCheck();
+
         // Save ONLY the first 519B sendto for echo injection (the CONNECT)
         if (len == 519 && lastSendLen == 0) {
             memcpy(lastSendBuf, buf, len);
