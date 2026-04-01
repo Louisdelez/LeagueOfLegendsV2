@@ -1,149 +1,387 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
+using System.Text;
+using System.Threading;
 using LoLServer.Core.Config;
 
 namespace LoLServer.Launcher;
 
 /// <summary>
-/// Launches "League of Legends.exe" pointed at our local server.
+/// Launches the REAL "League of Legends.exe" pointed at our private server.
 ///
-/// Launch command format:
-/// "League of Legends.exe" "8394" "LoLLauncher.exe" "" "SERVER_IP PORT BLOWFISH_KEY PLAYER_ID"
+/// Based on real client logs (patch 16.6), the launch command is:
+///   "League of Legends.exe" "SERVER_IP PORT BLOWFISH_KEY PLAYER_ID"
+///     -Product=LoL -PlayerID=PLAYER_ID -GameID=1
+///     -GameBaseDir=PATH -Region=EUW -PlatformID=EUW1 -Locale=fr_FR
+///     -SkipBuild -EnableCrashpad=false -RiotClientPort=PORT -RiotClientAuthToken=TOKEN
+///
+/// The client also connects to RiotClientPort (HTTP) for LCU communication.
+/// We run a fake RiotClient HTTP stub so the client doesn't crash.
 /// </summary>
 class Program
 {
+    private const string AuthToken = "PrivateServerToken123";
+    private static int _riotClientPort = 0;
+
     static void Main(string[] args)
     {
-        Console.WriteLine(@"
-  ╔═══════════════════════════════════════════╗
-  ║     LoL Client Launcher v0.1.0            ║
-  ║     Connects to local private server      ║
-  ╚═══════════════════════════════════════════╝
+        System.Console.WriteLine(@"
+  ╔═══════════════════════════════════════════════╗
+  ║     LoL Private Server - Client Launcher      ║
+  ║     Launches the REAL LoL client               ║
+  ╚═══════════════════════════════════════════════╝
 ");
 
         // Load config
-        var configPath = args.Length > 0 ? args[0] : FindConfigPath();
-        if (configPath == null || !File.Exists(configPath))
+        var configPath = args.Length > 0 && !args[0].StartsWith("-") ? args[0] : FindConfigPath();
+        GameConfig config;
+
+        if (configPath != null && File.Exists(configPath))
         {
-            Console.WriteLine("Usage: LoLServer.Launcher [path-to-gameconfig.json]");
-            Console.WriteLine("Config not found. Run LoLServer.Console first to generate one.");
+            config = GameConfig.LoadFromFile(configPath);
+            System.Console.WriteLine($"Config loaded from {configPath}");
+        }
+        else
+        {
+            config = new GameConfig();
+            System.Console.WriteLine("Using default config (no gameconfig.json found)");
+        }
+
+        // Find client
+        var gamePath = FindGamePath(config);
+        if (gamePath == null)
+        {
+            System.Console.WriteLine("[ERROR] Cannot find League of Legends installation!");
+            System.Console.WriteLine("Searched in:");
+            System.Console.WriteLine("  - D:\\Programm\\Riot Games\\League of Legends\\Game\\");
+            System.Console.WriteLine("  - D:\\Riot Games\\League of Legends\\Game\\");
+            System.Console.WriteLine("  - C:\\Riot Games\\League of Legends\\Game\\");
+            System.Console.WriteLine();
+            System.Console.WriteLine("Set 'clientPath' in gameconfig.json to your Game\\ folder.");
             return;
         }
 
-        var config = GameConfig.LoadFromFile(configPath);
-        Console.WriteLine($"Config loaded from {configPath}");
+        // Use patched exe to avoid Vanguard kernel driver blocking us
+        var gameExe = Path.Combine(gamePath, "LoLPrivate.exe");
+        var originalExe = Path.Combine(gamePath, "League of Legends.exe");
 
-        // Validate client path
-        var gameExe = Path.Combine(config.ClientPath, "League of Legends.exe");
         if (!File.Exists(gameExe))
         {
-            Console.WriteLine($"[ERROR] Game executable not found at: {gameExe}");
-            Console.WriteLine($"Set 'clientPath' in {configPath} to the Game/ directory");
-            Console.WriteLine("Example: /media/louisdelez/VM/LeagueOfLegendsV2/client/Game");
-            return;
+            if (!File.Exists(originalExe))
+            {
+                System.Console.WriteLine($"[ERROR] No League of Legends.exe found in {gamePath}");
+                return;
+            }
+
+            System.Console.WriteLine("[SETUP] Creating patched LoLPrivate.exe...");
+            File.Copy(originalExe, gameExe, overwrite: true);
+            PatchExeForPrivateServer(gameExe);
+            System.Console.WriteLine("[SETUP] Done! Patched exe ready.");
         }
+        var baseDir = Path.GetFullPath(Path.Combine(gamePath, ".."));
 
-        Console.WriteLine($"Game exe: {gameExe}");
-        Console.WriteLine($"Server: 127.0.0.1:{config.ServerPort}");
+        System.Console.WriteLine($"Client: {gameExe}");
+        System.Console.WriteLine($"BaseDir: {baseDir}");
+        System.Console.WriteLine($"Server: 127.0.0.1:{config.ServerPort}");
+        System.Console.WriteLine($"Players: {config.Players.Count}");
+        System.Console.WriteLine();
 
-        // Launch each player
-        for (int i = 0; i < config.Players.Count; i++)
+        // Try to use the Console server's FakeLCU (it persists, ours would die when Launcher exits)
+        _riotClientPort = LoLServer.Core.Network.FakeLCU.ReadPortFromFile();
+        if (_riotClientPort <= 0)
         {
-            var player = config.Players[i];
-            var key = player.BlowfishKey ?? config.BlowfishKey;
+            // Console server not running — start our own FakeLCU
+            System.Console.WriteLine("[LCU] No running FakeLCU found, starting our own...");
+            var fakeLcu = new LoLServer.Core.Network.FakeLCU();
+            fakeLcu.Start();
+            _riotClientPort = fakeLcu.Port;
+        }
+        System.Console.WriteLine();
 
-            LaunchClient(gameExe, config.ClientPath, config.ServerPort, key, player.PlayerId, i);
+        // Launch client for first player (or specified player)
+        int playerIndex = 0;
+        foreach (var arg in args)
+        {
+            if (arg.StartsWith("--player="))
+                playerIndex = int.Parse(arg.Split('=')[1]);
         }
 
-        Console.WriteLine();
-        Console.WriteLine("Client(s) launched. Press Enter to exit launcher.");
-        Console.ReadLine();
+        if (playerIndex >= config.Players.Count)
+            playerIndex = 0;
+
+        var player = config.Players[playerIndex];
+        var key = player.BlowfishKey ?? config.BlowfishKey;
+
+        LaunchClient(gameExe, baseDir, gamePath, config, player, key, playerIndex);
+
+        System.Console.WriteLine();
+        System.Console.WriteLine("Client launched! Check the game server console for connection.");
+        System.Console.WriteLine("Press Enter to kill client and exit.");
+        System.Console.ReadLine();
     }
 
-    static void LaunchClient(string gameExe, string workDir, int port, string blowfishKey, ulong playerId, int index)
+    static void LaunchClient(string gameExe, string baseDir, string gamePath,
+        GameConfig config, PlayerConfig player, string blowfishKey, int index)
     {
-        // Format: "League of Legends.exe" "8394" "LoLLauncher.exe" "" "127.0.0.1 PORT KEY PLAYERID"
-        var connectionString = $"127.0.0.1 {port} {blowfishKey} {playerId}";
+        // Connection string: "IP PORT KEY PLAYERID" (first positional arg)
+        var connectionString = $"127.0.0.1 {config.ServerPort} {blowfishKey} {player.PlayerId}";
 
-        var arguments = $"\"8394\" \"LoLLauncher.exe\" \"\" \"{connectionString}\"";
+        // Build the full argument list matching real client launch
+        var sb = new StringBuilder();
+        sb.Append($"\"{connectionString}\"");
+        sb.Append($" \"-Product=LoL\"");
+        sb.Append($" \"-PlayerID={player.PlayerId}\"");
+        sb.Append($" \"-GameID=1\"");
+        sb.Append($" \"-PlayerNameMode=ALIAS\"");
+        // LNPBlob = base64([4B magic 37AA0014][4B sessionID])
+        // The client uses this to know the protocol magic and session ID
+        var sessionIdBytes = BitConverter.GetBytes((uint)0xDEADBEEF);
+        var lnpBlob = new byte[] { 0x37, 0xAA, 0x00, 0x14 };
+        var fullBlob = new byte[8];
+        Array.Copy(lnpBlob, 0, fullBlob, 0, 4);
+        Array.Copy(sessionIdBytes, 0, fullBlob, 4, 4);
+        var lnpBase64 = Convert.ToBase64String(fullBlob);
+        sb.Append($" \"-LNPBlob={lnpBase64}\"");
+        sb.Append($" \"-GameBaseDir={baseDir}\"");
+        sb.Append($" \"-Region=EUW\"");
+        sb.Append($" \"-PlatformID=EUW1\"");
+        sb.Append($" \"-Locale=fr_FR\"");
+        sb.Append($" \"-SkipBuild\"");
+        sb.Append($" \"-EnableCrashpad=false\"");
+        sb.Append($" \"-RiotClientPort={_riotClientPort}\"");
+        sb.Append($" \"-RiotClientAuthToken={AuthToken}\"");
 
-        Console.WriteLine($"[Player {index}] Launching with:");
-        Console.WriteLine($"  Command: \"{gameExe}\" {arguments}");
-        Console.WriteLine($"  WorkDir: {workDir}");
-        Console.WriteLine($"  Key: {blowfishKey}");
-        Console.WriteLine($"  PlayerID: {playerId}");
+        var arguments = sb.ToString();
+
+        System.Console.WriteLine($"[Player {index}] {player.Name} - {player.Champion}");
+        System.Console.WriteLine($"  Team: {player.Team}");
+        System.Console.WriteLine($"  PlayerID: {player.PlayerId}");
+        System.Console.WriteLine($"  BlowfishKey: {blowfishKey}");
+        System.Console.WriteLine();
+        System.Console.WriteLine($"  Command:");
+        System.Console.WriteLine($"    \"{gameExe}\" {arguments}");
+        System.Console.WriteLine();
 
         try
         {
+            // The LoL client uses OpenSSL/libcurl which reads SSL_CERT_FILE
+            // for trusted CA certificates. Point it to our FakeLCU cert.
+            var certPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "fakeLcu.crt");
+            if (!File.Exists(certPath))
+            {
+                // Try the Console build output
+                certPath = Path.GetFullPath(Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..",
+                    "LoLServer.Console", "bin", "Debug", "net8.0", "fakeLcu.crt"));
+            }
+
+            // Set SSL_CERT_FILE system-wide so the game's OpenSSL trusts our cert
+            if (File.Exists(certPath))
+            {
+                Environment.SetEnvironmentVariable("SSL_CERT_FILE", certPath, EnvironmentVariableTarget.User);
+                System.Console.WriteLine($"  SSL_CERT_FILE={certPath} (set for current user)");
+            }
+            else
+            {
+                System.Console.WriteLine($"  [WARN] FakeLCU cert not found at {certPath}");
+            }
+
             var psi = new ProcessStartInfo
             {
                 FileName = gameExe,
                 Arguments = arguments,
-                WorkingDirectory = workDir,
-                UseShellExecute = false,
-                RedirectStandardOutput = false,
-                RedirectStandardError = false
+                WorkingDirectory = gamePath,
+                UseShellExecute = true,
             };
 
             var process = Process.Start(psi);
             if (process != null)
             {
-                Console.WriteLine($"  [OK] Client launched (PID: {process.Id})");
+                System.Console.WriteLine($"  [OK] Client launched (PID: {process.Id})");
+
+                // Monitor the process
+                var monitor = new Thread(() =>
+                {
+                    process.WaitForExit();
+                    System.Console.WriteLine($"  [EXIT] Client exited with code {process.ExitCode}");
+
+                    // Check for crash logs
+                    var logDir = Path.Combine(baseDir, "Logs", "GameLogs");
+                    if (Directory.Exists(logDir))
+                    {
+                        var latestLog = GetLatestDirectory(logDir);
+                        if (latestLog != null)
+                        {
+                            var r3dlog = Path.Combine(latestLog, Path.GetFileName(latestLog) + "_r3dlog.txt");
+                            if (File.Exists(r3dlog))
+                            {
+                                System.Console.WriteLine($"  [LOG] Game log: {r3dlog}");
+                                // Show last 20 lines
+                                var lines = File.ReadAllLines(r3dlog);
+                                int start = Math.Max(0, lines.Length - 20);
+                                System.Console.WriteLine("  --- Last 20 lines of game log ---");
+                                for (int i = start; i < lines.Length; i++)
+                                    System.Console.WriteLine($"  {lines[i]}");
+                            }
+                        }
+                    }
+                })
+                { IsBackground = true };
+                monitor.Start();
             }
             else
             {
-                Console.WriteLine($"  [ERROR] Failed to start client process");
+                System.Console.WriteLine($"  [ERROR] Failed to start client process");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"  [ERROR] {ex.Message}");
-
-            // On Linux, suggest Wine
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
-            {
-                Console.WriteLine("  [TIP] On Linux, you need Wine to run League of Legends.exe:");
-                Console.WriteLine($"  wine \"{gameExe}\" {arguments}");
-
-                // Try with Wine
-                Console.Write("  Try with Wine? (y/n): ");
-                if (Console.ReadLine()?.ToLower() == "y")
-                {
-                    LaunchWithWine(gameExe, arguments, workDir);
-                }
-            }
+            System.Console.WriteLine($"  [ERROR] {ex.Message}");
         }
     }
 
-    static void LaunchWithWine(string gameExe, string arguments, string workDir)
+    /// <summary>
+    /// Start a fake RiotClient HTTP server.
+    /// The LoL client connects to this for LCU (League Client Update) communication.
+    /// Without it, the client may crash or hang.
+    /// </summary>
+    static int StartFakeRiotClient()
     {
-        try
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "wine",
-                Arguments = $"\"{gameExe}\" {arguments}",
-                WorkingDirectory = workDir,
-                UseShellExecute = false
-            };
+        // Find a free port
+        var listener = new TcpPortFinder();
+        int port = listener.FindFreePort();
 
-            var process = Process.Start(psi);
-            if (process != null)
-            {
-                Console.WriteLine($"  [OK] Client launched via Wine (PID: {process.Id})");
-            }
-        }
-        catch (Exception ex)
+        var httpListener = new HttpListener();
+        httpListener.Prefixes.Add($"http://localhost:{port}/");
+        httpListener.Start();
+
+        var thread = new Thread(() =>
         {
-            Console.WriteLine($"  [ERROR] Wine launch failed: {ex.Message}");
-            Console.WriteLine("  Install Wine: sudo apt install wine64");
+            while (httpListener.IsListening)
+            {
+                try
+                {
+                    var ctx = httpListener.GetContext();
+                    HandleLcuRequest(ctx);
+                }
+                catch (HttpListenerException)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    System.Console.WriteLine($"  [LCU] Error: {ex.Message}");
+                }
+            }
+        })
+        { IsBackground = true, Name = "FakeRiotClient" };
+        thread.Start();
+
+        return port;
+    }
+
+    /// <summary>
+    /// Handle LCU HTTP requests from the game client.
+    /// The client makes various API calls - we respond with minimal valid JSON.
+    /// </summary>
+    static void HandleLcuRequest(HttpListenerContext ctx)
+    {
+        var path = ctx.Request.Url?.AbsolutePath ?? "/";
+        var method = ctx.Request.HttpMethod;
+
+        System.Console.WriteLine($"  [LCU] {method} {path}");
+
+        string responseJson;
+
+        // Route common LCU endpoints
+        if (path.Contains("/riotclient/auth-token"))
+        {
+            responseJson = $"\"{AuthToken}\"";
         }
+        else if (path.Contains("/riotclient/region-locale"))
+        {
+            responseJson = "{\"locale\":\"fr_FR\",\"region\":\"EUW\",\"webLanguage\":\"fr\",\"webRegion\":\"euw\"}";
+        }
+        else if (path.Contains("/chat/v1/session"))
+        {
+            responseJson = "{\"loaded\":true,\"state\":\"connected\"}";
+        }
+        else if (path.Contains("/lol-chat/v1"))
+        {
+            responseJson = "{\"state\":\"connected\"}";
+        }
+        else if (path.Contains("/performance/v1"))
+        {
+            responseJson = "{}";
+        }
+        else if (path.Contains("/process-control/v1"))
+        {
+            responseJson = "{\"status\":\"ok\"}";
+        }
+        else if (path.Contains("/system/v1"))
+        {
+            responseJson = "{\"initialized\":true}";
+        }
+        else if (path.Contains("/player-notifications"))
+        {
+            responseJson = "[]";
+        }
+        else if (path.Contains("/lol-game-client-chat"))
+        {
+            responseJson = "{\"state\":\"connected\"}";
+        }
+        else if (path.Contains("/voice-chat"))
+        {
+            responseJson = "{\"connected\":false}";
+        }
+        else if (path.Contains("/muted-players"))
+        {
+            responseJson = "[]";
+        }
+        else
+        {
+            // Default: return empty OK
+            responseJson = "{}";
+        }
+
+        var responseBytes = Encoding.UTF8.GetBytes(responseJson);
+        ctx.Response.StatusCode = 200;
+        ctx.Response.ContentType = "application/json";
+        ctx.Response.ContentLength64 = responseBytes.Length;
+        ctx.Response.OutputStream.Write(responseBytes, 0, responseBytes.Length);
+        ctx.Response.Close();
+    }
+
+    static string? FindGamePath(GameConfig config)
+    {
+        var paths = new[]
+        {
+            config.ClientPath,
+            // Private copy first (completely separate from official install)
+            @"D:\LeagueOfLegendsV2\client-private\Game",
+            Path.Combine(Directory.GetCurrentDirectory(), "client-private", "Game"),
+            // Fallback to original copy
+            Path.Combine(Directory.GetCurrentDirectory(), "client", "Game"),
+            @"D:\LeagueOfLegendsV2\client\Game",
+            // Official install (last resort)
+            @"D:\Programm\Riot Games\League of Legends\Game",
+            @"D:\Riot Games\League of Legends\Game",
+            @"C:\Riot Games\League of Legends\Game",
+        };
+
+        foreach (var path in paths)
+        {
+            if (!string.IsNullOrEmpty(path) && File.Exists(Path.Combine(path, "League of Legends.exe")))
+                return path;
+        }
+
+        return null;
     }
 
     static string? FindConfigPath()
     {
-        // Look in common locations
         var paths = new[]
         {
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "gameconfig.json"),
@@ -157,6 +395,87 @@ class Program
                 return path;
         }
 
-        return paths[0]; // Return default even if not found
+        return null;
+    }
+
+    static string? GetLatestDirectory(string parentDir)
+    {
+        string? latest = null;
+        DateTime latestTime = DateTime.MinValue;
+
+        foreach (var dir in Directory.GetDirectories(parentDir))
+        {
+            var info = new DirectoryInfo(dir);
+            if (info.CreationTime > latestTime)
+            {
+                latestTime = info.CreationTime;
+                latest = dir;
+            }
+        }
+
+        return latest;
+    }
+
+    /// <summary>
+    /// Patch the exe to strip Riot's digital signature and PE checksum.
+    /// This prevents the Vanguard kernel driver (vgk.sys) from recognizing
+    /// and blocking our copy as a "known Riot binary".
+    /// </summary>
+    static void PatchExeForPrivateServer(string exePath)
+    {
+        var bytes = File.ReadAllBytes(exePath);
+
+        // PE header offset at 0x3C
+        int peOffset = BitConverter.ToInt32(bytes, 0x3C);
+        ushort peMagic = BitConverter.ToUInt16(bytes, peOffset + 0x18);
+
+        // Certificate table directory entry offset
+        int certOffset;
+        if (peMagic == 0x20B) // PE32+ (64-bit)
+            certOffset = peOffset + 0x18 + 0x70 + 0x20; // DataDirectory[4]
+        else // PE32
+            certOffset = peOffset + 0x18 + 0x60 + 0x20;
+
+        uint certRVA = BitConverter.ToUInt32(bytes, certOffset);
+        uint certSize = BitConverter.ToUInt32(bytes, certOffset + 4);
+
+        System.Console.WriteLine($"  PE: {(peMagic == 0x20B ? "64-bit" : "32-bit")}");
+        System.Console.WriteLine($"  Certificate: offset={certRVA} size={certSize}");
+
+        // Zero out certificate directory entry
+        for (int i = 0; i < 8; i++)
+            bytes[certOffset + i] = 0;
+
+        // Truncate appended certificate data
+        if (certRVA > 0 && certRVA < bytes.Length)
+        {
+            var trimmed = new byte[certRVA];
+            Array.Copy(bytes, trimmed, certRVA);
+            bytes = trimmed;
+            System.Console.WriteLine($"  Stripped {certSize} bytes of certificate data");
+        }
+
+        // Zero PE checksum
+        int checksumOffset = peOffset + 0x18 + 0x40;
+        for (int i = 0; i < 4; i++)
+            bytes[checksumOffset + i] = 0;
+
+        File.WriteAllBytes(exePath, bytes);
+        System.Console.WriteLine($"  Patched: signature stripped, checksum zeroed");
+    }
+}
+
+/// <summary>
+/// Helper to find a free TCP port for the fake RiotClient.
+/// </summary>
+class TcpPortFinder
+{
+    public int FindFreePort()
+    {
+        var listener = new System.Net.Sockets.TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        int port = ((IPEndPoint)listener.LocalEndpoint).Port;
+        listener.Stop();
+        return port;
     }
 }

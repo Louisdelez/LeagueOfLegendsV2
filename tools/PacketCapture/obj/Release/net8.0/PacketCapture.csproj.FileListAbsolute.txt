@@ -1,0 +1,15 @@
+D:\LeagueOfLegendsV2\tools\PacketCapture\bin\Release\net8.0\PacketCapture.exe
+D:\LeagueOfLegendsV2\tools\PacketCapture\bin\Release\net8.0\PacketCapture.deps.json
+D:\LeagueOfLegendsV2\tools\PacketCapture\bin\Release\net8.0\PacketCapture.runtimeconfig.json
+D:\LeagueOfLegendsV2\tools\PacketCapture\bin\Release\net8.0\PacketCapture.dll
+D:\LeagueOfLegendsV2\tools\PacketCapture\bin\Release\net8.0\PacketCapture.pdb
+D:\LeagueOfLegendsV2\tools\PacketCapture\obj\Release\net8.0\PacketCapture.GeneratedMSBuildEditorConfig.editorconfig
+D:\LeagueOfLegendsV2\tools\PacketCapture\obj\Release\net8.0\PacketCapture.AssemblyInfoInputs.cache
+D:\LeagueOfLegendsV2\tools\PacketCapture\obj\Release\net8.0\PacketCapture.AssemblyInfo.cs
+D:\LeagueOfLegendsV2\tools\PacketCapture\obj\Release\net8.0\PacketCapture.csproj.CoreCompileInputs.cache
+D:\LeagueOfLegendsV2\tools\PacketCapture\obj\Release\net8.0\PacketCapture.sourcelink.json
+D:\LeagueOfLegendsV2\tools\PacketCapture\obj\Release\net8.0\PacketCapture.dll
+D:\LeagueOfLegendsV2\tools\PacketCapture\obj\Release\net8.0\refint\PacketCapture.dll
+D:\LeagueOfLegendsV2\tools\PacketCapture\obj\Release\net8.0\PacketCapture.pdb
+D:\LeagueOfLegendsV2\tools\PacketCapture\obj\Release\net8.0\PacketCapture.genruntimeconfig.cache
+D:\LeagueOfLegendsV2\tools\PacketCapture\obj\Release\net8.0\ref\PacketCapture.dll
