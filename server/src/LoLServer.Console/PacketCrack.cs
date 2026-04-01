@@ -320,6 +320,53 @@ public static class PacketCrack
         }
         System.Console.WriteLine();
 
+        // ROUNDTRIP TEST: verify double CFB encrypt/decrypt
+        System.Console.WriteLine("=== DOUBLE CFB ROUNDTRIP TEST ===");
+        {
+            // Create a known plaintext that looks like ENet CONNECT
+            var testPlain = new byte[48];
+            // SessionID = 0
+            WriteBE32(testPlain, 0, 0);
+            // PeerID = 0x7FFF | 0x8000
+            WriteBE16(testPlain, 4, 0xFFFF);
+            // SentTime = 0x1234
+            WriteBE16(testPlain, 6, 0x1234);
+            // CONNECT command
+            testPlain[8] = 0x82; // cmd=2 | 0x80 flag
+            testPlain[9] = 0xFF; // channel
+            WriteBE16(testPlain, 10, 0); // seq
+            // CONNECT body
+            WriteBE16(testPlain, 12, 0); // outPeerID
+            WriteBE16(testPlain, 14, 996); // MTU
+            WriteBE32(testPlain, 16, 32768); // windowSize
+            WriteBE32(testPlain, 20, 32); // channelCount
+            // rest zeros (bandwidth, throttle)
+
+            System.Console.WriteLine($"  Original: {BitConverter.ToString(testPlain, 0, 24)}");
+
+            // Double CFB encrypt (simulating what the game does)
+            var encrypted = DoubleCfbEncrypt(cipher, testPlain);
+            System.Console.WriteLine($"  Encrypted: {BitConverter.ToString(encrypted, 0, 24)}");
+
+            // Double CFB decrypt (what our server should do)
+            var decrypted = DoubleCfbDecrypt(cipher, encrypted);
+            System.Console.WriteLine($"  Decrypted: {BitConverter.ToString(decrypted, 0, 24)}");
+
+            bool match = true;
+            for (int i = 0; i < testPlain.Length; i++)
+                if (testPlain[i] != decrypted[i]) { match = false; break; }
+            System.Console.WriteLine($"  Roundtrip OK: {match}");
+
+            if (!match)
+            {
+                // Show where they differ
+                for (int i = 0; i < testPlain.Length; i++)
+                    if (testPlain[i] != decrypted[i])
+                        System.Console.Write($"  DIFF @{i}: orig=0x{testPlain[i]:X2} dec=0x{decrypted[i]:X2}\n");
+            }
+        }
+        System.Console.WriteLine();
+
         // Verify P-box and test key byte orderings
         VerifyPBox();
 
@@ -531,6 +578,34 @@ public static class PacketCrack
     // CFB variants
     // =====================================================================
 
+    static byte[] DoubleCfbEncrypt(BlowFish cipher, byte[] data)
+    {
+        // Pass 1: CFB encrypt
+        var result = CfbEncryptOp(cipher, data, new byte[8]);
+        // Reverse processed blocks
+        int processed = (result.Length / 8) * 8;
+        Array.Reverse(result, 0, processed);
+        // Pass 2: CFB encrypt
+        result = CfbEncryptOp(cipher, result, new byte[8]);
+        return result;
+    }
+
+    static byte[] CfbEncryptOp(BlowFish cipher, byte[] data, byte[] iv)
+    {
+        var result = new byte[data.Length];
+        var feedback = (byte[])iv.Clone();
+        for (int i = 0; i < data.Length - 7; i += 8)
+        {
+            var ks = cipher.EncryptBlock(feedback);
+            for (int j = 0; j < 8; j++)
+                result[i + j] = (byte)(data[i + j] ^ ks[j]);
+            Array.Copy(result, i, feedback, 0, 8); // feedback = output (ciphertext)
+        }
+        int rem = data.Length % 8;
+        if (rem > 0) Array.Copy(data, data.Length - rem, result, data.Length - rem, rem);
+        return result;
+    }
+
     static byte[] DoubleCfbDecrypt(BlowFish cipher, byte[] data)
     {
         // Pass 1: CFB decrypt (undo second encryption pass)
@@ -740,6 +815,7 @@ public static class PacketCrack
 
     static ushort ReadBE16(byte[] b, int o) => (ushort)((b[o] << 8) | b[o + 1]);
     static uint ReadBE32(byte[] b, int o) => (uint)((b[o] << 24) | (b[o + 1] << 16) | (b[o + 2] << 8) | b[o + 3]);
+    static void WriteBE16(byte[] b, int o, ushort v) { b[o] = (byte)(v >> 8); b[o + 1] = (byte)v; }
     static void WriteBE32(byte[] b, int o, uint v) { b[o] = (byte)(v >> 24); b[o + 1] = (byte)(v >> 16); b[o + 2] = (byte)(v >> 8); b[o + 3] = (byte)v; }
 
     static void TestKeyOrder(byte[] key, string label, uint targetP0)

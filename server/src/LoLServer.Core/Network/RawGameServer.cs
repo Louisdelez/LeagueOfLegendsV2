@@ -174,9 +174,12 @@ public class RawGameServer : IGameServer, IDisposable
 
     private void SendVerifyConnect(PeerInfo peer)
     {
-        // Build VERIFY_CONNECT in LENet Season 12 big-endian
-        // Total plaintext: 8 (header) + 4 (cmd header) + 36 (body) = 48 bytes
-        var plain = new byte[48];
+        // Build response with VERIFY_CONNECT + ACK bundled together
+        // This matches Riot's server behavior (119B responses vs our previous 48B)
+        //
+        // Format: [8B header][VERIFY_CONNECT cmd(4+36)][ACK cmd(8)] = 56 bytes
+        // Or possibly multiple ACKs and additional commands
+        var plain = new byte[56]; // header(8) + VERIFY_CONNECT(40) + ACK(8)
         int off = 0;
 
         // LENet header (big-endian)
@@ -184,12 +187,12 @@ public class RawGameServer : IGameServer, IDisposable
         WriteBE16(plain, off, (ushort)(peer.PeerId | 0x8000)); off += 2;          // PeerID | TimeSent flag
         WriteBE16(plain, off, (ushort)(Environment.TickCount & 0xFFFF)); off += 2; // SentTime
 
-        // ENet VERIFY_CONNECT command (cmd=3, flag=0x80 SENT_TIME)
+        // === VERIFY_CONNECT command (cmd=3 | 0x80 SENT_TIME flag) ===
         plain[off] = 0x83; off++;     // cmd | flags
         plain[off] = 0xFF; off++;     // channel
         WriteBE16(plain, off, peer.VerifySeqNo++); off += 2; // reliableSeqNo
 
-        // VERIFY_CONNECT body (Season 12 big-endian)
+        // VERIFY_CONNECT body
         WriteBE16(plain, off, peer.PeerId); off += 2;    // OutgoingPeerID
         WriteBE16(plain, off, 996); off += 2;              // MTU
         WriteBE32(plain, off, 32768); off += 4;            // WindowSize
@@ -200,11 +203,19 @@ public class RawGameServer : IGameServer, IDisposable
         WriteBE32(plain, off, 2); off += 4;                // PacketThrottleAcceleration
         WriteBE32(plain, off, 2); off += 4;                // PacketThrottleDeceleration
 
+        // === ACK command for the client's CONNECT ===
+        plain[off] = 0x81; off++;     // cmd=1 (ACK) | 0x80 flag
+        plain[off] = 0xFF; off++;     // channel
+        WriteBE16(plain, off, 0); off += 2;  // ackSeqNo (seq of the CONNECT we're ACKing)
+        WriteBE16(plain, off, 0); off += 2;  // receivedSentTime
+        WriteBE16(plain, off, (ushort)(Environment.TickCount & 0xFFFF)); off += 2; // receivedSentTime (or padding)
+
         // Encrypt with single Blowfish CFB (fresh IV=0 per packet)
         byte[] encrypted = CfbEncrypt(plain);
 
-        Log($"  Plaintext:  {Hex(plain, 24)}");
-        Log($"  Encrypted:  {Hex(encrypted, 24)} ({encrypted.Length}B)");
+        Log($"  [{encrypted.Length}B] VERIFY_CONNECT + ACK");
+        Log($"  Plain: {Hex(plain, 32)}");
+        Log($"  Enc:   {Hex(encrypted, 32)}");
 
         Send(encrypted, peer);
     }
