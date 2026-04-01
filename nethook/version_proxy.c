@@ -235,6 +235,57 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
             Log("  REGISTERS: RBX=%p R12=%p R13=%p R14=%p R15=%p RDI=%p RSI=%p",
                 rbx_val, r12_val, r13_val, r14_val, r15_val, rdi_val, rsi_val);
 
+            // Find the crypto context by navigating the std::map at param_1+0x120
+            // std::map layout: [size(8)][root_ptr(8)][...][...]
+            // The map is at param_1+0x120, with root at param_1+0x128
+            // A map node has: [left(8)][parent(8)][right(8)][color(1)][padding(7)][key(8)][value(8)]
+            // The value is a pointer to the crypto context
+            static int cryptoDumped = 0;
+            if (!cryptoDumped) {
+                cryptoDumped = 1;
+                unsigned char *mapArea = (unsigned char*)rbx_val + 0x120;
+                if (!IsBadReadPtr(mapArea, 0x10)) {
+                    UINT64 mapSize = *(UINT64*)mapArea;
+                    UINT64 rootNode = *(UINT64*)(mapArea + 8);
+                    Log("  MAP: size=%llu root=%p", mapSize, (void*)rootNode);
+
+                    if (mapSize > 0 && rootNode > 0x10000 && !IsBadReadPtr((void*)rootNode, 0x30)) {
+                        // Navigate: the root's left child is the first real node
+                        UINT64 left = *(UINT64*)rootNode;
+                        Log("  Root left child: %p", (void*)left);
+
+                        if (left > 0x10000 && !IsBadReadPtr((void*)left, 0x50)) {
+                            // Node layout: left(8) parent(8) right(8) color(4) pad(4) key(8) value(8)
+                            // Try different offsets for the value
+                            for (int voff = 0x20; voff <= 0x40; voff += 8) {
+                                UINT64 val = *(UINT64*)(left + voff);
+                                if (val > 0x10000 && !IsBadReadPtr((void*)val, 0x20)) {
+                                    unsigned char *ctx = (unsigned char*)val;
+                                    // Dump first 32 bytes — should contain IV at +8
+                                    Log("  Node+0x%02X -> %p: %02X%02X%02X%02X %02X%02X%02X%02X | %02X%02X%02X%02X %02X%02X%02X%02X",
+                                        voff, (void*)val,
+                                        ctx[0],ctx[1],ctx[2],ctx[3],ctx[4],ctx[5],ctx[6],ctx[7],
+                                        ctx[8],ctx[9],ctx[10],ctx[11],ctx[12],ctx[13],ctx[14],ctx[15]);
+                                    // Check if +16 looks like P-box (should be modified Blowfish values)
+                                    // P-box[0] should NOT be 0x243F6A88 (initial) if key was set
+                                    UINT32 p0 = *(UINT32*)(ctx + 16);
+                                    if (p0 != 0x243F6A88 && p0 != 0 && p0 != 0xFFFFFFFF) {
+                                        Log("    *** POSSIBLE BF_KEY! P[0]=0x%08X (not initial) ***", p0);
+                                        Log("    IV (bytes 8-15): %02X %02X %02X %02X %02X %02X %02X %02X",
+                                            ctx[8],ctx[9],ctx[10],ctx[11],ctx[12],ctx[13],ctx[14],ctx[15]);
+                                        // Save the crypto context to file
+                                        char fn[MAX_PATH];
+                                        snprintf(fn, MAX_PATH, "%s\\CRYPTO_CTX_%p.bin", logDir, (void*)val);
+                                        FILE *f = fopen(fn, "wb");
+                                        if (f) { fwrite(ctx, 1, 4200, f); fclose(f); }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // RBX = param_1. Read the crypto context at param_1 + 0x120.
             unsigned char *p1 = (unsigned char*)rbx_val;
             if (p1 && !IsBadReadPtr(p1 + 0x120, 8)) {
