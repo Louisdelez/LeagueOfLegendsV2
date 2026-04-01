@@ -219,10 +219,22 @@ static void ScanPBox(void) {
     Log("Heap scan done: found %d BF_KEY", found);
 }
 
+// Global buffer for echo injection
+static char lastSendBuf[1024];
+static int lastSendLen = 0;
+static int injectMode = 0;  // DISABLED - server handles echo
+static int injectCount = 0;
+
 int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                        const struct sockaddr *to, int tolen) {
     if (to && to->sa_family == AF_INET) {
         SavePacket("SEND", buf, len, to);
+        // Save ONLY the first 519B sendto for echo injection (the CONNECT)
+        if (len == 519 && lastSendLen == 0) {
+            memcpy(lastSendBuf, buf, len);
+            lastSendLen = len;
+            Log("Captured first 519B CONNECT for echo injection");
+        }
         // Capture RBX register - should be param_1 of NET_58e860
         if (len == 519 && pktCount <= 3) {
             register void* rbx_val asm("rbx");
@@ -507,12 +519,27 @@ static const BYTE bf_enc_zeros[8] = {0xF9, 0xED, 0x26, 0xC0, 0xF2, 0x2A, 0x52, 0
 
 static int recvCallLogged = 0;
 
+// (moved to before Hook_sendto)
+
 int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                          struct sockaddr *from, int *fromlen) {
     int r = real_recvfrom(s, buf, len, flags, from, fromlen);
     if (r > 0 && from && from->sa_family == AF_INET) {
         struct sockaddr_in *sin = (struct sockaddr_in*)from;
         int isLocalhost = (ntohl(sin->sin_addr.s_addr) == 0x7F000001); // 127.0.0.1
+
+        // INJECTION: Replace server response with echo of client's last sendto
+        if (isLocalhost && injectMode && lastSendLen > 8 && injectCount < 500) {
+            int echoLen = lastSendLen - 8;  // strip LNPBlob (8 bytes)
+            if (echoLen > 0 && echoLen <= len) {
+                memcpy(buf, lastSendBuf + 8, echoLen);
+                r = echoLen;
+                injectCount++;
+                if (injectCount <= 5) {
+                    Log("INJECT_ECHO #%d: replaced %dB server data with %dB echo", injectCount, r, echoLen);
+                }
+            }
+        }
 
         if (isLocalhost) {
             // Detailed logging for packets from our server
