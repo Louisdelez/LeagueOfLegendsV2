@@ -225,36 +225,27 @@ static int lastSendLen = 0;
 static int injectMode = 0;
 static int injectCount = 0;
 
-// CRC BYPASS: patch the nonce check in FUN_1405725f0 at runtime
+// CRC BYPASS: patch the nonce check EARLY (in DllMain, before stub.dll protects memory)
 static int crcPatched = 0;
-static void PatchCrcCheck(void) {
+static void PatchCrcCheckEarly(void) {
     if (crcPatched) return;
-    // Find base of LoLPrivate.exe
-    HMODULE hMod = GetModuleHandleA("LoLPrivate.exe");
-    if (!hMod) hMod = GetModuleHandleA(NULL);
-    if (!hMod) { Log("CRC PATCH: Can't find module"); return; }
+    HMODULE hMod = GetModuleHandleA(NULL); // main exe
+    if (!hMod) return;
 
-    // RVA of the CRC check: 0x572827
-    // CMP R12D,EAX; SETZ AL = 44 3B E0 0F 94 C0
     BYTE *target = (BYTE*)hMod + 0x572827;
 
-    // Verify bytes before patching
+    // Verify bytes
     if (target[0] == 0x44 && target[1] == 0x3B && target[2] == 0xE0 &&
         target[3] == 0x0F && target[4] == 0x94 && target[5] == 0xC0) {
         DWORD oldProtect;
         if (VirtualProtect(target, 6, PAGE_EXECUTE_READWRITE, &oldProtect)) {
-            // NOP NOP NOP; MOV AL,1; NOP
             target[0] = 0x90; target[1] = 0x90; target[2] = 0x90;
             target[3] = 0xB0; target[4] = 0x01; target[5] = 0x90;
             VirtualProtect(target, 6, oldProtect, &oldProtect);
             crcPatched = 1;
-            Log("*** CRC CHECK PATCHED IN MEMORY! ***");
-        } else {
-            Log("CRC PATCH: VirtualProtect failed (err=%d)", GetLastError());
+            // Can't use Log() here (logfile not open yet), use OutputDebugString
+            OutputDebugStringA("*** CRC CHECK PATCHED IN DllMain! ***");
         }
-    } else {
-        Log("CRC PATCH: Bytes don't match at %p: %02X %02X %02X %02X %02X %02X",
-            target, target[0], target[1], target[2], target[3], target[4], target[5]);
     }
 }
 
@@ -263,7 +254,21 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
     if (to && to->sa_family == AF_INET) {
         SavePacket("SEND", buf, len, to);
         // Patch CRC check on first sendto (game is already initialized by now)
-        if (!crcPatched) PatchCrcCheck();
+        // Try to patch CRC (may already be done in DllMain)
+        if (!crcPatched) {
+            PatchCrcCheckEarly();
+        }
+        if (crcPatched) {
+            Log("CRC PATCH: ACTIVE (patched successfully!)");
+        } else {
+            // Read the bytes to check current state
+            HMODULE hMod = GetModuleHandleA(NULL);
+            if (hMod) {
+                BYTE *t = (BYTE*)hMod + 0x572827;
+                Log("CRC PATCH: FAILED. Bytes: %02X %02X %02X %02X %02X %02X",
+                    t[0], t[1], t[2], t[3], t[4], t[5]);
+            }
+        }
 
         // Save ONLY the first 519B sendto for echo injection (the CONNECT)
         if (len == 519 && lastSendLen == 0) {
@@ -793,6 +798,9 @@ static void InstallNetHooks(void) {
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(hinst);
+
+        // PATCH CRC CHECK IMMEDIATELY - before stub.dll loads and sets guard pages!
+        PatchCrcCheckEarly();
 
         // Load real version.dll from system directory
         char sysDir[MAX_PATH];
