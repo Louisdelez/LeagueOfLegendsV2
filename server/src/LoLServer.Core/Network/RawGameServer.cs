@@ -221,12 +221,20 @@ public class RawGameServer : IGameServer, IDisposable
             foreach (var b in lr) crc = CrcByte(crc, b);
             for (int i = 0; i < 8; i++) crc = CrcByte(crc, 0); // timestamp
             foreach (var b in verifyBody) crc = CrcByte(crc, b);
-            uint nonce = ~crc;
+            uint nonceBits = ~crc;
+            // htonl(~crc) is what FUN_140577f10 returns
+            // iVar20 = *(int*)(data+2) reads nonce as LE int
+            // For match: *(int*) read of our bytes must == htonl(~crc)
+            // htonl byte-swaps: htonl(AABBCCDD) = DDCCBBAA
+            // *(int*) LE read of [A,B,C,D] = D<<24|C<<16|B<<8|A
+            // So we need: D<<24|C<<16|B<<8|A = htonl(~crc) = byte_swap(~crc)
+            // This means bytes = [~crc>>24, ~crc>>16, ~crc>>8, ~crc&FF] i.e. ~crc in BE!
+            // Which is the same as WriteBE32(nonceBits)
 
             // Build plaintext
             var pt = new byte[2 + 4 + 1 + verifyBody.Length]; // 39 bytes
             WriteLE16(pt, 0, 0); // peerID = 0
-            WriteBE32(pt, 2, nonce); // CRC nonce
+            WriteBE32(pt, 2, nonceBits); // nonce in BE (= ~crc in BE = what htonl produces)
             pt[6] = 0x03; // flags = VERIFY_CONNECT (cmd type 3)
             Array.Copy(verifyBody, 0, pt, 7, verifyBody.Length);
 
@@ -237,7 +245,7 @@ public class RawGameServer : IGameServer, IDisposable
             var pkt = new byte[4 + enc.Length];
             WriteBE32(pkt, 0, peer.ConnectToken);
             Array.Copy(enc, 0, pkt, 4, enc.Length);
-            Log($"  [CORRECT-VC] nonce=0x{nonce:X8} peerID=0 flags=0x03 ({pkt.Length}B)");
+            Log($"  [CORRECT-VC] nonce=0x{nonceBits:X8} peerID=0 flags=0x03 ({pkt.Length}B)");
             Send(pkt, peer);
 
             // Also without token prefix
