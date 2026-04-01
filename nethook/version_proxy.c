@@ -223,10 +223,31 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                        const struct sockaddr *to, int tolen) {
     if (to && to->sa_family == AF_INET) {
         SavePacket("SEND", buf, len, to);
-        // Search ALL process memory for ENet CONNECT pattern (0x82 0xFF 0x00 0x01)
-        // This is: cmd=CONNECT|SENT_TIME, channel=0xFF, seqNo=1
-        // If plaintext ENet exists anywhere in memory, we'll find it
-        if (len == 519 && pktCount <= 3) {
+        // Compare consecutive 519B packets to find constant vs variable bytes
+        static unsigned char prevPacket[519];
+        static int hasPrev = 0;
+        if (len == 519 && pktCount <= 10) {
+            if (hasPrev) {
+                int constBytes = 0, varBytes = 0;
+                char constMap[200] = {0};
+                for (int i = 0; i < 519; i++) {
+                    if ((unsigned char)buf[i] == prevPacket[i]) constBytes++;
+                    else varBytes++;
+                }
+                Log("  DIFF: %d constant, %d variable bytes (of 519)", constBytes, varBytes);
+                // Log which byte positions are constant
+                char positions[2000] = {0};
+                int pos = 0;
+                for (int i = 0; i < 519 && pos < 1900; i++) {
+                    if ((unsigned char)buf[i] == prevPacket[i])
+                        pos += sprintf(positions + pos, "%d ", i);
+                }
+                Log("  CONST positions: %s", positions);
+            }
+            memcpy(prevPacket, buf, 519);
+            hasPrev = 1;
+        }
+        if (0 && len == 519 && pktCount <= 3) { // DISABLED
             Log("  === MEMORY SCAN for MTU+Window LE (E4030000 00800000 20000000) ===");
             // Try LITTLE-ENDIAN: MTU=996=E403, Window=32768=00800000, Chan=32=20000000
             BYTE pattern[] = { 0xE4, 0x03, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00 };
