@@ -140,83 +140,91 @@ public class RawGameServer : IGameServer, IDisposable
         // Extract session ID from LNPBlob (little-endian in bytes 4-7)
         uint sessIdLE = (uint)(data[4] | (data[5] << 8) | (data[6] << 16) | (data[7] << 24));
 
+        // Extract connection token from bytes 8-11 (constant per connection)
+        // This might be the connectID the client expects us to echo back
+        if (data.Length >= 12)
+        {
+            uint connToken = ReadBE32(data, 8);
+            if (peer.ConnectToken == 0)
+            {
+                peer.ConnectToken = connToken;
+                Log($"  [TOKEN] Connection token: 0x{connToken:X8}");
+            }
+        }
+
         if (verbose)
         {
-            Log($"[CLIENT] #{peer.PacketCount} {data.Length}B LNPBlob sessID=0x{sessIdLE:X8}");
-            Log($"  Header: {Hex(data, 16)}");
+            Log($"[CLIENT] #{peer.PacketCount} {data.Length}B LNPBlob sessID=0x{sessIdLE:X8} token=0x{peer.ConnectToken:X8}");
+            Log($"  Header: {Hex(data, 20)}");
         }
 
         if (!peer.Connected)
         {
-            // First connection - send VERIFY_CONNECT
             peer.Connected = true;
-            peer.OutgoingPeerID = 0;
-            Log($"  [HANDSHAKE] Sending VERIFY_CONNECT");
+            peer.OutgoingPeerID = 1; // Non-zero peer ID
+            Log($"  [HANDSHAKE] Sending VERIFY_CONNECT (connectID=0x{peer.ConnectToken:X8})");
             SendVerifyConnect(peer);
             EnsureClientInfo(peer);
-
-            // After VERIFY_CONNECT, immediately start sending game init
-            // The client may not ACK explicitly in a format we can detect
-            ScheduleGameInit(peer);
         }
-        else if (peer.PacketCount <= 10)
+        else if (peer.PacketCount <= 15)
         {
-            // Client retransmitting - resend VERIFY_CONNECT
-            if (verbose) Log($"  [RETRANSMIT] Re-sending VERIFY_CONNECT");
+            // Client retransmitting - resend VERIFY_CONNECT with same connectID
+            if (verbose) Log($"  [RETRANSMIT #{peer.PacketCount}]");
             SendVerifyConnect(peer);
         }
         else if (!peer.GameInitSent)
         {
-            // Try sending game init data
             ScheduleGameInit(peer);
         }
     }
 
     private void SendVerifyConnect(PeerInfo peer)
     {
-        // Build response with VERIFY_CONNECT + ACK bundled together
-        // This matches Riot's server behavior (119B responses vs our previous 48B)
+        // Build VERIFY_CONNECT with connectID echoed from client's connection token.
+        // In standard ENet, the client rejects VERIFY_CONNECT if connectID doesn't match.
         //
-        // Format: [8B header][VERIFY_CONNECT cmd(4+36)][ACK cmd(8)] = 56 bytes
-        // Or possibly multiple ACKs and additional commands
-        var plain = new byte[56]; // header(8) + VERIFY_CONNECT(40) + ACK(8)
+        // Format: [8B header][VERIFY_CONNECT cmd(4+36=40)] = 48 bytes
+        // ConnectID = client's connection token from packet bytes 8-11
+        var plain = new byte[48];
         int off = 0;
 
         // LENet header (big-endian)
-        WriteBE32(plain, off, _sessionId); off += 4;                              // SessionID
-        WriteBE16(plain, off, (ushort)(peer.PeerId | 0x8000)); off += 2;          // PeerID | TimeSent flag
-        WriteBE16(plain, off, (ushort)(Environment.TickCount & 0xFFFF)); off += 2; // SentTime
+        WriteBE32(plain, off, _sessionId); off += 4;
+        WriteBE16(plain, off, (ushort)(peer.OutgoingPeerID | 0x8000)); off += 2;
+        WriteBE16(plain, off, (ushort)(Environment.TickCount & 0xFFFF)); off += 2;
 
-        // === VERIFY_CONNECT command (cmd=3 | 0x80 SENT_TIME flag) ===
-        plain[off] = 0x83; off++;     // cmd | flags
-        plain[off] = 0xFF; off++;     // channel
-        WriteBE16(plain, off, peer.VerifySeqNo++); off += 2; // reliableSeqNo
+        // VERIFY_CONNECT command (cmd=3 | 0x80 acknowledge flag)
+        plain[off] = 0x83; off++;
+        plain[off] = 0xFF; off++;
+        WriteBE16(plain, off, peer.VerifySeqNo); off += 2;
 
-        // VERIFY_CONNECT body
-        WriteBE16(plain, off, peer.PeerId); off += 2;    // OutgoingPeerID
-        WriteBE16(plain, off, 996); off += 2;              // MTU
-        WriteBE32(plain, off, 32768); off += 4;            // WindowSize
-        WriteBE32(plain, off, 32); off += 4;               // ChannelCount
-        WriteBE32(plain, off, 0); off += 4;                // IncomingBandwidth
-        WriteBE32(plain, off, 0); off += 4;                // OutgoingBandwidth
-        WriteBE32(plain, off, 32); off += 4;               // PacketThrottleInterval
-        WriteBE32(plain, off, 2); off += 4;                // PacketThrottleAcceleration
-        WriteBE32(plain, off, 2); off += 4;                // PacketThrottleDeceleration
+        // VERIFY_CONNECT body (36 bytes)
+        WriteBE16(plain, off, peer.OutgoingPeerID); off += 2; // OutgoingPeerID
+        WriteBE16(plain, off, 996); off += 2;                  // MTU
+        WriteBE32(plain, off, 32768); off += 4;                // WindowSize
+        WriteBE32(plain, off, 32); off += 4;                   // ChannelCount
+        WriteBE32(plain, off, 0); off += 4;                    // IncomingBandwidth
+        WriteBE32(plain, off, 0); off += 4;                    // OutgoingBandwidth
+        WriteBE32(plain, off, 32); off += 4;                   // PacketThrottleInterval
+        WriteBE32(plain, off, 2); off += 4;                    // PacketThrottleAcceleration
+        WriteBE32(plain, off, 2); off += 4;                    // PacketThrottleDeceleration
+        // ConnectID: echo the client's connection token!
+        // This is the 4-byte value at packet bytes 8-11 that the client expects echoed back
+        // Without this, the client rejects the VERIFY_CONNECT and retransmits
 
-        // === ACK command for the client's CONNECT ===
-        plain[off] = 0x81; off++;     // cmd=1 (ACK) | 0x80 flag
-        plain[off] = 0xFF; off++;     // channel
-        WriteBE16(plain, off, 0); off += 2;  // ackSeqNo (seq of the CONNECT we're ACKing)
-        WriteBE16(plain, off, 0); off += 2;  // receivedSentTime
-        WriteBE16(plain, off, (ushort)(Environment.TickCount & 0xFFFF)); off += 2; // receivedSentTime (or padding)
-
-        // Encrypt with single Blowfish CFB (fresh IV=0 per packet)
+        // Encrypt and send
         byte[] encrypted = CfbEncrypt(plain);
+        Log($"  [{encrypted.Length}B] VERIFY_CONNECT seq={peer.VerifySeqNo} peerID={peer.OutgoingPeerID}");
+        peer.VerifySeqNo++;
+        Send(encrypted, peer);
 
-        Log($"  [{encrypted.Length}B] VERIFY_CONNECT + ACK");
-        Log($"  Plain: {Hex(plain, 32)}");
-        Log($"  Enc:   {Hex(encrypted, 32)}");
-
+        // Also send a version WITH connectID appended (52 bytes)
+        // In case the body is 40 bytes (36 + 4B connectID)
+        var plainWithConnID = new byte[52];
+        Array.Copy(plain, plainWithConnID, 48);
+        WriteBE32(plainWithConnID, 48, peer.ConnectToken); // ConnectID = client token
+        encrypted = CfbEncrypt(plainWithConnID);
+        Log($"  [{encrypted.Length}B] VERIFY_CONNECT+connID=0x{peer.ConnectToken:X8}");
         Send(encrypted, peer);
     }
 
@@ -352,5 +360,6 @@ public class RawGameServer : IGameServer, IDisposable
         public int PacketCount { get; set; }
         public bool GameInitSent { get; set; }
         public ushort VerifySeqNo { get; set; } = 1;
+        public uint ConnectToken { get; set; }
     }
 }
