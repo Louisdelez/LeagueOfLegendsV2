@@ -245,6 +245,31 @@ public class RawGameServer : IGameServer, IDisposable
             Send(enc, peer);
         }
 
+        // TEST: Send 511-byte packet (same size as echo) with our own data
+        {
+            var custom = new byte[data.Length - 8]; // same size as echo (511B)
+            // Fill with token prefix + our ENet VERIFY_CONNECT + zero padding
+            WriteBE32(custom, 0, peer.ConnectToken); // token at bytes 0-3
+            int off = 4;
+            // Standard ENet header
+            WriteBE32(custom, off, _sessionId); off += 4;
+            WriteBE16(custom, off, (ushort)(peer.OutgoingPeerID | 0x8000)); off += 2;
+            WriteBE16(custom, off, (ushort)(Environment.TickCount & 0xFFFF)); off += 2;
+            // VERIFY_CONNECT command
+            custom[off] = 0x83; off++; // cmd=3 | SENT_TIME
+            custom[off] = 0xFF; off++; // channel
+            WriteBE16(custom, off, 1); off += 2; // seq
+            // VERIFY_CONNECT body
+            WriteBE16(custom, off, peer.OutgoingPeerID); off += 2;
+            WriteBE16(custom, off, 996); off += 2;
+            WriteBE32(custom, off, 32768); off += 4;
+            WriteBE32(custom, off, 32); off += 4;
+            off += 20; // zeros for remaining fields
+            // Rest is zero padding
+            Log($"  [CUSTOM-511] ENet VC padded to {custom.Length}B");
+            Send(custom, peer);
+        }
+
         // SIDE-CHANNEL: Send echo with ONE byte flipped
         // If the client accepts (sends different packet), the flipped byte doesn't matter.
         // If rejected (client retransmits 519B), the byte IS validated.
