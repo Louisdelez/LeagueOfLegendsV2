@@ -1,0 +1,6 @@
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\FindCryptoCallers.java (HeadlessAnalyzer)  
+INFO  FindCryptoCallers.java> === ALL CALLERS OF FUN_1410f41e0 (crypto CFB) === (GhidraScript)  
+INFO  FindCryptoCallers.java>   [1] FUN_14058ef90 at 14058ef90 (call from 14058f120) ← KNOWN SEND PATH (GhidraScript)  
+INFO  FindCryptoCallers.java>   [2] FUN_14058ef90 at 14058ef90 (call from 14058f172) ← KNOWN SEND PATH (GhidraScript)  
+INFO  FindCryptoCallers.java> 
+INFO  FindCryptoCallers.java> === DONE === (GhidraScript)  
