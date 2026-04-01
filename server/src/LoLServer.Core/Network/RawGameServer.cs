@@ -322,6 +322,36 @@ public class RawGameServer : IGameServer, IDisposable
         Log($"  [VC-D5] dblCFB CRC no prefix ({encrypted.Length}B)");
         Send(encrypted, peer);
 
+        // V9-V11: PLAINTEXT with 4B padding (if crypto is disabled for recv!)
+        {
+            // Rebuild ENet plaintext for this scope
+            var pt = new byte[48];
+            int z = 0;
+            WriteBE32(pt, z, _sessionId); z += 4;
+            WriteBE16(pt, z, (ushort)(peer.OutgoingPeerID | 0x8000)); z += 2;
+            WriteBE16(pt, z, (ushort)(Environment.TickCount & 0xFFFF)); z += 2;
+            pt[z] = 0x83; z++; pt[z] = 0xFF; z++;
+            WriteBE16(pt, z, peer.VerifySeqNo); z += 2;
+            WriteBE16(pt, z, peer.OutgoingPeerID); z += 2;
+            WriteBE16(pt, z, 996); z += 2;
+            WriteBE32(pt, z, 32768); z += 4;
+            WriteBE32(pt, z, 32); z += 4;
+            z += 20; // zeros
+
+            // Token + PLAINTEXT
+            var ptPkt = new byte[4 + pt.Length];
+            WriteBE32(ptPkt, 0, peer.ConnectToken);
+            Array.Copy(pt, 0, ptPkt, 4, pt.Length);
+            Log($"  [VC-PT1] Token + PLAINTEXT ({ptPkt.Length}B)");
+            Send(ptPkt, peer);
+
+            // Zero pad + PLAINTEXT
+            var ptZero = new byte[4 + pt.Length];
+            Array.Copy(pt, 0, ptZero, 4, pt.Length);
+            Log($"  [VC-PT2] Zeros + PLAINTEXT ({ptZero.Length}B)");
+            Send(ptZero, peer);
+        }
+
         peer.VerifySeqNo++;
     }
 
