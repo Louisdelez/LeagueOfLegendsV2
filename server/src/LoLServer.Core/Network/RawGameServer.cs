@@ -310,14 +310,30 @@ public class RawGameServer : IGameServer, IDisposable
     // ========================================================================
 
     /// <summary>
-    /// Process a single byte through CRC32 (polynomial 0xEDB88320).
+    /// Process a single byte through CRC32 using the game's table.
+    /// The game uses polynomial 0x04C11DB7 (CRC-32/MPEG-2, MSB-first, non-reflected).
+    /// Processing: crc = (crc << 8 | byte) ^ table[crc >> 24]
+    /// This matches the Ghidra decompilation of FUN_140577f10.
     /// </summary>
     private static uint CrcByte(uint crc, byte b)
     {
-        crc ^= b;
-        for (int i = 0; i < 8; i++)
-            crc = (crc >> 1) ^ (0xEDB88320u & ~((crc & 1u) - 1u));
+        crc = ((crc << 8) | b) ^ _crcTable[crc >> 24];
         return crc;
+    }
+
+    // CRC-32 table with polynomial 0x04C11DB7 (from binary at DAT_141947e80)
+    private static readonly uint[] _crcTable = GenerateCrcTable();
+    private static uint[] GenerateCrcTable()
+    {
+        var table = new uint[256];
+        for (uint i = 0; i < 256; i++)
+        {
+            uint crc = i << 24;
+            for (int j = 0; j < 8; j++)
+                crc = (crc & 0x80000000) != 0 ? (crc << 1) ^ 0x04C11DB7u : crc << 1;
+            table[i] = crc;
+        }
+        return table;
     }
 
     /// <summary>ENet-compatible CRC32 (standard CRC32 / ISO 3309)</summary>
