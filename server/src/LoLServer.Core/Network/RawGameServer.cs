@@ -368,9 +368,43 @@ public class RawGameServer : IGameServer, IDisposable
             peer.VerifySeqNo++;
         }
 
-        if (!peer.GameInitSent && peer.PacketCount > 15)
+        // After handshake settles (packet 10+), send KeyCheck
+        if (!peer.GameInitSent && peer.PacketCount >= 10)
         {
-            ScheduleGameInit(peer);
+            peer.GameInitSent = true;
+            Log($"  [GAME] Sending KeyCheck on reliable channel");
+
+            // Build KeyCheck as ENet SEND_RELIABLE
+            // Format: [4B token][ENet cmd header][KeyCheck payload]
+            // ENet SEND_RELIABLE: [1B cmd=0x86(RELIABLE|SENT_TIME)][1B channel=0][2B seq BE][2B dataLen BE][payload]
+            // KeyCheck opcode: 0x64000000 (LE) = opcode 100
+            var keyCheck = new byte[4 + 6 + 12]; // token(4) + cmd header(6) + keycheck payload(12)
+            WriteBE32(keyCheck, 0, peer.ConnectToken);
+            keyCheck[4] = 0x86; // SEND_RELIABLE | SENT_TIME
+            keyCheck[5] = 0x00; // channel 0
+            WriteBE16(keyCheck, 6, 1); // seqNo
+            WriteBE16(keyCheck, 8, 12); // dataLen = 12 bytes
+
+            // KeyCheck payload: [4B opcode LE][1B playerNo][3B padding][4B checkId]
+            keyCheck[10] = 0x64; // opcode 100 (LE low byte)
+            keyCheck[11] = 0x00;
+            keyCheck[12] = 0x00;
+            keyCheck[13] = 0x00;
+            keyCheck[14] = 0x00; // playerNo = 0
+            keyCheck[15] = 0x00;
+            keyCheck[16] = 0x00;
+            keyCheck[17] = 0x00;
+            // checkId = the Blowfish key checksum
+            WriteBE32(keyCheck, 18, 0); // checkId = 0 for now
+
+            Log($"  [KEYCHECK] {keyCheck.Length}B plaintext");
+            Send(keyCheck, peer);
+
+            // Also try as echo-sized packet
+            var kcPadded = new byte[data.Length - 8]; // same size as last echo
+            Array.Copy(keyCheck, 0, kcPadded, 0, Math.Min(keyCheck.Length, kcPadded.Length));
+            Log($"  [KEYCHECK-PAD] {kcPadded.Length}B");
+            Send(kcPadded, peer);
         }
     }
 
