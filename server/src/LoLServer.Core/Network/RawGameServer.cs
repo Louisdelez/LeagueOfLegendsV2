@@ -679,6 +679,60 @@ public class RawGameServer : IGameServer, IDisposable
             }
         }
 
+        // === PADDED TO 519B VARIANTS ===
+        // Maybe the client expects a FIXED SIZE response matching its own 519B format
+        {
+            // Full 519B packet: [4B sessID LE][encrypted data padded to 515B]
+            foreach (bool useDblCfb in new[] { false, true })
+            {
+                // 44 bytes of ENet data, padded to 511 bytes (519 - 4 - 4 for sessID and possible checksum)
+                // Rebuild ENet data for this scope
+                var enetPadded = new byte[44];
+                int op = 0;
+                WriteBE16(enetPadded, op, (ushort)(peer.OutgoingPeerID | 0x8000)); op += 2;
+                WriteBE16(enetPadded, op, sentTime); op += 2;
+                enetPadded[op] = 0x83; op++; enetPadded[op] = 0xFF; op++;
+                WriteBE16(enetPadded, op, 1); op += 2;
+                WriteBE16(enetPadded, op, peer.OutgoingPeerID); op += 2;
+                WriteBE16(enetPadded, op, 996); op += 2;
+                WriteBE32(enetPadded, op, 32768); op += 4;
+                WriteBE32(enetPadded, op, 32); op += 4;
+                op += 20; // zeros for bandwidth/throttle
+
+                var paddedEnet = new byte[511];
+                Array.Copy(enetPadded, 0, paddedEnet, 0, Math.Min(enetPadded.Length, 511));
+                var encPadded = useDblCfb ? DoubleCfbEncrypt(paddedEnet) : CfbEncrypt(paddedEnet);
+
+                foreach (uint sid in new uint[] { 0, _sessionId })
+                {
+                    // Format: [4B sessID][511B encrypted] = 515B (not 519)
+                    // Try 519B exactly: [4B sessID][515B encrypted]
+                    var pkt519 = new byte[519];
+                    WriteLE32(pkt519, 0, sid);
+                    Array.Copy(encPadded, 0, pkt519, 4, Math.Min(encPadded.Length, 515));
+                    variantNum++;
+                    Log($"  [V{variantNum:D2}] 519B: 0x{sid:X8} + {(useDblCfb?"dCFB":"sCFB")} padded | 519B");
+                    Send(pkt519, peer);
+                }
+
+                // Also try full 519B encrypted (no split)
+                var full519 = new byte[519];
+                WriteBE32(full519, 0, _sessionId);
+                WriteBE16(full519, 4, (ushort)(peer.OutgoingPeerID | 0x8000));
+                WriteBE16(full519, 6, sentTime);
+                full519[8] = 0x83; full519[9] = 0xFF;
+                WriteBE16(full519, 10, 1);
+                WriteBE16(full519, 12, peer.OutgoingPeerID);
+                WriteBE16(full519, 14, 996);
+                WriteBE32(full519, 16, 32768);
+                WriteBE32(full519, 20, 32);
+                var enc519 = useDblCfb ? DoubleCfbEncrypt(full519) : CfbEncrypt(full519);
+                variantNum++;
+                Log($"  [V{variantNum:D2}] FULL519B: {(useDblCfb?"dCFB":"sCFB")} | 519B");
+                Send(enc519, peer);
+            }
+        }
+
         // === SERIALIZED FORMAT VARIANTS ===
         // Ghidra shows the recv pipeline reads: [tag byte][uint32 count][count * uint32 data][0x18 byte]
         // Maybe the server response should be in THIS format, not ENet!
