@@ -16,6 +16,47 @@ public class BlowFish
     private readonly uint[] _pbox = new uint[Rounds + 2];
     private readonly uint[,] _sbox = new uint[4, 256];
 
+    /// <summary>Expose P-box for verification against captured crypto context.</summary>
+    public uint[] PBox => _pbox;
+
+    /// <summary>Expose S-box for verification.</summary>
+    public uint[,] SBox => _sbox;
+
+    /// <summary>
+    /// Create a BlowFish instance from a raw crypto context dump.
+    /// Layout: [16B header][72B P-box][4096B S-box] = 4184+ bytes
+    /// P-box: 18 x uint32 big-endian starting at offset 16
+    /// S-box: 4 x 256 x uint32 big-endian starting at offset 88
+    /// </summary>
+    public static BlowFish FromCryptoContext(byte[] ctx)
+    {
+        var bf = new BlowFish(new byte[] { 0, 0, 0, 0 }); // dummy init
+
+        // Overwrite P-box from captured context
+        for (int i = 0; i < 18; i++)
+        {
+            int off = 16 + i * 4;
+            bf._pbox[i] = ((uint)ctx[off] << 24) | ((uint)ctx[off + 1] << 16) |
+                          ((uint)ctx[off + 2] << 8) | ctx[off + 3];
+        }
+
+        // Overwrite S-boxes from captured context
+        for (int box = 0; box < 4; box++)
+        {
+            for (int entry = 0; entry < 256; entry++)
+            {
+                int off = 88 + (box * 256 + entry) * 4;
+                if (off + 3 < ctx.Length)
+                {
+                    bf._sbox[box, entry] = ((uint)ctx[off] << 24) | ((uint)ctx[off + 1] << 16) |
+                                           ((uint)ctx[off + 2] << 8) | ctx[off + 3];
+                }
+            }
+        }
+
+        return bf;
+    }
+
     // Standard Blowfish P-box initialization constants
     private static readonly uint[] PInit =
     {

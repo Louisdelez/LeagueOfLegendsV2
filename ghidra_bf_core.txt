@@ -1,0 +1,4 @@
+WARNING: JAVA_HOME environment variable is set to an invalid directory: D:/LeagueOfLegendsV2/jdk21
+
+ERROR: The 'java' command could not be found in your PATH or with JAVA_HOME.
+Please refer to the Ghidra Installation Guide's Troubleshooting section.

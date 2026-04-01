@@ -78,6 +78,7 @@ class Program
             else if (arg == "--crypto") runMode = "crypto";
             else if (arg == "--crypto-test") runMode = "crypto-test";
             else if (arg == "--lenet-decode") runMode = "lenet-decode";
+            else if (arg == "--crack") runMode = "crack";
             else if (arg.StartsWith("--port=")) config.ServerPort = int.Parse(arg.Split('=')[1]);
             else if (arg.StartsWith("--client=")) config.ClientPath = arg.Split('=', 2)[1];
         }
@@ -98,6 +99,7 @@ class Program
             case "crypto": CryptoAnalysis.Run(); return;
             case "crypto-test": CryptoModeTest.Run(); return;
             case "lenet-decode": LENetDecoder.Run(); return;
+            case "crack": PacketCrack.Run(); return;
         }
 
         // Test mode: run simulated client against a running server

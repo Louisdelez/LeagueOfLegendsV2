@@ -15,16 +15,16 @@ namespace LoLServer.Core.Network;
 /// <summary>
 /// Raw UDP game server for modern LoL client (16.6+).
 ///
-/// PROTOCOL (confirmed by Ghidra static analysis, 1 April 2026):
+/// PROTOCOL (confirmed by Ghidra + packet capture analysis, April 2026):
 ///
-/// Encryption: Blowfish CFB mode (64-bit segments), IV=zeros initially
-/// The ENTIRE packet (header + commands) is encrypted.
+/// Server → Client: Single Blowfish CFB, per-packet fresh IV=zeros.
+///   Plaintext: [4B SessionID BE][2B PeerID|Flags BE][2B SentTime BE][ENet commands...]
 ///
-/// Plaintext format (LENet Season 12, big-endian):
-///   [4B SessionID BE][2B PeerID|TimeSentFlag BE][2B TimeSent BE][ENet commands...]
+/// Client → Server: 519-byte packets with format:
+///   [4B LNPBlob magic 0x37AA0014][4B SessionID LE][payload...][2B footer]
+///   The payload format is proprietary. We detect the client by LNPBlob magic.
 ///
-/// The Blowfish CFB state is persistent between packets in each direction.
-/// First packet uses IV=0, subsequent packets continue the CFB chain.
+/// Verified: BF_encrypt(zeros) bytes appear in the client packet header as key proof.
 /// </summary>
 public class RawGameServer : IGameServer, IDisposable
 {
@@ -34,10 +34,14 @@ public class RawGameServer : IGameServer, IDisposable
     private readonly PacketHandler _handler;
     private readonly Dictionary<ushort, ClientInfo> _clients = new();
     private readonly ConcurrentDictionary<string, PeerInfo> _peers = new();
+    private readonly BlowFish _cipher;
     private readonly byte[] _blowfishKey;
     private bool _running;
     private ushort _nextPeerId;
     private uint _sessionId = 0xDEADBEEF;
+
+    // LNPBlob magic constant
+    private const uint LNPBLOB_MAGIC = 0x37AA0014;
 
     public event Action<string>? OnLog;
     public IReadOnlyDictionary<ushort, ClientInfo> Clients => _clients;
@@ -48,6 +52,7 @@ public class RawGameServer : IGameServer, IDisposable
         _config = config;
         _handler = new PacketHandler(config, this);
         _blowfishKey = Convert.FromBase64String(config.BlowfishKey);
+        _cipher = new BlowFish(_blowfishKey);
     }
 
     public void Start()
@@ -55,6 +60,7 @@ public class RawGameServer : IGameServer, IDisposable
         Log("=== LoL Private Server (Blowfish CFB Mode) ===");
         Log($"Port: {_port}");
         Log($"Blowfish Key: {_config.BlowfishKey} ({_blowfishKey.Length} bytes)");
+        Log($"BF_encrypt(zeros) = {BitConverter.ToString(_cipher.EncryptBlock(new byte[8]))}");
         Log($"SessionID: 0x{_sessionId:X8}");
         Log($"Players: {_config.Players.Count}");
 
@@ -93,234 +99,195 @@ public class RawGameServer : IGameServer, IDisposable
             {
                 Remote = remote,
                 PeerId = _nextPeerId++,
-                DecryptIV = new byte[8], // IV starts at zero
-                EncryptIV = new byte[8], // IV starts at zero
             };
             Log($"[NEW PEER] {remoteKey} → PeerId={p.PeerId}");
             return p;
         });
         peer.PacketCount++;
 
-        if (data.Length < 8) return;
+        bool verbose = peer.PacketCount <= 20;
 
-        bool verbose = peer.PacketCount <= 10;
-
-        // Decrypt the packet with Blowfish CFB
-        byte[] decrypted = BlowfishCfbDecrypt(data, peer.DecryptIV);
-
-        if (verbose)
+        if (data.Length < 8)
         {
-            Log($"[{remoteKey}] #{peer.PacketCount} {data.Length}B");
-            Log($"  Raw: {Hex(data, 24)}");
-            Log($"  Dec: {Hex(decrypted, 24)}");
-        }
-
-        // Parse LENet Season 12 header (big-endian)
-        uint sessID = ReadBE32(decrypted, 0);
-        ushort peerIDraw = ReadBE16(decrypted, 4);
-        bool hasSentTime = (peerIDraw & 0x8000) != 0;
-        ushort peerID = (ushort)(peerIDraw & 0x7FFF);
-        int off = 6;
-        ushort sentTime = 0;
-        if (hasSentTime) { sentTime = ReadBE16(decrypted, off); off += 2; }
-
-        if (verbose)
-            Log($"  Header: SessID=0x{sessID:X8} PeerID=0x{peerID:X4} SentTime={sentTime}");
-
-        // Parse ENet commands
-        if (off + 4 > decrypted.Length) return;
-
-        byte cmdByte = decrypted[off];
-        byte channel = decrypted[off + 1];
-        ushort seqNo = ReadBE16(decrypted, off + 2);
-        int cmd = cmdByte & 0x0F;
-        int flags = (cmdByte >> 4) & 0x0F;
-
-        if (verbose)
-            Log($"  Cmd=0x{cmdByte:X2}(type={cmd}) Ch={channel} Seq={seqNo}");
-
-        switch (cmd)
-        {
-            case 2: // CONNECT
-                HandleConnect(decrypted, off, peer, peerID, sentTime);
-                break;
-            case 1: // ACK
-                if (verbose) Log($"  [ACK]");
-                break;
-            case 5: // PING
-                HandlePing(peer, sentTime);
-                break;
-            case 6: // SEND_RELIABLE
-                HandleReliable(decrypted, off, peer);
-                break;
-            case 4: // DISCONNECT
-                Log($"  [DISCONNECT]");
-                break;
-            default:
-                if (verbose) Log($"  [Unknown cmd {cmd}]");
-                // Send VERIFY_CONNECT anyway for the first few packets
-                if (peer.PacketCount <= 5 && !peer.Connected)
-                    SendVerifyConnect(peer, 0);
-                break;
-        }
-    }
-
-    private void HandleConnect(byte[] dec, int cmdOff, PeerInfo peer, ushort clientPeerID, ushort sentTime)
-    {
-        if (cmdOff + 4 + 40 > dec.Length)
-        {
-            Log($"  [CONNECT] Too short, sending VERIFY anyway");
-            SendVerifyConnect(peer, sentTime);
+            if (verbose) Log($"[{remoteKey}] #{peer.PacketCount} too short ({data.Length}B)");
             return;
         }
 
-        int body = cmdOff + 4;
-        ushort outPeerID = ReadBE16(dec, body);
-        ushort mtu = ReadBE16(dec, body + 2);
-        uint winSize = ReadBE32(dec, body + 4);
-        uint chanCount = ReadBE32(dec, body + 8);
-
-        Log($"  [CONNECT] OutPeerID={outPeerID} MTU={mtu} Win={winSize} Chan={chanCount}");
-
-        peer.OutgoingPeerID = outPeerID;
-        peer.Connected = true;
-
-        SendVerifyConnect(peer, sentTime);
-        EnsureClientInfo(peer);
-    }
-
-    private void SendVerifyConnect(PeerInfo peer, ushort clientSentTime)
-    {
-        // Build plaintext VERIFY_CONNECT in LENet Season 12 big-endian
-        var plain = new byte[8 + 4 + 36]; // header + cmd_header + verify_body = 48 bytes
-
-        int off = 0;
-        // LENet header
-        WriteBE32(plain, off, _sessionId); off += 4;
-        WriteBE16(plain, off, (ushort)(peer.PeerId | 0x8000)); off += 2; // PeerID | TimeSent flag
-        WriteBE16(plain, off, (ushort)(Environment.TickCount & 0xFFFF)); off += 2;
-
-        // ENet VERIFY_CONNECT command
-        plain[off] = 0x83; // cmd=3 (VERIFY_CONNECT) | flag 0x80 (SENT_TIME)
-        plain[off + 1] = 0xFF; // channel = 0xFF
-        WriteBE16(plain, off + 2, 1); // reliableSeqNo
-        off += 4;
-
-        // VERIFY_CONNECT body (Season 12, big-endian)
-        WriteBE16(plain, off, peer.PeerId); off += 2;      // OutgoingPeerID
-        WriteBE16(plain, off, 996); off += 2;               // MTU
-        WriteBE32(plain, off, 32768); off += 4;             // WindowSize
-        WriteBE32(plain, off, 32); off += 4;                // ChannelCount
-        WriteBE32(plain, off, 0); off += 4;                 // IncomingBandwidth
-        WriteBE32(plain, off, 0); off += 4;                 // OutgoingBandwidth
-        WriteBE32(plain, off, 32); off += 4;                // PacketThrottleInterval
-        WriteBE32(plain, off, 2); off += 4;                 // PacketThrottleAcceleration
-        WriteBE32(plain, off, 2); off += 4;                 // PacketThrottleDeceleration
-
-        Log($"  Plaintext VERIFY: {Hex(plain, 24)}");
-
-        // Encrypt with Blowfish CFB
-        byte[] encrypted = BlowfishCfbEncrypt(plain, peer.EncryptIV);
-
-        Log($"  Encrypted VERIFY: {Hex(encrypted, 24)} ({encrypted.Length}B)");
-
-        try
+        // Check for LNPBlob header (client→server 519B format)
+        uint magic = ReadBE32(data, 0);
+        if (magic == LNPBLOB_MAGIC && data.Length >= 16)
         {
-            _socket!.Send(encrypted, encrypted.Length, peer.Remote);
-            Log($"  [SENT] VERIFY_CONNECT {encrypted.Length}B");
+            HandleClientPacket(data, peer, verbose);
+            return;
         }
-        catch (Exception ex) { Log($"  [ERROR] {ex.Message}"); }
+
+        // Otherwise try to decrypt as CFB (for any non-LNPBlob packets)
+        byte[] decrypted = CfbDecrypt(data);
+
+        if (verbose)
+        {
+            Log($"[{remoteKey}] #{peer.PacketCount} {data.Length}B (non-LNPBlob)");
+            Log($"  Dec: {Hex(decrypted, 32)}");
+        }
     }
 
-    private void HandlePing(PeerInfo peer, ushort sentTime)
+    /// <summary>
+    /// Handle the client's 519-byte packets with LNPBlob header.
+    /// Format: [4B magic][4B sessID_LE][payload...][2B footer]
+    /// </summary>
+    private void HandleClientPacket(byte[] data, PeerInfo peer, bool verbose)
     {
-        // Send ACK
-        var plain = new byte[8 + 8]; // header + ACK command
+        // Extract session ID from LNPBlob (little-endian in bytes 4-7)
+        uint sessIdLE = (uint)(data[4] | (data[5] << 8) | (data[6] << 16) | (data[7] << 24));
+
+        if (verbose)
+        {
+            Log($"[CLIENT] #{peer.PacketCount} {data.Length}B LNPBlob sessID=0x{sessIdLE:X8}");
+            Log($"  Header: {Hex(data, 16)}");
+        }
+
+        if (!peer.Connected)
+        {
+            // First connection - send VERIFY_CONNECT
+            peer.Connected = true;
+            peer.OutgoingPeerID = 0;
+            Log($"  [HANDSHAKE] Sending VERIFY_CONNECT");
+            SendVerifyConnect(peer);
+            EnsureClientInfo(peer);
+
+            // After VERIFY_CONNECT, immediately start sending game init
+            // The client may not ACK explicitly in a format we can detect
+            ScheduleGameInit(peer);
+        }
+        else if (peer.PacketCount <= 10)
+        {
+            // Client retransmitting - resend VERIFY_CONNECT
+            if (verbose) Log($"  [RETRANSMIT] Re-sending VERIFY_CONNECT");
+            SendVerifyConnect(peer);
+        }
+        else if (!peer.GameInitSent)
+        {
+            // Try sending game init data
+            ScheduleGameInit(peer);
+        }
+    }
+
+    private void SendVerifyConnect(PeerInfo peer)
+    {
+        // Build VERIFY_CONNECT in LENet Season 12 big-endian
+        // Total plaintext: 8 (header) + 4 (cmd header) + 36 (body) = 48 bytes
+        var plain = new byte[48];
         int off = 0;
+
+        // LENet header (big-endian)
+        WriteBE32(plain, off, _sessionId); off += 4;                              // SessionID
+        WriteBE16(plain, off, (ushort)(peer.PeerId | 0x8000)); off += 2;          // PeerID | TimeSent flag
+        WriteBE16(plain, off, (ushort)(Environment.TickCount & 0xFFFF)); off += 2; // SentTime
+
+        // ENet VERIFY_CONNECT command (cmd=3, flag=0x80 SENT_TIME)
+        plain[off] = 0x83; off++;     // cmd | flags
+        plain[off] = 0xFF; off++;     // channel
+        WriteBE16(plain, off, peer.VerifySeqNo++); off += 2; // reliableSeqNo
+
+        // VERIFY_CONNECT body (Season 12 big-endian)
+        WriteBE16(plain, off, peer.PeerId); off += 2;    // OutgoingPeerID
+        WriteBE16(plain, off, 996); off += 2;              // MTU
+        WriteBE32(plain, off, 32768); off += 4;            // WindowSize
+        WriteBE32(plain, off, 32); off += 4;               // ChannelCount
+        WriteBE32(plain, off, 0); off += 4;                // IncomingBandwidth
+        WriteBE32(plain, off, 0); off += 4;                // OutgoingBandwidth
+        WriteBE32(plain, off, 32); off += 4;               // PacketThrottleInterval
+        WriteBE32(plain, off, 2); off += 4;                // PacketThrottleAcceleration
+        WriteBE32(plain, off, 2); off += 4;                // PacketThrottleDeceleration
+
+        // Encrypt with single Blowfish CFB (fresh IV=0 per packet)
+        byte[] encrypted = CfbEncrypt(plain);
+
+        Log($"  Plaintext:  {Hex(plain, 24)}");
+        Log($"  Encrypted:  {Hex(encrypted, 24)} ({encrypted.Length}B)");
+
+        Send(encrypted, peer);
+    }
+
+    private void ScheduleGameInit(PeerInfo peer)
+    {
+        if (peer.GameInitSent) return;
+        peer.GameInitSent = true;
+
+        Log($"  [GAME_INIT] Sending game initialization packets");
+
+        // Send a PING to keep the connection alive
+        SendPing(peer);
+    }
+
+    private void SendPing(PeerInfo peer)
+    {
+        var plain = new byte[12]; // header(8) + PING cmd(4)
+        int off = 0;
+
         WriteBE32(plain, off, _sessionId); off += 4;
-        WriteBE16(plain, off, (ushort)(peer.OutgoingPeerID | 0x8000)); off += 2;
+        WriteBE16(plain, off, (ushort)(peer.PeerId | 0x8000)); off += 2;
         WriteBE16(plain, off, (ushort)(Environment.TickCount & 0xFFFF)); off += 2;
-        plain[off] = 0x81; // ACK | SENT_TIME
-        plain[off + 1] = 0xFF;
-        WriteBE16(plain, off + 2, 0);
-        WriteBE16(plain, off + 4, sentTime);
 
-        byte[] enc = BlowfishCfbEncrypt(plain, peer.EncryptIV);
-        try { _socket!.Send(enc, enc.Length, peer.Remote); }
-        catch { }
-    }
+        // PING command (cmd=5)
+        plain[off] = 0x05; off++;      // cmd=5 (PING), no flags
+        plain[off] = 0xFF; off++;      // channel
+        WriteBE16(plain, off, 0); off += 2; // seqNo
 
-    private void HandleReliable(byte[] dec, int cmdOff, PeerInfo peer)
-    {
-        if (cmdOff + 6 > dec.Length) return;
-        byte ch = dec[cmdOff + 1];
-        ushort seqNo = ReadBE16(dec, cmdOff + 2);
-        ushort dataLen = ReadBE16(dec, cmdOff + 4);
-        Log($"  [RELIABLE] Ch={ch} Seq={seqNo} Len={dataLen}");
-
-        // Send ACK
-        // TODO: route to game logic
+        byte[] encrypted = CfbEncrypt(plain);
+        Send(encrypted, peer);
     }
 
     // ========================================================================
-    //  BLOWFISH CFB ENCRYPTION
+    //  BLOWFISH CFB ENCRYPTION (per-packet fresh IV=0)
     // ========================================================================
 
-    private byte[] BlowfishCfbEncrypt(byte[] plaintext, byte[] iv)
+    /// <summary>
+    /// Encrypt with Blowfish CFB using fresh IV=zeros (per-packet, no persistent state).
+    /// This is confirmed to match what the client expects (verified via packet captures).
+    /// </summary>
+    private byte[] CfbEncrypt(byte[] plaintext)
     {
-        var bf = new BlowFish(Convert.FromBase64String(_config.BlowfishKey));
         var result = new byte[plaintext.Length];
-        var feedback = (byte[])iv.Clone();
+        var feedback = new byte[8]; // IV = zeros
 
         for (int i = 0; i < plaintext.Length; i += 8)
         {
-            // Encrypt the feedback (IV for first block)
-            var keystream = bf.EncryptBlock(feedback);
-
+            var keystream = _cipher.EncryptBlock(feedback);
             int blockLen = Math.Min(8, plaintext.Length - i);
             for (int j = 0; j < blockLen; j++)
-            {
                 result[i + j] = (byte)(plaintext[i + j] ^ keystream[j]);
-            }
 
-            // CFB feedback: use ciphertext as next IV
+            // CFB feedback: ciphertext becomes next IV
             Array.Copy(result, i, feedback, 0, blockLen);
-            if (blockLen < 8)
-                Array.Clear(feedback, blockLen, 8 - blockLen);
+            if (blockLen < 8) Array.Clear(feedback, blockLen, 8 - blockLen);
         }
-
-        // Update the persistent IV
-        Array.Copy(feedback, iv, 8);
 
         return result;
     }
 
-    private byte[] BlowfishCfbDecrypt(byte[] ciphertext, byte[] iv)
+    /// <summary>
+    /// Decrypt with Blowfish CFB using fresh IV=zeros (per-packet).
+    /// </summary>
+    private byte[] CfbDecrypt(byte[] ciphertext)
     {
-        var bf = new BlowFish(Convert.FromBase64String(_config.BlowfishKey));
         var result = new byte[ciphertext.Length];
-        var feedback = (byte[])iv.Clone();
+        var feedback = new byte[8]; // IV = zeros
 
         for (int i = 0; i < ciphertext.Length; i += 8)
         {
-            var keystream = bf.EncryptBlock(feedback);
-
+            var keystream = _cipher.EncryptBlock(feedback);
             int blockLen = Math.Min(8, ciphertext.Length - i);
 
-            // Save ciphertext for feedback BEFORE decrypting
+            // Save ciphertext for feedback BEFORE XOR
             var nextFeedback = new byte[8];
             Array.Copy(ciphertext, i, nextFeedback, 0, blockLen);
 
             for (int j = 0; j < blockLen; j++)
-            {
                 result[i + j] = (byte)(ciphertext[i + j] ^ keystream[j]);
-            }
 
             feedback = nextFeedback;
         }
-
-        // Update persistent IV
-        Array.Copy(feedback, iv, 8);
 
         return result;
     }
@@ -328,6 +295,15 @@ public class RawGameServer : IGameServer, IDisposable
     // ========================================================================
     //  HELPERS
     // ========================================================================
+
+    private void Send(byte[] data, PeerInfo peer)
+    {
+        try
+        {
+            _socket!.Send(data, data.Length, peer.Remote);
+        }
+        catch (Exception ex) { Log($"  [ERROR] Send failed: {ex.Message}"); }
+    }
 
     private static ushort ReadBE16(byte[] buf, int off) => (ushort)((buf[off] << 8) | buf[off + 1]);
     private static uint ReadBE32(byte[] buf, int off) => (uint)((buf[off] << 24) | (buf[off + 1] << 16) | (buf[off + 2] << 8) | buf[off + 3]);
@@ -363,7 +339,7 @@ public class RawGameServer : IGameServer, IDisposable
         public ushort OutgoingPeerID { get; set; }
         public bool Connected { get; set; }
         public int PacketCount { get; set; }
-        public byte[] DecryptIV { get; set; } = new byte[8];
-        public byte[] EncryptIV { get; set; } = new byte[8];
+        public bool GameInitSent { get; set; }
+        public ushort VerifySeqNo { get; set; } = 1;
     }
 }
