@@ -171,7 +171,15 @@ public class RawGameServer : IGameServer, IDisposable
             EnsureClientInfo(peer);
         }
 
-        // TEST: Send ONLY plaintext VERIFY_CONNECT (no echo, no encryption)
+        // Echo for handshake progression
+        if (data.Length > 8)
+        {
+            var echo = new byte[data.Length - 8];
+            Array.Copy(data, 8, echo, 0, echo.Length);
+            Send(echo, peer);
+        }
+
+        // TEST: Various encryption variants
         // Hypothesis: crypto might be disabled for recv (*param_3 == '\0')
         // Format: [4B padding (skipped by client)][plaintext ENet data]
         {
@@ -209,6 +217,42 @@ public class RawGameServer : IGameServer, IDisposable
             Array.Copy(enc, 0, encWithPad, 4, enc.Length);
             Log($"  [SCFB-ONLY] {encWithPad.Length}B (no echo!)");
             Send(encWithPad, peer);
+
+            // V-2LAYER: Two-layer encryption
+            // Inner: double CFB of [peerID(2)][nonce(4)][flags(1)][payload(36)] = 43B
+            // Outer: single CFB of [4B header][inner_encrypted(43B)] = 47B
+            {
+                // Build inner plaintext (CRC format)
+                // For now, use nonce=0 (will fail CRC but tests the path)
+                var inner = new byte[43];
+                WriteLE16(inner, 0, peer.OutgoingPeerID); // peerID LE
+                WriteBE32(inner, 2, 0); // nonce placeholder
+                inner[6] = 0x03; // flags = VERIFY_CONNECT
+                int z = 7;
+                WriteBE16(inner, z, peer.OutgoingPeerID); z += 2;
+                WriteBE16(inner, z, 996); z += 2;
+                WriteBE32(inner, z, 32768); z += 4;
+                WriteBE32(inner, z, 32); z += 4;
+                z += 20; // zeros
+
+                var innerEnc = DoubleCfbEncrypt(inner);
+
+                // Outer: single CFB of [sessID][innerEnc]
+                var outer = new byte[4 + innerEnc.Length];
+                WriteBE32(outer, 0, _sessionId);
+                Array.Copy(innerEnc, 0, outer, 4, innerEnc.Length);
+                var outerEnc = CfbEncrypt(outer);
+                Log($"  [2LAYER] Outer-sCFB(sessID+Inner-dCFB) ({outerEnc.Length}B)");
+                Send(outerEnc, peer);
+
+                // Also try without inner encryption (just outer single CFB)
+                var outerPlain = new byte[4 + inner.Length];
+                WriteBE32(outerPlain, 0, _sessionId);
+                Array.Copy(inner, 0, outerPlain, 4, inner.Length);
+                var outerOnlyEnc = CfbEncrypt(outerPlain);
+                Log($"  [1LAYER] Outer-sCFB(sessID+plainInner) ({outerOnlyEnc.Length}B)");
+                Send(outerOnlyEnc, peer);
+            }
 
             peer.VerifySeqNo++;
         }
