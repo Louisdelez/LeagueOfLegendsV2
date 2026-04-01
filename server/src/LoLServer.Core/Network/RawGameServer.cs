@@ -623,6 +623,118 @@ public class RawGameServer : IGameServer, IDisposable
             // (the client might check if the response shares a prefix)
         }
 
+        // === SPLIT FORMAT: plaintext session ID + encrypted ENet ===
+        // Ghidra FUN_140588f70 reads first 4 bytes as PLAINTEXT session ID for peer lookup,
+        // THEN passes remaining data to FUN_1405725f0 for decryption.
+        // We were encrypting EVERYTHING including session ID - client couldn't find peer!
+        {
+            // Build ENet data WITHOUT session ID (to be encrypted separately)
+            var enetData = new byte[44]; // peerID(2) + sentTime(2) + cmd(40)
+            int o = 0;
+            WriteBE16(enetData, o, (ushort)(peer.OutgoingPeerID | 0x8000)); o += 2;
+            WriteBE16(enetData, o, sentTime); o += 2;
+            enetData[o] = 0x83; o++; // VERIFY_CONNECT | SENT_TIME
+            enetData[o] = 0xFF; o++; // channel
+            WriteBE16(enetData, o, 1); o += 2; // seq
+            WriteBE16(enetData, o, peer.OutgoingPeerID); o += 2; // outPeerID
+            WriteBE16(enetData, o, 996); o += 2; // MTU
+            WriteBE32(enetData, o, 32768); o += 4; // winSize
+            WriteBE32(enetData, o, 32); o += 4; // chanCount
+            WriteBE32(enetData, o, 0); o += 4; WriteBE32(enetData, o, 0); o += 4;
+            WriteBE32(enetData, o, 32); o += 4;
+            WriteBE32(enetData, o, 2); o += 4;
+            WriteBE32(enetData, o, 2); o += 4;
+
+            var encEnet = CfbEncrypt(enetData);
+
+            // V-SPLIT1: sessID=0 + encrypted ENet
+            // Also encrypt with double CFB
+            var dblEncEnet = DoubleCfbEncrypt(enetData);
+
+            foreach (uint sid in new uint[] { 0, _sessionId, peer.ConnectToken, 0xFFFFFFFF })
+            {
+                // Single CFB (original)
+                var pkt = new byte[4 + encEnet.Length];
+                WriteLE32(pkt, 0, sid);
+                Array.Copy(encEnet, 0, pkt, 4, encEnet.Length);
+                variantNum++;
+                Log($"  [V{variantNum:D2}] SPLIT: 0x{sid:X8} + sCFB | {pkt.Length}B");
+                Send(pkt, peer);
+
+                // DOUBLE CFB
+                var pktD = new byte[4 + dblEncEnet.Length];
+                WriteLE32(pktD, 0, sid);
+                Array.Copy(dblEncEnet, 0, pktD, 4, dblEncEnet.Length);
+                variantNum++;
+                Log($"  [V{variantNum:D2}] SPLIT: 0x{sid:X8} + dCFB | {pktD.Length}B");
+                Send(pktD, peer);
+
+                // PLAINTEXT (no encryption)
+                var pktP = new byte[4 + enetData.Length];
+                WriteLE32(pktP, 0, sid);
+                Array.Copy(enetData, 0, pktP, 4, enetData.Length);
+                variantNum++;
+                Log($"  [V{variantNum:D2}] SPLIT: 0x{sid:X8} + PLAIN | {pktP.Length}B");
+                Send(pktP, peer);
+            }
+        }
+
+        // === SERIALIZED FORMAT VARIANTS ===
+        // Ghidra shows the recv pipeline reads: [tag byte][uint32 count][count * uint32 data][0x18 byte]
+        // Maybe the server response should be in THIS format, not ENet!
+        {
+            // V-SER1: tag=0x01, empty data (just handshake ack)
+            var ser1 = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x00, 0x18 }; // tag + count=0 + end
+            variantNum++;
+            Log($"  [V{variantNum:D2}] SERIAL: tag=0x01 count=0 | {ser1.Length}B");
+            Send(ser1, peer);
+
+            // V-SER2: tag=0x01, 1 uint32 (session ID)
+            var ser2 = new byte[11]; // 1 + 4 + 4 + 1 + 1
+            ser2[0] = 0x01;
+            WriteLE32(ser2, 1, 1); // count=1
+            WriteLE32(ser2, 5, _sessionId); // data = DEADBEEF
+            ser2[9] = 0x18;
+            variantNum++;
+            Log($"  [V{variantNum:D2}] SERIAL: tag=0x01 count=1 sessID | {ser2.Length}B");
+            Send(ser2, peer);
+
+            // V-SER3: Both sections [0x01][...][0x18][0x02][...][0x18]
+            var ms = new System.IO.MemoryStream();
+            // Section 1: tag=0x01, count=1, data=sessionID
+            ms.WriteByte(0x01);
+            ms.Write(BitConverter.GetBytes((uint)1)); // count=1 LE
+            ms.Write(BitConverter.GetBytes(_sessionId)); // data
+            ms.WriteByte(0x18);
+            // Section 2: tag=0x02, count=0
+            ms.WriteByte(0x02);
+            ms.Write(BitConverter.GetBytes((uint)0)); // count=0
+            ms.WriteByte(0x18);
+            var ser3 = ms.ToArray();
+            variantNum++;
+            Log($"  [V{variantNum:D2}] SERIAL: [0x01+sessID+0x18][0x02+0+0x18] | {ser3.Length}B");
+            Send(ser3, peer);
+
+            // V-SER4: Just raw ENet VERIFY_CONNECT (NO encryption at all)
+            // The recv loop doesn't decrypt, so maybe data is plaintext
+            var plainVC = new byte[48];
+            int o = 0;
+            WriteBE32(plainVC, o, _sessionId); o += 4;
+            WriteBE16(plainVC, o, (ushort)(peer.OutgoingPeerID | 0x8000)); o += 2;
+            WriteBE16(plainVC, o, sentTime); o += 2;
+            plainVC[o] = 0x83; o++;
+            plainVC[o] = 0xFF; o++;
+            WriteBE16(plainVC, o, 1); o += 2;
+            WriteBE16(plainVC, o, peer.OutgoingPeerID); o += 2;
+            WriteBE16(plainVC, o, 996); o += 2;
+            WriteBE32(plainVC, o, 32768); o += 4;
+            WriteBE32(plainVC, o, 32); o += 4;
+            for (int i = 0; i < 20; i++) plainVC[o + i] = 0; o += 20;
+            variantNum++;
+            Log($"  [V{variantNum:D2}] RAW PLAINTEXT ENet VC (no crypto) | {plainVC.Length}B");
+            Send(plainVC, peer);
+        }
+
         Log($"  === SENT {variantNum} VARIANTS ===");
         peer.VerifySeqNo++;
     }

@@ -1,0 +1,5 @@
+{
+	"failure_description": "Missing",
+	"failure_identifier": "WadFileMountError",
+	"wadfile": "DATA/FINAL/Bootstrap.windows.wad.client"
+}
