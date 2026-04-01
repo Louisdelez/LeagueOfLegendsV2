@@ -158,21 +158,26 @@ public class RawGameServer : IGameServer, IDisposable
         {
             Log($"[CLIENT] #{peer.PacketCount} {data.Length}B LNPBlob sessID=0x{sessIdLE:X8} token=0x{peer.ConnectToken:X8}");
             Log($"  Header: {Hex(data, 20)}");
+            // Log full content of non-519B packets (these are important!)
+            if (data.Length != 519)
+                Log($"  FULL: {Hex(data, data.Length)}");
         }
 
         if (!peer.Connected)
         {
             peer.Connected = true;
-            peer.OutgoingPeerID = 1; // Non-zero peer ID
-            Log($"  [HANDSHAKE] Sending VERIFY_CONNECT (connectID=0x{peer.ConnectToken:X8})");
-            SendVerifyConnect(peer);
+            peer.OutgoingPeerID = 1;
+            Log($"  [HANDSHAKE] ECHO-ONLY mode");
             EnsureClientInfo(peer);
         }
-        else if (peer.PacketCount <= 15)
+
+        // ALWAYS echo back the client's data (without LNPBlob prefix)
+        if (data.Length > 8)
         {
-            // Client retransmitting - resend VERIFY_CONNECT
-            if (verbose) Log($"  [RETRANSMIT #{peer.PacketCount}]");
-            SendVerifyConnect(peer);
+            var echo = new byte[data.Length - 8];
+            Array.Copy(data, 8, echo, 0, echo.Length);
+            Log($"  [ECHO] {echo.Length}B");
+            Send(echo, peer);
         }
         else if (!peer.GameInitSent)
         {
