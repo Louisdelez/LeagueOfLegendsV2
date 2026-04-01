@@ -1,0 +1,291 @@
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.10+7 (build 21.0.10+7-LTS, mixed mode)
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (721 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (1769 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessProject)  
+INFO  REPORT: Processing project file: /LoLPrivate.exe (HeadlessAnalyzer)  
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\DecompPacketInit.java (HeadlessAnalyzer)  
+INFO  DecompPacketInit.java> 
+=== PacketInit(0x350) = FUN_140567550 === (GhidraScript)  
+INFO  DecompPacketInit.java> Patterns: xor=false shift=false loop=false lines=76 (GhidraScript)  
+INFO  DecompPacketInit.java>  (GhidraScript)  
+INFO  DecompPacketInit.java> undefined8 * FUN_140567550(undefined8 *param_1) (GhidraScript)  
+INFO  DecompPacketInit.java>  (GhidraScript)  
+INFO  DecompPacketInit.java> { (GhidraScript)  
+INFO  DecompPacketInit.java>   undefined8 uVar1; (GhidraScript)  
+INFO  DecompPacketInit.java>   undefined4 uVar2; (GhidraScript)  
+INFO  DecompPacketInit.java>   uint local_res8 [2]; (GhidraScript)  
+INFO  DecompPacketInit.java>    (GhidraScript)  
+INFO  DecompPacketInit.java>   uVar1 = DAT_141948da8; (GhidraScript)  
+INFO  DecompPacketInit.java>   *param_1 = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   uVar2 = (undefined4)DAT_141948db0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[1] = PTR_DAT_1419ecda8; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[2] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   *(undefined2 *)(param_1 + 3) = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[4] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[5] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[6] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[7] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[8] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[9] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[10] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0xb] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0xc] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0xd] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0xe] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0xf] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x10] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x11] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x12] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x13] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x14] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x15] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x16] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x17] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   *(undefined2 *)(param_1 + 0x18) = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x19] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x1a] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x1b] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x1c] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x1d] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x1e] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x1f] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x20] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x21] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x22] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x23] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x24] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x25] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x26] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x27] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x28] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x29] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x2a] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x2b] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x2c] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x2d] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   FUN_140563ec0(param_1 + 0x2e,uVar2,0x46,0,uVar1,0x96); (GhidraScript)  
+INFO  DecompPacketInit.java>   FUN_140563ec0(param_1 + 0x39,uVar2,0x46,0,uVar1,0x96); (GhidraScript)  
+INFO  DecompPacketInit.java>   FUN_140563ec0(param_1 + 0x44,uVar2,0x46,0,uVar1,0x96); (GhidraScript)  
+INFO  DecompPacketInit.java>   FUN_140563ec0(param_1 + 0x4f,uVar2,0x46,0,uVar1,0x96); (GhidraScript)  
+INFO  DecompPacketInit.java>   FUN_140563cf0(param_1 + 0x5a,uVar2,0x46,0,0x4b0,0x18); (GhidraScript)  
+INFO  DecompPacketInit.java>   local_res8[0] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x62] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[99] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[100] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x65] = 0x4014000000000000; (GhidraScript)  
+INFO  DecompPacketInit.java>   FUN_14048be70(param_1 + 0x62,0x18,local_res8); (GhidraScript)  
+INFO  DecompPacketInit.java>   local_res8[0] = local_res8[0] & 0xffff0000; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x66] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x67] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x68] = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[0x69] = 0x4014000000000000; (GhidraScript)  
+INFO  DecompPacketInit.java>   FUN_14055bc10(param_1 + 0x66,0x18,local_res8); (GhidraScript)  
+INFO  DecompPacketInit.java>   return param_1; (GhidraScript)  
+INFO  DecompPacketInit.java> } (GhidraScript)  
+INFO  DecompPacketInit.java>  (GhidraScript)  
+INFO  DecompPacketInit.java> 
+Calls: (GhidraScript)  
+INFO  DecompPacketInit.java>   FUN_140563ec0 at 140563ec0 (GhidraScript)  
+INFO  DecompPacketInit.java>   FUN_140563ec0 at 140563ec0 (GhidraScript)  
+INFO  DecompPacketInit.java>   FUN_140563ec0 at 140563ec0 (GhidraScript)  
+INFO  DecompPacketInit.java>   FUN_140563ec0 at 140563ec0 (GhidraScript)  
+INFO  DecompPacketInit.java>   FUN_140563cf0 at 140563cf0 (GhidraScript)  
+INFO  DecompPacketInit.java>   FUN_14048be70 at 14048be70 (GhidraScript)  
+INFO  DecompPacketInit.java>   FUN_14055bc10 at 14055bc10 (GhidraScript)  
+INFO  DecompPacketInit.java> 
+=== QueueInsert = FUN_1402287f0 === (GhidraScript)  
+INFO  DecompPacketInit.java> Patterns: xor=false shift=false loop=true lines=163 (GhidraScript)  
+INFO  DecompPacketInit.java>  (GhidraScript)  
+INFO  DecompPacketInit.java> longlong * FUN_1402287f0(longlong *param_1,longlong *param_2,longlong *param_3) (GhidraScript)  
+INFO  DecompPacketInit.java>  (GhidraScript)  
+INFO  DecompPacketInit.java> { (GhidraScript)  
+INFO  DecompPacketInit.java>   char cVar1; (GhidraScript)  
+INFO  DecompPacketInit.java>   longlong *plVar2; (GhidraScript)  
+INFO  DecompPacketInit.java>   longlong lVar3; (GhidraScript)  
+INFO  DecompPacketInit.java>   longlong *plVar4; (GhidraScript)  
+INFO  DecompPacketInit.java>   undefined8 *puVar5; (GhidraScript)  
+INFO  DecompPacketInit.java>   longlong *plVar6; (GhidraScript)  
+INFO  DecompPacketInit.java>   longlong *plVar7; (GhidraScript)  
+INFO  DecompPacketInit.java>   longlong *plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>    (GhidraScript)  
+INFO  DecompPacketInit.java>   param_1[1] = param_1[1] + 1; (GhidraScript)  
+INFO  DecompPacketInit.java>   plVar2 = (longlong *)*param_1; (GhidraScript)  
+INFO  DecompPacketInit.java>   plVar7 = (longlong *)*param_2; (GhidraScript)  
+INFO  DecompPacketInit.java>   param_3[1] = (longlong)plVar7; (GhidraScript)  
+INFO  DecompPacketInit.java>   if (plVar7 == plVar2) { (GhidraScript)  
+INFO  DecompPacketInit.java>     *plVar2 = (longlong)param_3; (GhidraScript)  
+INFO  DecompPacketInit.java>     plVar2[1] = (longlong)param_3; (GhidraScript)  
+INFO  DecompPacketInit.java>     plVar2[2] = (longlong)param_3; (GhidraScript)  
+INFO  DecompPacketInit.java>     *(undefined1 *)(param_3 + 3) = 1; (GhidraScript)  
+INFO  DecompPacketInit.java>     return param_3; (GhidraScript)  
+INFO  DecompPacketInit.java>   } (GhidraScript)  
+INFO  DecompPacketInit.java>   if ((int)param_2[1] == 0) { (GhidraScript)  
+INFO  DecompPacketInit.java>     plVar7[2] = (longlong)param_3; (GhidraScript)  
+INFO  DecompPacketInit.java>     if (plVar7 == (longlong *)plVar2[2]) { (GhidraScript)  
+INFO  DecompPacketInit.java>       plVar2[2] = (longlong)param_3; (GhidraScript)  
+INFO  DecompPacketInit.java>     } (GhidraScript)  
+INFO  DecompPacketInit.java>   } (GhidraScript)  
+INFO  DecompPacketInit.java>   else { (GhidraScript)  
+INFO  DecompPacketInit.java>     *plVar7 = (longlong)param_3; (GhidraScript)  
+INFO  DecompPacketInit.java>     if (plVar7 == (longlong *)*plVar2) { (GhidraScript)  
+INFO  DecompPacketInit.java>       *plVar2 = (longlong)param_3; (GhidraScript)  
+INFO  DecompPacketInit.java>     } (GhidraScript)  
+INFO  DecompPacketInit.java>   } (GhidraScript)  
+INFO  DecompPacketInit.java>   cVar1 = *(char *)(param_3[1] + 0x18); (GhidraScript)  
+INFO  DecompPacketInit.java>   plVar7 = param_3; (GhidraScript)  
+INFO  DecompPacketInit.java>   do { (GhidraScript)  
+INFO  DecompPacketInit.java>     if (cVar1 != '\0') { (GhidraScript)  
+INFO  DecompPacketInit.java>       *(undefined1 *)(plVar2[1] + 0x18) = 1; (GhidraScript)  
+INFO  DecompPacketInit.java>       return param_3; (GhidraScript)  
+INFO  DecompPacketInit.java>     } (GhidraScript)  
+INFO  DecompPacketInit.java>     plVar6 = (longlong *)plVar7[1]; (GhidraScript)  
+INFO  DecompPacketInit.java>     lVar3 = *(longlong *)plVar6[1]; (GhidraScript)  
+INFO  DecompPacketInit.java>     if (plVar6 == (longlong *)lVar3) { (GhidraScript)  
+INFO  DecompPacketInit.java>       lVar3 = ((longlong *)plVar6[1])[2]; (GhidraScript)  
+INFO  DecompPacketInit.java>       if (*(char *)(lVar3 + 0x18) == '\0') { (GhidraScript)  
+INFO  DecompPacketInit.java>         *(undefined1 *)(plVar6 + 3) = 1; (GhidraScript)  
+INFO  DecompPacketInit.java>         *(undefined1 *)(lVar3 + 0x18) = 1; (GhidraScript)  
+INFO  DecompPacketInit.java>         *(undefined1 *)(*(longlong *)(plVar7[1] + 8) + 0x18) = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>         plVar7 = *(longlong **)(plVar7[1] + 8); (GhidraScript)  
+INFO  DecompPacketInit.java>       } (GhidraScript)  
+INFO  DecompPacketInit.java>       else { (GhidraScript)  
+INFO  DecompPacketInit.java>         plVar8 = (longlong *)plVar6[2]; (GhidraScript)  
+INFO  DecompPacketInit.java>         if (plVar7 == plVar8) { (GhidraScript)  
+INFO  DecompPacketInit.java>           plVar6[2] = *plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>           if (*(char *)(*plVar8 + 0x19) == '\0') { (GhidraScript)  
+INFO  DecompPacketInit.java>             *(longlong **)(*plVar8 + 8) = plVar6; (GhidraScript)  
+INFO  DecompPacketInit.java>           } (GhidraScript)  
+INFO  DecompPacketInit.java>           plVar8[1] = plVar6[1]; (GhidraScript)  
+INFO  DecompPacketInit.java>           if (plVar6 == (longlong *)*(longlong *)(*param_1 + 8)) { (GhidraScript)  
+INFO  DecompPacketInit.java>             *(longlong **)(*param_1 + 8) = plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>           } (GhidraScript)  
+INFO  DecompPacketInit.java>           else { (GhidraScript)  
+INFO  DecompPacketInit.java>             plVar7 = (longlong *)plVar6[1]; (GhidraScript)  
+INFO  DecompPacketInit.java>             if (plVar6 == (longlong *)*plVar7) { (GhidraScript)  
+INFO  DecompPacketInit.java>               *plVar7 = (longlong)plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>             } (GhidraScript)  
+INFO  DecompPacketInit.java>             else { (GhidraScript)  
+INFO  DecompPacketInit.java>               plVar7[2] = (longlong)plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>             } (GhidraScript)  
+INFO  DecompPacketInit.java>           } (GhidraScript)  
+INFO  DecompPacketInit.java>           *plVar8 = (longlong)plVar6; (GhidraScript)  
+INFO  DecompPacketInit.java>           plVar6[1] = (longlong)plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>           plVar7 = plVar6; (GhidraScript)  
+INFO  DecompPacketInit.java>         } (GhidraScript)  
+INFO  DecompPacketInit.java>         *(undefined1 *)(plVar7[1] + 0x18) = 1; (GhidraScript)  
+INFO  DecompPacketInit.java>         *(undefined1 *)(*(longlong *)(plVar7[1] + 8) + 0x18) = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>         plVar6 = *(longlong **)(plVar7[1] + 8); (GhidraScript)  
+INFO  DecompPacketInit.java>         plVar8 = (longlong *)*plVar6; (GhidraScript)  
+INFO  DecompPacketInit.java>         *plVar6 = plVar8[2]; (GhidraScript)  
+INFO  DecompPacketInit.java>         if (*(char *)(plVar8[2] + 0x19) == '\0') { (GhidraScript)  
+INFO  DecompPacketInit.java>           *(longlong **)(plVar8[2] + 8) = plVar6; (GhidraScript)  
+INFO  DecompPacketInit.java>         } (GhidraScript)  
+INFO  DecompPacketInit.java>         plVar8[1] = plVar6[1]; (GhidraScript)  
+INFO  DecompPacketInit.java>         if (plVar6 == *(longlong **)(*param_1 + 8)) { (GhidraScript)  
+INFO  DecompPacketInit.java>           *(longlong **)(*param_1 + 8) = plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>           plVar8[2] = (longlong)plVar6; (GhidraScript)  
+INFO  DecompPacketInit.java>         } (GhidraScript)  
+INFO  DecompPacketInit.java>         else { (GhidraScript)  
+INFO  DecompPacketInit.java>           plVar4 = (longlong *)plVar6[1]; (GhidraScript)  
+INFO  DecompPacketInit.java>           if (plVar6 == (longlong *)plVar4[2]) { (GhidraScript)  
+INFO  DecompPacketInit.java>             plVar4[2] = (longlong)plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>             plVar8[2] = (longlong)plVar6; (GhidraScript)  
+INFO  DecompPacketInit.java>           } (GhidraScript)  
+INFO  DecompPacketInit.java>           else { (GhidraScript)  
+INFO  DecompPacketInit.java>             *plVar4 = (longlong)plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>             plVar8[2] = (longlong)plVar6; (GhidraScript)  
+INFO  DecompPacketInit.java>           } (GhidraScript)  
+INFO  DecompPacketInit.java>         } (GhidraScript)  
+INFO  DecompPacketInit.java> LAB_140228a2d: (GhidraScript)  
+INFO  DecompPacketInit.java>         plVar6[1] = (longlong)plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>       } (GhidraScript)  
+INFO  DecompPacketInit.java>     } (GhidraScript)  
+INFO  DecompPacketInit.java>     else { (GhidraScript)  
+INFO  DecompPacketInit.java>       if (*(char *)(lVar3 + 0x18) != '\0') { (GhidraScript)  
+INFO  DecompPacketInit.java>         plVar8 = (longlong *)*plVar6; (GhidraScript)  
+INFO  DecompPacketInit.java>         if (plVar7 == plVar8) { (GhidraScript)  
+INFO  DecompPacketInit.java>           *plVar6 = plVar8[2]; (GhidraScript)  
+INFO  DecompPacketInit.java>           if (*(char *)(plVar8[2] + 0x19) == '\0') { (GhidraScript)  
+INFO  DecompPacketInit.java>             *(longlong **)(plVar8[2] + 8) = plVar6; (GhidraScript)  
+INFO  DecompPacketInit.java>           } (GhidraScript)  
+INFO  DecompPacketInit.java>           plVar8[1] = plVar6[1]; (GhidraScript)  
+INFO  DecompPacketInit.java>           if (plVar6 == (longlong *)*(longlong *)(*param_1 + 8)) { (GhidraScript)  
+INFO  DecompPacketInit.java>             *(longlong **)(*param_1 + 8) = plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>           } (GhidraScript)  
+INFO  DecompPacketInit.java>           else { (GhidraScript)  
+INFO  DecompPacketInit.java>             puVar5 = (undefined8 *)plVar6[1]; (GhidraScript)  
+INFO  DecompPacketInit.java>             if (plVar6 == (longlong *)puVar5[2]) { (GhidraScript)  
+INFO  DecompPacketInit.java>               puVar5[2] = plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>             } (GhidraScript)  
+INFO  DecompPacketInit.java>             else { (GhidraScript)  
+INFO  DecompPacketInit.java>               *puVar5 = plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>             } (GhidraScript)  
+INFO  DecompPacketInit.java>           } (GhidraScript)  
+INFO  DecompPacketInit.java>           plVar8[2] = (longlong)plVar6; (GhidraScript)  
+INFO  DecompPacketInit.java>           plVar6[1] = (longlong)plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>           plVar7 = plVar6; (GhidraScript)  
+INFO  DecompPacketInit.java>         } (GhidraScript)  
+INFO  DecompPacketInit.java>         *(undefined1 *)(plVar7[1] + 0x18) = 1; (GhidraScript)  
+INFO  DecompPacketInit.java>         *(undefined1 *)(*(longlong *)(plVar7[1] + 8) + 0x18) = 0; (GhidraScript)  
+INFO  DecompPacketInit.java>         plVar6 = *(longlong **)(plVar7[1] + 8); (GhidraScript)  
+INFO  DecompPacketInit.java>         plVar8 = (longlong *)plVar6[2]; (GhidraScript)  
+INFO  DecompPacketInit.java>         plVar6[2] = *plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>         if (*(char *)(*plVar8 + 0x19) == '\0') { (GhidraScript)  
+INFO  DecompPacketInit.java>           *(longlong **)(*plVar8 + 8) = plVar6; (GhidraScript)  
+INFO  DecompPacketInit.java>         } (GhidraScript)  
+INFO  DecompPacketInit.java>         plVar8[1] = plVar6[1]; (GhidraScript)  
+INFO  DecompPacketInit.java>         if (plVar6 == *(longlong **)(*param_1 + 8)) { (GhidraScript)  
+INFO  DecompPacketInit.java>           *(longlong **)(*param_1 + 8) = plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>         } (GhidraScript)  
+INFO  DecompPacketInit.java>         else { (GhidraScript)  
+INFO  DecompPacketInit.java>           puVar5 = (undefined8 *)plVar6[1]; (GhidraScript)  
+INFO  DecompPacketInit.java>           if (plVar6 == (longlong *)*puVar5) { (GhidraScript)  
+INFO  DecompPacketInit.java>             *puVar5 = plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>           } (GhidraScript)  
+INFO  DecompPacketInit.java>           else { (GhidraScript)  
+INFO  DecompPacketInit.java>             puVar5[2] = plVar8; (GhidraScript)  
+INFO  DecompPacketInit.java>           } (GhidraScript)  
+INFO  DecompPacketInit.java> ... (13 more) (GhidraScript)  
+INFO  DecompPacketInit.java> 
+Calls: (GhidraScript)  
+INFO  DecompPacketInit.java> 
+=== DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /LoLPrivate.exe (HeadlessAnalyzer)  

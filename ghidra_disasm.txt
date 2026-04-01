@@ -1,0 +1,80 @@
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.10+7 (build 21.0.10+7-LTS, mixed mode)
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (691 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (1700 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessProject)  
+INFO  REPORT: Processing project file: /LoLPrivate.exe (HeadlessAnalyzer)  
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\DisasmSendto.java (HeadlessAnalyzer)  
+INFO  DisasmSendto.java> === Assembly around sendto call === (GhidraScript)  
+INFO  DisasmSendto.java> 14058ec80: MOV word ptr [RBP + -0x40],AX (GhidraScript)  
+INFO  DisasmSendto.java> 14058ec84: MOV EAX,dword ptr [RBP + -0x68] (GhidraScript)  
+INFO  DisasmSendto.java> 14058ec87: MOV dword ptr [RBP + -0x3c],EAX (GhidraScript)  
+INFO  DisasmSendto.java> 14058ec8a: CALL qword ptr [0x1418dfd18] (GhidraScript)  
+INFO  DisasmSendto.java> 14058ec90: MOV word ptr [RBP + -0x3e],AX (GhidraScript)  
+INFO  DisasmSendto.java> 14058ec94: LEA RAX,[RBP + -0x40] (GhidraScript)  
+INFO  DisasmSendto.java> 14058ec98: MOV dword ptr [RSP + 0x28],0x10 (GhidraScript)  
+INFO  DisasmSendto.java> 14058eca0: MOVZX R8D,word ptr [RSP + 0x3a] (GhidraScript)  
+INFO  DisasmSendto.java> 14058eca6: XOR R9D,R9D (GhidraScript)  
+INFO  DisasmSendto.java> 14058eca9: MOV RCX,qword ptr [RBX + 0x38] (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecad: MOV RDX,RDI (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecb0: MOV qword ptr [RSP + 0x20],RAX (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecb5: CALL qword ptr [0x1418dfcf8] (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecbb: TEST EAX,EAX <-- SENDTO CALL (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecbd: JNS 0x14058ece9 (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecbf: CMP byte ptr [RBX + 0x34],0x0 (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecc3: JZ 0x14058ece9 (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecc5: CALL 0x1410f48f0 (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecca: CMP EAX,0x2738 (GhidraScript)  
+INFO  DisasmSendto.java> 14058eccf: JZ 0x14058ece9 (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecd1: CMP EAX,0x2746 (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecd6: JZ 0x14058ece9 (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecd8: MOV R8D,0x1000 (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecde: LEA RDX,[RBP + -0x10] (GhidraScript)  
+INFO  DisasmSendto.java> 14058ece2: MOV ECX,EAX (GhidraScript)  
+INFO  DisasmSendto.java> 14058ece4: CALL 0x1410f6d20 (GhidraScript)  
+INFO  DisasmSendto.java> 14058ece9: MOVZX R12D,word ptr [RSP + 0x38] (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecef: LEA R13,[RBX + 0x60] (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecf3: XOR ESI,ESI (GhidraScript)  
+INFO  DisasmSendto.java> 14058ecf5: MOV R14D,ESI (GhidraScript)  
+INFO  DisasmSendto.java> 
+=== Function containing sendto call === (GhidraScript)  
+INFO  DisasmSendto.java> Still no function. Creating one... (GhidraScript)  
+INFO  DisasmSendto.java> === DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /LoLPrivate.exe (HeadlessAnalyzer)  

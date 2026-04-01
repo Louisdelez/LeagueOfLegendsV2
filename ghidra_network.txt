@@ -1,0 +1,1406 @@
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.10+7 (build 21.0.10+7-LTS, mixed mode)
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (768 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (5795 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessProject)  
+INFO  REPORT: Processing project file: /LoLPrivate.exe (HeadlessAnalyzer)  
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\FindNetworkSend.java (HeadlessAnalyzer)  
+INFO  FindNetworkSend.java> Image base: 140000000 (GhidraScript)  
+INFO  FindNetworkSend.java> 
+=== Searching for constant 519 (0x207) in code === (GhidraScript)  
+INFO  FindNetworkSend.java>   519 (packet size) found at 1401928ea in <none>: MOV word ptr [0x141e478e4],0x207 (GhidraScript)  
+INFO  FindNetworkSend.java>   519 (packet size) found at 14051f787 in FUN_14051f780: MOV word ptr [RCX + 0x8],0x207 (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (52 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> undefined8 * FUN_14051f780(undefined8 *param_1) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   byte bVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte *pbVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>    (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined2 *)(param_1 + 1) = 0x207; (GhidraScript)  
+INFO  FindNetworkSend.java>   *param_1 = &PTR_GetDefaultSettings_1418f4330; (GhidraScript)  
+INFO  FindNetworkSend.java>   pbVar2 = (byte *)(param_1 + 2); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined4 *)((longlong)param_1 + 0xc) = DAT_141dcb898; (GhidraScript)  
+INFO  FindNetworkSend.java>   *param_1 = &PTR_FUN_141939d48; (GhidraScript)  
+INFO  FindNetworkSend.java>   *pbVar2 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   for (; pbVar2 != (byte *)((longlong)param_1 + 0x11); pbVar2 = pbVar2 + 1) { (GhidraScript)  
+INFO  FindNetworkSend.java>     bVar1 = *pbVar2 >> 6 | *pbVar2 << 2; (GhidraScript)  
+INFO  FindNetworkSend.java>     bVar1 = ~((bVar1 & 0xd5) * '\x02' | bVar1 >> 1 & 0x55); (GhidraScript)  
+INFO  FindNetworkSend.java>     *pbVar2 = bVar1 >> 1 | bVar1 << 7; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   pbVar2 = (byte *)(param_1 + 3); (GhidraScript)  
+INFO  FindNetworkSend.java>   pbVar2[0] = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   pbVar2[1] = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   pbVar2[2] = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   pbVar2[3] = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   pbVar2[4] = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   pbVar2[5] = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   pbVar2[6] = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   pbVar2[7] = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   for (; pbVar2 != (byte *)(param_1 + 4); pbVar2 = pbVar2 + 1) { (GhidraScript)  
+INFO  FindNetworkSend.java>     bVar1 = (*pbVar2 ^ 0xb9) + 0xb5; (GhidraScript)  
+INFO  FindNetworkSend.java>     *pbVar2 = ~(bVar1 >> 6 | bVar1 * '\x04') + 0x1f; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   pbVar2 = (byte *)(param_1 + 4); (GhidraScript)  
+INFO  FindNetworkSend.java>   *pbVar2 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   for (; pbVar2 != (byte *)((longlong)param_1 + 0x21); pbVar2 = pbVar2 + 1) { (GhidraScript)  
+INFO  FindNetworkSend.java>     *pbVar2 = (&DAT_141939290)[(byte)(~((&DAT_141939290)[*pbVar2] + 0x54) - 0x3a)]; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   pbVar2 = (byte *)((longlong)param_1 + 0x21); (GhidraScript)  
+INFO  FindNetworkSend.java>   *pbVar2 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   for (; pbVar2 != (byte *)((longlong)param_1 + 0x22); pbVar2 = pbVar2 + 1) { (GhidraScript)  
+INFO  FindNetworkSend.java>     *pbVar2 = (((*pbVar2 + 0x4f & 0xd5) * '\x02' | (byte)(*pbVar2 + 0x4f) >> 1 & 0x55) ^ 0x8a) + 6 ^ (GhidraScript)  
+INFO  FindNetworkSend.java>               0x3e; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   pbVar2 = (byte *)((longlong)param_1 + 0x22); (GhidraScript)  
+INFO  FindNetworkSend.java>   *pbVar2 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   for (; pbVar2 != (byte *)((longlong)param_1 + 0x23); pbVar2 = pbVar2 + 1) { (GhidraScript)  
+INFO  FindNetworkSend.java>     bVar1 = ((&DAT_141939290)[*pbVar2] & 0xd5) * '\x02' | (GhidraScript)  
+INFO  FindNetworkSend.java>             (byte)(&DAT_141939290)[*pbVar2] >> 1 & 0x55; (GhidraScript)  
+INFO  FindNetworkSend.java>     *pbVar2 = (&DAT_141939290)[(byte)(((bVar1 >> 2 | bVar1 << 6) ^ 0x1b) + 0x81)] - 0x16; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   return param_1; (GhidraScript)  
+INFO  FindNetworkSend.java> } (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java>   519 (packet size) found at 141577f2d in FUN_141577d00: MOVZX EAX,byte ptr [RBX + 0x207] (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (471 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> void FUN_141577d00(longlong param_1,longlong *param_2,longlong param_3) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 uVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte bVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   int iVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>   char cVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar7; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar9; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar10; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar11; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar12; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar13; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar14; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar15; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar16; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar17; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar18; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar19; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar20; (GhidraScript)  
+INFO  FindNetworkSend.java>   float local_res20; (GhidraScript)  
+INFO  FindNetworkSend.java>   float local_178; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *local_170; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *local_168; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *local_160; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *local_158; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *local_150; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *local_148; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_140; (GhidraScript)  
+INFO  FindNetworkSend.java>   float local_13c; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_138; (GhidraScript)  
+INFO  FindNetworkSend.java>   float local_134; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_130; (GhidraScript)  
+INFO  FindNetworkSend.java>   float local_12c; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_128; (GhidraScript)  
+INFO  FindNetworkSend.java>   float local_124; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_120; (GhidraScript)  
+INFO  FindNetworkSend.java>   float local_11c; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_118; (GhidraScript)  
+INFO  FindNetworkSend.java>   float local_114; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_110; (GhidraScript)  
+INFO  FindNetworkSend.java>   float local_10c; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_108; (GhidraScript)  
+INFO  FindNetworkSend.java>   float local_104; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_100; (GhidraScript)  
+INFO  FindNetworkSend.java>   float local_fc; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_f8; (GhidraScript)  
+INFO  FindNetworkSend.java>   float local_f4; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_f0; (GhidraScript)  
+INFO  FindNetworkSend.java>    (GhidraScript)  
+INFO  FindNetworkSend.java>   if ((*(byte *)(param_1 + 0x18c) & 0x40) == 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     cVar6 = FUN_1415398e0(); (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   else { (GhidraScript)  
+INFO  FindNetworkSend.java>     lVar7 = FUN_14153a510(param_1 + 0x178); (GhidraScript)  
+INFO  FindNetworkSend.java>     plVar10 = (longlong *)0x0; (GhidraScript)  
+INFO  FindNetworkSend.java> ... (411 more lines) (GhidraScript)  
+INFO  FindNetworkSend.java>   519 (packet size) found at 1415bce8c in FUN_1415bcd40: MOV byte ptr [RDI + 0x207],AL (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (128 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Removing unreachable block (ram,0x0001415bd102) */ (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */ (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> undefined8 FUN_1415bcd40(longlong param_1,longlong param_2,int param_3) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   byte bVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   char cVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   ushort uVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>   int iVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uVar7; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   float *pfVar9; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar10; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar11; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar12; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte bVar13; (GhidraScript)  
+INFO  FindNetworkSend.java>   float *local_res10; (GhidraScript)  
+INFO  FindNetworkSend.java>   int local_res18 [4]; (GhidraScript)  
+INFO  FindNetworkSend.java>    (GhidraScript)  
+INFO  FindNetworkSend.java>   bVar1 = *(byte *)(param_1 + 0x20b); (GhidraScript)  
+INFO  FindNetworkSend.java>   bVar13 = -(*(char *)(param_2 + 4) != '\0') & 2; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(byte *)(param_1 + 0x20b) = bVar13 | bVar1 & 0xfd; (GhidraScript)  
+INFO  FindNetworkSend.java>   cVar2 = *(char *)(param_2 + 5); (GhidraScript)  
+INFO  FindNetworkSend.java>   pfVar9 = (float *)(param_2 + 6); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(byte *)(param_1 + 0x20b) = cVar2 != '\0' | bVar13 | bVar1 & 0xfc; (GhidraScript)  
+INFO  FindNetworkSend.java>   if (cVar2 != '\0') { (GhidraScript)  
+INFO  FindNetworkSend.java>     *(float *)(param_1 + 0x18) = *pfVar9 * _DAT_141a55a30; (GhidraScript)  
+INFO  FindNetworkSend.java>     *(float *)(param_1 + 0x1c) = *(float *)(param_2 + 10) * _DAT_141a55a30; (GhidraScript)  
+INFO  FindNetworkSend.java>     *(undefined4 *)(param_1 + 0x20) = *(undefined4 *)(param_2 + 0xe); (GhidraScript)  
+INFO  FindNetworkSend.java>     pfVar9 = (float *)(param_2 + 0x1a); (GhidraScript)  
+INFO  FindNetworkSend.java>     *(undefined4 *)(param_1 + 0x24) = *(undefined4 *)(param_2 + 0x12); (GhidraScript)  
+INFO  FindNetworkSend.java>     *(undefined4 *)(param_1 + 0x28) = *(undefined4 *)(param_2 + 0x16); (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   local_res10 = pfVar9 + 5; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x1f8) = *(undefined1 *)pfVar9; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x1f9) = *(undefined1 *)((longlong)pfVar9 + 1); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x1fa) = *(undefined1 *)((longlong)pfVar9 + 2); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x1fb) = *(undefined1 *)((longlong)pfVar9 + 3); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x1fc) = *(undefined1 *)(pfVar9 + 1); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x1fd) = *(undefined1 *)((longlong)pfVar9 + 5); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x1fe) = *(undefined1 *)((longlong)pfVar9 + 6); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x1ff) = *(undefined1 *)((longlong)pfVar9 + 7); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x200) = *(undefined1 *)(pfVar9 + 2); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x201) = *(undefined1 *)((longlong)pfVar9 + 9); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x202) = *(undefined1 *)((longlong)pfVar9 + 10); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x203) = *(undefined1 *)((longlong)pfVar9 + 0xb); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x204) = *(undefined1 *)(pfVar9 + 3); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x205) = *(undefined1 *)((longlong)pfVar9 + 0xd); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x206) = *(undefined1 *)((longlong)pfVar9 + 0xe); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x207) = *(undefined1 *)((longlong)pfVar9 + 0xf); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x208) = *(undefined1 *)(pfVar9 + 4); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x209) = *(undefined1 *)((longlong)pfVar9 + 0x11); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x20a) = *(undefined1 *)((longlong)pfVar9 + 0x12); (GhidraScript)  
+INFO  FindNetworkSend.java>   fVar4 = DAT_1418f8584; (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar12 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   bVar1 = *(byte *)((longlong)pfVar9 + 0x13); (GhidraScript)  
+INFO  FindNetworkSend.java> ... (68 more lines) (GhidraScript)  
+INFO  FindNetworkSend.java>   519 (packet size) found at 1416454bc in FUN_141645470: MOV R8D,0x207 (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (115 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Function: __chkstk replaced with injection: alloca_probe */ (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> undefined8 (GhidraScript)  
+INFO  FindNetworkSend.java> FUN_141645470(undefined8 param_1,longlong *param_2,longlong *param_3,longlong *param_4,int param_5, (GhidraScript)  
+INFO  FindNetworkSend.java>              int param_6) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   int iVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   int iVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>   int *piVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 *puVar7; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uVar9; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uVar10; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uVar11; (GhidraScript)  
+INFO  FindNetworkSend.java>    (GhidraScript)  
+INFO  FindNetworkSend.java>   iVar2 = param_5; (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar11 = 0x141645487; (GhidraScript)  
+INFO  FindNetworkSend.java>   if (param_2[1] == 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     if (param_6 != 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>       FUN_141651490(param_1,0x2f,0x207,0xb7,"ssl\\ssl_lib.c",0x100001541); (GhidraScript)  
+INFO  FindNetworkSend.java>       return 0; (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar10 = 0x1543; (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar11 = 0xb7; (GhidraScript)  
+INFO  FindNetworkSend.java> LAB_14164555a: (GhidraScript)  
+INFO  FindNetworkSend.java>     FUN_14168b9d0(0x14,0x207,uVar11,"ssl\\ssl_lib.c",uVar10,0x141645487); (GhidraScript)  
+INFO  FindNetworkSend.java>     return 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar8 = (ulonglong)(param_5 != 0) + 2; (GhidraScript)  
+INFO  FindNetworkSend.java>   if ((ulonglong)param_2[1] % uVar8 != 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     if (param_6 != 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>       FUN_141651490(param_1,0x32,0x207,0x97,"ssl\\ssl_lib.c",0x10000154a); (GhidraScript)  
+INFO  FindNetworkSend.java>       return 0; (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar10 = 0x154d; (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar11 = 0x97; (GhidraScript)  
+INFO  FindNetworkSend.java>     goto LAB_14164555a; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   lVar4 = FUN_1416a4850(); (GhidraScript)  
+INFO  FindNetworkSend.java>   lVar5 = FUN_1416a4850(); (GhidraScript)  
+INFO  FindNetworkSend.java>   if ((lVar4 == 0) || (lVar5 == 0)) { (GhidraScript)  
+INFO  FindNetworkSend.java>     if (param_6 == 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>       uVar10 = 0x1558; (GhidraScript)  
+INFO  FindNetworkSend.java>       goto LAB_141645733; (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar11 = 0x1556; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   else { (GhidraScript)  
+INFO  FindNetworkSend.java> LAB_1416455b0: (GhidraScript)  
+INFO  FindNetworkSend.java>     do { (GhidraScript)  
+INFO  FindNetworkSend.java>       do { (GhidraScript)  
+INFO  FindNetworkSend.java>         do { (GhidraScript)  
+INFO  FindNetworkSend.java>           uVar1 = param_2[1]; (GhidraScript)  
+INFO  FindNetworkSend.java>           if (uVar1 < uVar8) { (GhidraScript)  
+INFO  FindNetworkSend.java>             if (uVar1 == 0) { (GhidraScript)  
+INFO  FindNetworkSend.java> ... (55 more lines) (GhidraScript)  
+INFO  FindNetworkSend.java>   519 (packet size) found at 1416d83bf in FUN_1416d8200: MOV EAX,0x207 (GhidraScript)  
+INFO  FindNetworkSend.java>   519 (packet size) found at 1417c99c7 in FUN_1417c94e0: MOV dword ptr [RBX + 0x150],0x207 (GhidraScript)  
+INFO  FindNetworkSend.java> 
+=== Searching for constant 511 (0x1FF) === (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 1409b8dc0 in FUN_1409b8d90: MOV EAX,0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (59 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> void FUN_1409b8d90(undefined8 param_1,char param_2,undefined4 *param_3,undefined4 param_4) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   char cVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte bVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte *pbVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte bVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined **local_28; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined2 local_20; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_1c; (GhidraScript)  
+INFO  FindNetworkSend.java>   char local_18; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_14; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_10; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte local_c [4]; (GhidraScript)  
+INFO  FindNetworkSend.java>    (GhidraScript)  
+INFO  FindNetworkSend.java>   cVar1 = FUN_141179ef0(*(undefined8 *)(DAT_141da1490 + 0x10)); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (cVar1 == '\0') { (GhidraScript)  
+INFO  FindNetworkSend.java>     local_20 = 0x1ff; (GhidraScript)  
+INFO  FindNetworkSend.java>     pbVar3 = (byte *)&local_14; (GhidraScript)  
+INFO  FindNetworkSend.java>     local_1c = DAT_141df8740; (GhidraScript)  
+INFO  FindNetworkSend.java>     local_28 = &PTR_FUN_14198ec20; (GhidraScript)  
+INFO  FindNetworkSend.java>     local_14 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>     do { (GhidraScript)  
+INFO  FindNetworkSend.java>       bVar2 = ~((*pbVar3 ^ 0x29) >> 3 | (*pbVar3 ^ 0x29) << 5); (GhidraScript)  
+INFO  FindNetworkSend.java>       bVar4 = bVar2 >> 2; (GhidraScript)  
+INFO  FindNetworkSend.java>       *pbVar3 = (byte)((bVar4 | bVar2 << 6) + 0x40) >> 6 | bVar4 << 2; (GhidraScript)  
+INFO  FindNetworkSend.java>       pbVar3 = pbVar3 + 1; (GhidraScript)  
+INFO  FindNetworkSend.java>     } while (pbVar3 != (byte *)&local_10); (GhidraScript)  
+INFO  FindNetworkSend.java>     local_10 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>     pbVar3 = (byte *)&local_10; (GhidraScript)  
+INFO  FindNetworkSend.java>     do { (GhidraScript)  
+INFO  FindNetworkSend.java>       *pbVar3 = ~((((&DAT_14198dd60)[(byte)(*pbVar3 - 0x32)] ^ 0x59) & 0xd5) * '\x02' | (GhidraScript)  
+INFO  FindNetworkSend.java>                  ((&DAT_14198dd60)[(byte)(*pbVar3 - 0x32)] ^ 0x59) >> 1 & 0x55); (GhidraScript)  
+INFO  FindNetworkSend.java>       pbVar3 = pbVar3 + 1; (GhidraScript)  
+INFO  FindNetworkSend.java>     } while (pbVar3 != local_c); (GhidraScript)  
+INFO  FindNetworkSend.java>     pbVar3 = (byte *)&local_10; (GhidraScript)  
+INFO  FindNetworkSend.java>     bVar4 = param_2 + 0x85U ^ 0xcf; (GhidraScript)  
+INFO  FindNetworkSend.java>     bVar4 = 0xb - (bVar4 >> 2 | bVar4 << 6); (GhidraScript)  
+INFO  FindNetworkSend.java>     local_18 = (bVar4 >> 7 | bVar4 * '\x02') + 0x32; (GhidraScript)  
+INFO  FindNetworkSend.java>     local_10 = *param_3; (GhidraScript)  
+INFO  FindNetworkSend.java>     do { (GhidraScript)  
+INFO  FindNetworkSend.java>       *pbVar3 = ~((((&DAT_14198dd60)[(byte)(*pbVar3 - 0x32)] ^ 0x59) & 0xd5) * '\x02' | (GhidraScript)  
+INFO  FindNetworkSend.java>                  ((&DAT_14198dd60)[(byte)(*pbVar3 - 0x32)] ^ 0x59) >> 1 & 0x55); (GhidraScript)  
+INFO  FindNetworkSend.java>       pbVar3 = pbVar3 + 1; (GhidraScript)  
+INFO  FindNetworkSend.java>     } while (pbVar3 != local_c); (GhidraScript)  
+INFO  FindNetworkSend.java>     local_14 = param_4; (GhidraScript)  
+INFO  FindNetworkSend.java>     pbVar3 = (byte *)&local_14; (GhidraScript)  
+INFO  FindNetworkSend.java>     do { (GhidraScript)  
+INFO  FindNetworkSend.java>       bVar2 = ~((*pbVar3 ^ 0x29) >> 3 | (*pbVar3 ^ 0x29) << 5); (GhidraScript)  
+INFO  FindNetworkSend.java>       bVar4 = bVar2 >> 2; (GhidraScript)  
+INFO  FindNetworkSend.java>       *pbVar3 = (byte)((bVar4 | bVar2 << 6) + 0x40) >> 6 | bVar4 << 2; (GhidraScript)  
+INFO  FindNetworkSend.java>       pbVar3 = pbVar3 + 1; (GhidraScript)  
+INFO  FindNetworkSend.java>     } while (pbVar3 != (byte *)&local_10); (GhidraScript)  
+INFO  FindNetworkSend.java>     FUN_140695b40(DAT_141da1480,&local_28,&DAT_14198dd01); (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   return; (GhidraScript)  
+INFO  FindNetworkSend.java> } (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 14128d8be in FUN_14128d650: AND ESI,0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (204 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */ (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> void FUN_14128d650(longlong param_1,longlong *param_2) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *puVar7; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar9; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar10; (GhidraScript)  
+INFO  FindNetworkSend.java>   int iVar11; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar12; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uVar13; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar14; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar15; (GhidraScript)  
+INFO  FindNetworkSend.java>   int iVar16; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar17; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar18; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar19; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar20; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 auStack_518 [32]; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_4f8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_4f0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_4e8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_4e0; (GhidraScript)  
+INFO  FindNetworkSend.java>   float local_4d8; (GhidraScript)  
+INFO  FindNetworkSend.java>   float local_4d4; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_4d0; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *local_4c8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_4c0 [24]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_4a8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uStack_4a0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_498; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_494; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_490; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_48c; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined2 local_488; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_484; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_47c; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_474 [24]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_45c; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined2 local_458; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_454; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *local_448; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint local_440; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint local_43c; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_438 [32]; (GhidraScript)  
+INFO  FindNetworkSend.java>   AkStreamMgrSettings local_338 [12]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_32c; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_328; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_324; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_2e4; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_2e0; (GhidraScript)  
+INFO  FindNetworkSend.java>   AkStreamMgrSettings local_2c0 [568]; (GhidraScript)  
+INFO  FindNetworkSend.java> ... (144 more lines) (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 1413e509f in FUN_1413e5050: MOV R8D,0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (288 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> void FUN_1413e5050(undefined8 param_1,longlong param_2,byte *param_3,int param_4,undefined1 *param_5 (GhidraScript)  
+INFO  FindNetworkSend.java>                   ,ushort param_6) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *puVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   bool bVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 *puVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte bVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>   int iVar7; (GhidraScript)  
+INFO  FindNetworkSend.java>   int iVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulong uVar9; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar10; (GhidraScript)  
+INFO  FindNetworkSend.java>   __time64_t _Var11; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte *pbVar12; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte *pbVar13; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte *pbVar14; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar15; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar16; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar17; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 uVar18; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte bVar19; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 auStack_2f8 [32]; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_2d8; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint local_2d0; (GhidraScript)  
+INFO  FindNetworkSend.java>   ushort local_2c8; (GhidraScript)  
+INFO  FindNetworkSend.java>   int local_2c4; (GhidraScript)  
+INFO  FindNetworkSend.java>   ushort local_2c0; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte *local_2b8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_2b0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 *local_2a8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 *local_2a0; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_298; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_290; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_28f; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_287; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_280 [40]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_258 [512]; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_58; (GhidraScript)  
+INFO  FindNetworkSend.java>    (GhidraScript)  
+INFO  FindNetworkSend.java>   local_58 = DAT_141d28400 ^ (ulonglong)auStack_2f8; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_2a0 = param_5; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_2c0 = param_6; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_258[0] = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_2c4 = param_4; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_2b0 = param_1; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_298 = param_2; (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1418b49a0(local_258 + 1,0,0x1ff); (GhidraScript)  
+INFO  FindNetworkSend.java>   local_290 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_28f = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_287 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   bVar19 = *param_3; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_2c8 = param_6; (GhidraScript)  
+INFO  FindNetworkSend.java>   while ((bVar19 != 0 && ((bVar19 == 0x20 || (bVar19 == 9))))) { (GhidraScript)  
+INFO  FindNetworkSend.java>     pbVar12 = param_3 + 1; (GhidraScript)  
+INFO  FindNetworkSend.java>     param_3 = param_3 + 1; (GhidraScript)  
+INFO  FindNetworkSend.java>     bVar19 = *pbVar12; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java> ... (228 more lines) (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 1413ec2b2 in FUN_1413ec190: AND EDX,0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (93 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> uint FUN_1413ec190(uint *param_1) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   int iVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   int iVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte bVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte bVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>   int iVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar7; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar9; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar10; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar11; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar12; (GhidraScript)  
+INFO  FindNetworkSend.java>    (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar8 = *param_1; (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar12 = param_1[1]; (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar11 = uVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   if ((int)uVar8 < 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar11 = -uVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar7 = (int)uVar8 >> 0x1f & 0xfffffffe; (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar8 = uVar12; (GhidraScript)  
+INFO  FindNetworkSend.java>   if ((int)uVar12 < 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar8 = -uVar12; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar12 = (int)uVar12 >> 0x1f & 0xfffffffe; (GhidraScript)  
+INFO  FindNetworkSend.java>   if (uVar11 == 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     if (uVar8 != 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>       param_1[1] = (uVar12 + 1) * 0x10000; (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     return uVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   if (uVar8 == 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     *param_1 = (uVar7 + 1) * 0x10000; (GhidraScript)  
+INFO  FindNetworkSend.java>     return uVar11; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar9 = (uVar11 >> 1) + uVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   if (uVar8 < uVar11) { (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar9 = (uVar8 >> 1) + uVar11; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   iVar1 = 0x1f; (GhidraScript)  
+INFO  FindNetworkSend.java>   if (uVar9 != 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     for (; uVar9 >> iVar1 == 0; iVar1 = iVar1 + -1) { (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   iVar1 = ((0x1f - iVar1) - (uint)(0xaaaaaaaaU >> ((byte)(0x1f - iVar1) & 0x1f) <= uVar9)) + -0xf; (GhidraScript)  
+INFO  FindNetworkSend.java>   bVar4 = (byte)iVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   if (iVar1 < 1) { (GhidraScript)  
+INFO  FindNetworkSend.java>     bVar5 = -bVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar11 = uVar11 >> (bVar5 & 0x1f); (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar8 = uVar8 >> (bVar5 & 0x1f); (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar9 = uVar9 >> (bVar5 & 0x1f); (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   else { (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar11 = uVar11 << (bVar4 & 0x1f); (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar8 = uVar8 << (bVar4 & 0x1f); (GhidraScript)  
+INFO  FindNetworkSend.java>     if (uVar8 < uVar11) { (GhidraScript)  
+INFO  FindNetworkSend.java> ... (33 more lines) (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 14143f2bc in FUN_14143f2a0: MOV R10D,0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (78 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> void FUN_14143f2a0(longlong param_1,int param_2,int param_3,int param_4,int param_5) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined2 *puVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   int iVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 *puVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 uVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>    (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar3 = param_4 >> 9; (GhidraScript)  
+INFO  FindNetworkSend.java>   if ((*(byte *)(param_1 + 0x170) & 2) == 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar6 = ~uVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>     if (-1 < (int)uVar3) { (GhidraScript)  
+INFO  FindNetworkSend.java>       uVar6 = uVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar5 = (undefined1)uVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>     if (0xff < (int)uVar6) { (GhidraScript)  
+INFO  FindNetworkSend.java>       uVar5 = 0xff; (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   else { (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar3 = uVar3 & 0x1ff; (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar6 = 0x1ff - uVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>     if (uVar3 < 0x100) { (GhidraScript)  
+INFO  FindNetworkSend.java>       uVar6 = uVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar5 = (undefined1)uVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   iVar2 = *(int *)(param_1 + 0x1d4); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (-1 < iVar2) { (GhidraScript)  
+INFO  FindNetworkSend.java>     puVar1 = (undefined2 *)(param_1 + ((longlong)iVar2 + 0x44) * 6); (GhidraScript)  
+INFO  FindNetworkSend.java>     *(int *)(param_1 + 0x1d4) = iVar2 + 1; (GhidraScript)  
+INFO  FindNetworkSend.java>     puVar1[1] = (undefined2)param_5; (GhidraScript)  
+INFO  FindNetworkSend.java>     *puVar1 = (short)param_2; (GhidraScript)  
+INFO  FindNetworkSend.java>     *(undefined1 *)(puVar1 + 2) = uVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>     if (*(int *)(param_1 + 0x1d4) != 10) { (GhidraScript)  
+INFO  FindNetworkSend.java> switchD_14143f393_caseD_0: (GhidraScript)  
+INFO  FindNetworkSend.java>       return; (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     (**(code **)(param_1 + 0x188))(param_3,10,param_1 + 0x198,*(undefined8 *)(param_1 + 400)); (GhidraScript)  
+INFO  FindNetworkSend.java>     *(undefined4 *)(param_1 + 0x1d4) = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>     return; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   puVar4 = (undefined1 *) (GhidraScript)  
+INFO  FindNetworkSend.java>            ((*(longlong *)(param_1 + 0x178) - (longlong)(param_3 * *(int *)(param_1 + 0x180))) + (GhidraScript)  
+INFO  FindNetworkSend.java>            (longlong)param_2); (GhidraScript)  
+INFO  FindNetworkSend.java>   switch(param_5) { (GhidraScript)  
+INFO  FindNetworkSend.java>   case 0: (GhidraScript)  
+INFO  FindNetworkSend.java>     goto switchD_14143f393_caseD_0; (GhidraScript)  
+INFO  FindNetworkSend.java>   case 7: (GhidraScript)  
+INFO  FindNetworkSend.java>     *puVar4 = uVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>     puVar4 = puVar4 + 1; (GhidraScript)  
+INFO  FindNetworkSend.java>   case 6: (GhidraScript)  
+INFO  FindNetworkSend.java>     *puVar4 = uVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>     puVar4 = puVar4 + 1; (GhidraScript)  
+INFO  FindNetworkSend.java>   case 5: (GhidraScript)  
+INFO  FindNetworkSend.java>     *puVar4 = uVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>     puVar4 = puVar4 + 1; (GhidraScript)  
+INFO  FindNetworkSend.java> ... (18 more lines) (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 14143fdc5 in FUN_14143fd10: AND EAX,0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 141456741 in FUN_141456630: AND EAX,0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 141457141 in FUN_141456f80: AND EDI,0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 14145d02d in FUN_14145cc70: AND R8D,0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 14146f6a5 in FUN_14146f670: CMP ESI,0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 141578895 in FUN_141578760: MOVZX EAX,byte ptr [RDI + 0x1ff] (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 1415bce34 in FUN_1415bcd40: MOV byte ptr [RDI + 0x1ff],AL (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 1416afc80 in FUN_1416afb10: MOV R8D,0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 1416c5915 in FUN_1416c5890: MOV dword ptr [RSP + 0x20],0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 1416d05e2 in FUN_1416d05a0: MOV dword ptr [RSP + 0x20],0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 14170158d in FUN_141701530: MOV EAX,0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 141718082 in <none>: MOV word ptr [RAX + 0x18],0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 1417180fe in FUN_1417180a0: MOV word ptr [RAX + 0x18],0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 141735340 in FUN_1417351c0: MOV R8D,0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java>   511 (payload size) found at 14175bc4c in FUN_14175bb40: AND EBX,0x1ff (GhidraScript)  
+INFO  FindNetworkSend.java> 
+=== Searching for constant 503 (0x1F7) === (GhidraScript)  
+INFO  FindNetworkSend.java>   503 found at 1401c8170 in FUN_1401c7d90: MOV dword ptr [RBP + 0x1c0],0x1f7 (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (224 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */ (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> void FUN_1401c7d90(void) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 auStack_318 [32]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_2f8 [2]; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_2f0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_2e8; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_2e0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_2d8; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_2d0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_2c8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined *local_2c0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_2b8; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_2b0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_2a8; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_2a0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_298; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_290; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_288; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_280; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_278; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_270; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_268; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_260; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_258; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_250; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_248; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_240; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_238; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_230; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_228; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_220; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_218; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_210; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_208; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_200; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_1f8; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_1f0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_1e8; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_1e0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_1d8; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_1d0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_1c8; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_1c0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_1b8; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_1b0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_1a8; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_1a0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_198; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_190; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_188; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_180; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_178; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_170; (GhidraScript)  
+INFO  FindNetworkSend.java> ... (164 more lines) (GhidraScript)  
+INFO  FindNetworkSend.java>   503 found at 1403fbd86 in FUN_1403fbc90: MOV byte ptr [RBX + 0x1f7],SIL (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (98 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> undefined8 FUN_1403fbc90(longlong param_1) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte bVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uVar7; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_res8; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_res10; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 in_stack_ffffffffffffff98; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar9; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_48; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_40; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_3c; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_38; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_30; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_2c; (GhidraScript)  
+INFO  FindNetworkSend.java>    (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar9 = (uint)((ulonglong)in_stack_ffffffffffffff98 >> 0x20); (GhidraScript)  
+INFO  FindNetworkSend.java>   if ((*(longlong *)(param_1 + 0x10) != 0) && (*(longlong *)(param_1 + 0x18) != 0)) { (GhidraScript)  
+INFO  FindNetworkSend.java>     if (*(longlong *)(*(longlong *)(param_1 + 0x10) + 0x158) != 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>       FUN_141135a60(); (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     if (**(longlong **)(param_1 + 0x18) != 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>       FUN_141135a60(); (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     local_48 = (char *)0x0; (GhidraScript)  
+INFO  FindNetworkSend.java>     local_40 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>     lVar3 = FUN_140523660(); (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar6 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>     lVar3 = FUN_14052cc70(lVar3 + 8,"SummonerBanner",0,&local_48,(ulonglong)uVar9 << 0x20,0,0); (GhidraScript)  
+INFO  FindNetworkSend.java>     *(undefined4 *)(param_1 + 0x24) = *(undefined4 *)(lVar3 + 0x20); (GhidraScript)  
+INFO  FindNetworkSend.java>     if (*(char *)(lVar3 + 500) == '\0') { (GhidraScript)  
+INFO  FindNetworkSend.java>       *(undefined2 *)(lVar3 + 0x1f5) = 0x400; (GhidraScript)  
+INFO  FindNetworkSend.java>       uVar7 = rdtsc(); (GhidraScript)  
+INFO  FindNetworkSend.java>       local_res8._4_4_ = (uint)((ulonglong)lVar3 >> 0x20) | (uint)((ulonglong)uVar7 >> 0x20); (GhidraScript)  
+INFO  FindNetworkSend.java>       *(char *)(lVar3 + 0x1e0) = (char)uVar7; (GhidraScript)  
+INFO  FindNetworkSend.java>       local_res8._1_1_ = (undefined1)((ulonglong)uVar7 >> 8); (GhidraScript)  
+INFO  FindNetworkSend.java>       *(undefined1 *)(lVar3 + 0x1e1) = local_res8._1_1_; (GhidraScript)  
+INFO  FindNetworkSend.java>       local_res8._2_1_ = (undefined1)((ulonglong)uVar7 >> 0x10); (GhidraScript)  
+INFO  FindNetworkSend.java>       *(undefined1 *)(lVar3 + 0x1e2) = local_res8._2_1_; (GhidraScript)  
+INFO  FindNetworkSend.java>       local_res8._3_1_ = (undefined1)((ulonglong)uVar7 >> 0x18); (GhidraScript)  
+INFO  FindNetworkSend.java>       *(undefined1 *)(lVar3 + 0x1e3) = local_res8._3_1_; (GhidraScript)  
+INFO  FindNetworkSend.java>       *(undefined1 *)(lVar3 + 0x1f7) = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>       *(undefined1 *)(lVar3 + 500) = 1; (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     bVar2 = *(byte *)(lVar3 + 0x1f5); (GhidraScript)  
+INFO  FindNetworkSend.java>     local_res8 = (undefined *)CONCAT44(local_res8._4_4_,3); (GhidraScript)  
+INFO  FindNetworkSend.java>     if (bVar2 != 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>       uVar8 = uVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>       do { (GhidraScript)  
+INFO  FindNetworkSend.java>         (&local_res8)[uVar8] = (&local_res8)[uVar8] ^ ~*(ulonglong *)(lVar3 + 0x1e0 + uVar8 * 8); (GhidraScript)  
+INFO  FindNetworkSend.java>         uVar8 = uVar8 + 1; (GhidraScript)  
+INFO  FindNetworkSend.java>       } while (uVar8 < bVar2); (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java> ... (38 more lines) (GhidraScript)  
+INFO  FindNetworkSend.java>   503 found at 14041879d in <none>: MOV byte ptr [RSI + 0x1f7],0x0 (GhidraScript)  
+INFO  FindNetworkSend.java>   503 found at 14050f969 in FUN_14050f600: MOV byte ptr [RDX + 0x1f7],AL (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (165 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> void FUN_14050f600(ulonglong *param_1,ulonglong param_2) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 *puVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 uVar7; (GhidraScript)  
+INFO  FindNetworkSend.java>    (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar2 = (ulonglong)(uint)param_1[1]; (GhidraScript)  
+INFO  FindNetworkSend.java>   if (uVar2 != param_2) { (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar7 = (undefined4)param_2; (GhidraScript)  
+INFO  FindNetworkSend.java>     if (param_2 < uVar2) { (GhidraScript)  
+INFO  FindNetworkSend.java>       uVar5 = *param_1; (GhidraScript)  
+INFO  FindNetworkSend.java>       for (uVar4 = param_2 * 0x1f8 + *param_1; uVar4 < uVar2 * 0x1f8 + uVar5; uVar4 = uVar4 + 0x1f8) (GhidraScript)  
+INFO  FindNetworkSend.java>       { (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1404a0870(uVar4 + 0x1e0); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0x1c8); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0x1b0); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0x198); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1404ebbe0(uVar4 + 0x188); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0x170); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0x158); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0x140); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0x128); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0x110); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0xf8); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0xe0); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 200); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0xb0); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0x98); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0x80); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0x68); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0x50); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0x38); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 0x20); (GhidraScript)  
+INFO  FindNetworkSend.java>         FUN_1412a5420(uVar4 + 8); (GhidraScript)  
+INFO  FindNetworkSend.java>       } (GhidraScript)  
+INFO  FindNetworkSend.java>       *(undefined4 *)(param_1 + 1) = uVar7; (GhidraScript)  
+INFO  FindNetworkSend.java>       return; (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     if ((*(uint *)((longlong)param_1 + 0xc) & 0x7fffffff) < param_2) { (GhidraScript)  
+INFO  FindNetworkSend.java>       uVar1 = FUN_1410dd1b0(param_2 * 0x1f8); (GhidraScript)  
+INFO  FindNetworkSend.java>       uVar5 = *param_1; (GhidraScript)  
+INFO  FindNetworkSend.java>       uVar2 = (ulonglong)(uint)param_1[1]; (GhidraScript)  
+INFO  FindNetworkSend.java>       uVar6 = uVar2 * 0x1f8 + uVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>       uVar4 = uVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>       if (uVar5 < uVar6) { (GhidraScript)  
+INFO  FindNetworkSend.java>         do { (GhidraScript)  
+INFO  FindNetworkSend.java>           FUN_1404e5df0(uVar4,uVar5); (GhidraScript)  
+INFO  FindNetworkSend.java>           FUN_1404a0870(uVar5 + 0x1e0); (GhidraScript)  
+INFO  FindNetworkSend.java>           FUN_1412a5420(uVar5 + 0x1c8); (GhidraScript)  
+INFO  FindNetworkSend.java>           FUN_1412a5420(uVar5 + 0x1b0); (GhidraScript)  
+INFO  FindNetworkSend.java>           FUN_1412a5420(uVar5 + 0x198); (GhidraScript)  
+INFO  FindNetworkSend.java>           FUN_1404ebbe0(uVar5 + 0x188); (GhidraScript)  
+INFO  FindNetworkSend.java>           FUN_1412a5420(uVar5 + 0x170); (GhidraScript)  
+INFO  FindNetworkSend.java>           FUN_1412a5420(uVar5 + 0x158); (GhidraScript)  
+INFO  FindNetworkSend.java> ... (105 more lines) (GhidraScript)  
+INFO  FindNetworkSend.java>   503 found at 14051ebb9 in FUN_14051dda0: MOV byte ptr [RSI + 0x1f7],BL (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (830 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Heritage AFTER dead removal. Example location: s0x00000008 : 0x00014051ded7 */ (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */ (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Restarted to delay deadcode elimination for space: stack */ (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> undefined8 * FUN_14051dda0(undefined8 *param_1) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   byte bVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint extraout_var; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *puVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *puVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar7; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *puVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *puVar9; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar10; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *puVar11; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *puVar12; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 *puVar13; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 *puVar14; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar15; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_res8; (GhidraScript)  
+INFO  FindNetworkSend.java>    (GhidraScript)  
+INFO  FindNetworkSend.java>   *param_1 = &PTR_FUN_1418f3f48; (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_14115c370(param_1 + 1); (GhidraScript)  
+INFO  FindNetworkSend.java>   *param_1 = &PTR_FUN_141939060; (GhidraScript)  
+INFO  FindNetworkSend.java>   param_1[1] = &PTR_LAB_141939078; (GhidraScript)  
+INFO  FindNetworkSend.java>   param_1[2] = &PTR_FUN_1418f4100; (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_141231be0(param_1 + 3); (GhidraScript)  
+INFO  FindNetworkSend.java>   puVar11 = (undefined8 *)0x0; (GhidraScript)  
+INFO  FindNetworkSend.java>   *param_1 = &PTR_FUN_141939088; (GhidraScript)  
+INFO  FindNetworkSend.java>   param_1[1] = &PTR_LAB_141939240; (GhidraScript)  
+INFO  FindNetworkSend.java>   param_1[2] = &PTR_LAB_1419294e0; (GhidraScript)  
+INFO  FindNetworkSend.java>   param_1[3] = &PTR_LAB_141939250; (GhidraScript)  
+INFO  FindNetworkSend.java>   param_1[4] = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined2 *)((longlong)param_1 + 0x2e) = 0x100; (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar10 = rdtsc(); (GhidraScript)  
+INFO  FindNetworkSend.java>   puVar12 = param_1 + 5; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_res8 = (undefined8 *)(CONCAT44(1,(int)uVar10) | uVar10 & 0xffffffff00000000); (GhidraScript)  
+INFO  FindNetworkSend.java>   puVar9 = puVar11; (GhidraScript)  
+INFO  FindNetworkSend.java>   puVar5 = puVar11; (GhidraScript)  
+INFO  FindNetworkSend.java>   do { (GhidraScript)  
+INFO  FindNetworkSend.java>     puVar4 = (undefined8 *)((longlong)puVar9 + 1); (GhidraScript)  
+INFO  FindNetworkSend.java>     *(undefined1 *)puVar12 = *(undefined1 *)((longlong)&local_res8 + (longlong)puVar9); (GhidraScript)  
+INFO  FindNetworkSend.java>     puVar9 = puVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>     if (puVar4 == (undefined8 *)&DAT_00000008) { (GhidraScript)  
+INFO  FindNetworkSend.java>       local_res8 = (undefined8 *)rdtsc(); (GhidraScript)  
+INFO  FindNetworkSend.java>       puVar9 = puVar11; (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar15 = (int)puVar5 + 1; (GhidraScript)  
+INFO  FindNetworkSend.java>     puVar5 = (undefined8 *)(ulonglong)uVar15; (GhidraScript)  
+INFO  FindNetworkSend.java>     puVar12 = (undefined8 *)((longlong)puVar12 + 1); (GhidraScript)  
+INFO  FindNetworkSend.java>   } while (uVar15 == 0); (GhidraScript)  
+INFO  FindNetworkSend.java>   bVar1 = *(byte *)((longlong)param_1 + 0x2e); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 6) = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)((longlong)param_1 + 0x2d) = 1; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_res8 = (undefined8 *)((ulonglong)local_res8 & 0xffffffffffffff00); (GhidraScript)  
+INFO  FindNetworkSend.java> ... (770 more lines) (GhidraScript)  
+INFO  FindNetworkSend.java>   503 found at 14051fa96 in FUN_14051f930: MOV byte ptr [RDI + 0x1f7],BL (GhidraScript)  
+INFO  FindNetworkSend.java>   503 found at 140749c44 in FUN_140749bf0: MOV EDX,0x1f7 (GhidraScript)  
+INFO  FindNetworkSend.java>   503 found at 14074cb54 in FUN_14074cb00: MOV EDX,0x1f7 (GhidraScript)  
+INFO  FindNetworkSend.java>   503 found at 140768a6e in FUN_140768a10: MOV EDX,0x1f7 (GhidraScript)  
+INFO  FindNetworkSend.java>   503 found at 14076927e in FUN_140769220: MOV EDX,0x1f7 (GhidraScript)  
+INFO  FindNetworkSend.java>   503 found at 14097c921 in FUN_14097c880: MOV byte ptr [RBX + 0x1f7],R8B (GhidraScript)  
+INFO  FindNetworkSend.java>   503 found at 1413409e4 in FUN_141340980: MOV dword ptr [RDI + 0x40],0x1f7 (GhidraScript)  
+INFO  FindNetworkSend.java>   503 found at 1416b5826 in FUN_1416b5460: MOV R8D,0x1f7 (GhidraScript)  
+INFO  FindNetworkSend.java>   503 found at 1416d8366 in FUN_1416d8200: MOV EAX,0x1f7 (GhidraScript)  
+INFO  FindNetworkSend.java> 
+=== Decompiling network crypto functions === (GhidraScript)  
+INFO  FindNetworkSend.java> 
+========================================== (GhidraScript)  
+INFO  FindNetworkSend.java> NetCrypto1 = FUN_1406e5fd0 at 1406e5fd0 (GhidraScript)  
+INFO  FindNetworkSend.java> ========================================== (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (528 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Removing unreachable block (ram,0x0001406e6395) */ (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Removing unreachable block (ram,0x0001406e63c8) */ (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */ (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> void FUN_1406e5fd0(longlong param_1,undefined8 param_2) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   code *pcVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   bool bVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 auVar3 [16]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 auVar4 [16]; (GhidraScript)  
+INFO  FindNetworkSend.java>   char cVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>   int iVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 uVar7; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar9; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar10; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar11; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uVar12; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 *puVar13; (GhidraScript)  
+INFO  FindNetworkSend.java>   ushort uVar14; (GhidraScript)  
+INFO  FindNetworkSend.java>   int *_Buf2; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 *puVar15; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar16; (GhidraScript)  
+INFO  FindNetworkSend.java>   int *piVar17; (GhidraScript)  
+INFO  FindNetworkSend.java>   int *piVar18; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 *puVar19; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar20; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *pcVar21; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar22; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *puVar23; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar24; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 auStackY_798 [32]; (GhidraScript)  
+INFO  FindNetworkSend.java>   short local_768 [2]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined2 local_764 [2]; (GhidraScript)  
+INFO  FindNetworkSend.java>   int local_760 [2]; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_758; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_750; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint local_748; (GhidraScript)  
+INFO  FindNetworkSend.java>   int local_744; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_740; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_738; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_730; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_728; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uStack_720; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_718; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_714; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_710; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint local_708; (GhidraScript)  
+INFO  FindNetworkSend.java>   int local_704; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_700; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_6f8; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_6f0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined2 local_6e8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_6e6; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_6de; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_6d6; (GhidraScript)  
+INFO  FindNetworkSend.java>   int *local_6c8; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_6c0; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_6b8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_6b0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_6a8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_6a0 [16]; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_690; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_688; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined *local_680; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_678; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_670; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_668; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_660; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_658; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uStack_650; (GhidraScript)  
+INFO  FindNetworkSend.java>   short local_648; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_646 [5]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_618; (GhidraScript)  
+INFO  FindNetworkSend.java>   short local_614; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_610 [16]; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_600; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uStack_5f8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_5f0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined7 uStack_5ef; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_5e0; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uStack_5d8; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_5c8; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uStack_5c0; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_5b8; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_5b0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_5a8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uStack_5a0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_598; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uStack_590; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_588; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uStack_580; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_578; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_570; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_568; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_560; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 *local_548; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_540; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_53c; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_538 [1008]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_148 [256]; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_48; (GhidraScript)  
+INFO  FindNetworkSend.java>    (GhidraScript)  
+INFO  FindNetworkSend.java>   local_48 = DAT_141d28400 ^ (ulonglong)auStackY_798; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined4 *)(param_1 + 0x44) = 6; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_740 = param_1; (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1410b4380(local_6a0); (GhidraScript)  
+INFO  FindNetworkSend.java>   cVar5 = FUN_1410cc330(local_6a0,param_2,1); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (cVar5 == '\0') { (GhidraScript)  
+INFO  FindNetworkSend.java>     pcVar21 = "Failed to load replay file\n"; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   else { (GhidraScript)  
+INFO  FindNetworkSend.java>     uVar8 = FUN_1410c15d0(local_6a0); (GhidraScript)  
+INFO  FindNetworkSend.java>     if (uVar8 != 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>       local_6f8 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>       local_6f0 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>       FUN_14021f2d0(&local_6f8,uVar8); (GhidraScript)  
+INFO  FindNetworkSend.java>       lVar22 = local_6f8; (GhidraScript)  
+INFO  FindNetworkSend.java> ... (408 more lines) (GhidraScript)  
+INFO  FindNetworkSend.java> Callers (3): (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1406fcd00 at 1406fcd00 (GhidraScript)  
+INFO  FindNetworkSend.java> 
+========================================== (GhidraScript)  
+INFO  FindNetworkSend.java> NetCrypto2 = FUN_1406db490 at 1406db490 (GhidraScript)  
+INFO  FindNetworkSend.java> ========================================== (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (250 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> void FUN_1406db490(longlong param_1,undefined8 param_2,undefined8 *param_3,undefined4 param_4, (GhidraScript)  
+INFO  FindNetworkSend.java>                   undefined8 *param_5) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   int *piVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>   code *pcVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar7; (GhidraScript)  
+INFO  FindNetworkSend.java>   int iVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   size_t sVar9; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar10; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar11; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar12; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 ******ppppppuVar13; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar14; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar15; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte bVar16; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 auStackY_308 [32]; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_2d8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_2d0; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_2c8; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lStack_2c0; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_2b8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_2b0 [8]; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_2a8; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *local_2a0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *local_298; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_290; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uStack_288; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_280; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uStack_278; (GhidraScript)  
+INFO  FindNetworkSend.java>   char local_268 [16]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_258 [24]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *****local_240 [2]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_230; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_228; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_220 [32]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_200 [32]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_1e0 [104]; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_178; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_170; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_16c; (GhidraScript)  
+INFO  FindNetworkSend.java>   char local_168 [272]; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_58; (GhidraScript)  
+INFO  FindNetworkSend.java>    (GhidraScript)  
+INFO  FindNetworkSend.java>   local_58 = DAT_141d28400 ^ (ulonglong)auStackY_308; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_298 = param_5; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_2b8 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_2c8 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   lStack_2c0 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_2d0 = param_4; (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1406bc0e0(&local_2c8,"accept","application/octet-stream"); (GhidraScript)  
+INFO  FindNetworkSend.java>   local_178 = local_168; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_170 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_16c = 0x100; (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1410efa60(&local_178,param_1 + 0x80); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (*(int *)(param_1 + 0xa0) == 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     if (0xf < (ulonglong)param_3[3]) { (GhidraScript)  
+INFO  FindNetworkSend.java>       param_3 = (undefined8 *)*param_3; (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     FUN_1410ef490(&local_178,"/observer-mode/rest/consumer/getGameDataChunk/%s/%lli/%u/%s",param_3, (GhidraScript)  
+INFO  FindNetworkSend.java>                   param_2); (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   else { (GhidraScript)  
+INFO  FindNetworkSend.java>     if (0xf < (ulonglong)param_3[3]) { (GhidraScript)  
+INFO  FindNetworkSend.java>       param_3 = (undefined8 *)*param_3; (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     FUN_1410ef490(&local_178,"/rest/spectator-consumer/shards/%s/players/%s/game/chunks/%u",param_3, (GhidraScript)  
+INFO  FindNetworkSend.java>                   *(undefined8 *)(param_1 + 0xa8)); (GhidraScript)  
+INFO  FindNetworkSend.java>     local_2d8 = *(ulonglong *)(param_1 + 0x98); (GhidraScript)  
+INFO  FindNetworkSend.java>     FUN_1406bc280(&local_2c8,"X-Riot-Spectator-Key",&local_2d8); (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar4 = *(undefined8 *)(param_1 + 0x78); (GhidraScript)  
+INFO  FindNetworkSend.java>   local_290 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   uStack_288 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_280 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   uStack_278 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   sVar9 = strlen(local_178); (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1401e0ab0(&local_290,local_178,sVar9); (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1410dfbc0(uVar4,local_2b0); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (0xf < uStack_278) { (GhidraScript)  
+INFO  FindNetworkSend.java>     if ((0xfff < uStack_278 + 1) && (0x1f < (local_290 - *(longlong *)(local_290 + -8)) - 8U)) { (GhidraScript)  
+INFO  FindNetworkSend.java>                     /* WARNING: Subroutine does not return */ (GhidraScript)  
+INFO  FindNetworkSend.java>       _invoke_watson((wchar_t *)0x0,(wchar_t *)0x0,(wchar_t *)0x0,0,0); (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     thunk_FUN_1410e1240(); (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   lVar14 = local_2a8; (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar3 = *(uint *)(param_1 + 0x90); (GhidraScript)  
+INFO  FindNetworkSend.java>   local_290 = local_2a8; (GhidraScript)  
+INFO  FindNetworkSend.java>   iVar8 = FUN_141854ac8(local_2a8); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (iVar8 != 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     FUN_141854e80(5); (GhidraScript)  
+INFO  FindNetworkSend.java>     pcVar6 = (code *)swi(3); (GhidraScript)  
+INFO  FindNetworkSend.java>     (*pcVar6)(); (GhidraScript)  
+INFO  FindNetworkSend.java>     return; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   if (*(int *)(lVar14 + 0x4c) == 0x7fffffff) { (GhidraScript)  
+INFO  FindNetworkSend.java>     *(undefined4 *)(lVar14 + 0x4c) = 0x7ffffffe; (GhidraScript)  
+INFO  FindNetworkSend.java>     FUN_141854e80(6); (GhidraScript)  
+INFO  FindNetworkSend.java>     pcVar6 = (code *)swi(3); (GhidraScript)  
+INFO  FindNetworkSend.java>     (*pcVar6)(); (GhidraScript)  
+INFO  FindNetworkSend.java>     return; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   uStack_288 = CONCAT71(uStack_288._1_7_,1); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (uVar3 == 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     bVar16 = *(char *)(local_2a8 + 0x1c2) == '\0'; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   else { (GhidraScript)  
+INFO  FindNetworkSend.java>     local_2d8 = (ulonglong)uVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>     bVar16 = FUN_1406c35b0(local_2a8 + 0x50,&local_290); (GhidraScript)  
+INFO  FindNetworkSend.java>     bVar16 = bVar16 ^ 1; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_141854ad0(lVar14); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (bVar16 == 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     FUN_1406d9530(&local_2a8,local_268); (GhidraScript)  
+INFO  FindNetworkSend.java> ... (130 more lines) (GhidraScript)  
+INFO  FindNetworkSend.java> Callers (5): (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1406dded0 at 1406dded0 (GhidraScript)  
+INFO  FindNetworkSend.java> 
+========================================== (GhidraScript)  
+INFO  FindNetworkSend.java> NetCrypto3 = FUN_1406dcc80 at 1406dcc80 (GhidraScript)  
+INFO  FindNetworkSend.java> ========================================== (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (253 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> void FUN_1406dcc80(longlong param_1,undefined8 param_2,undefined8 *param_3,undefined4 param_4, (GhidraScript)  
+INFO  FindNetworkSend.java>                   undefined8 *param_5) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *plVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   int *piVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   uint uVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>   code *pcVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar7; (GhidraScript)  
+INFO  FindNetworkSend.java>   int iVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   size_t sVar9; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar10; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar11; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar12; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 ******ppppppuVar13; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar14; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar15; (GhidraScript)  
+INFO  FindNetworkSend.java>   byte bVar16; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 auStackY_308 [32]; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_2d8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_2d0; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_2c8; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lStack_2c0; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_2b8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_2b0 [8]; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_2a8; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong *local_2a0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *local_298; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_290; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uStack_288; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_280; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uStack_278; (GhidraScript)  
+INFO  FindNetworkSend.java>   char local_268 [16]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_258 [24]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *****local_240 [2]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_230; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_228; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_220 [32]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_200 [32]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_1e0 [104]; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_178; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_170; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_16c; (GhidraScript)  
+INFO  FindNetworkSend.java>   char local_168 [272]; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_58; (GhidraScript)  
+INFO  FindNetworkSend.java>    (GhidraScript)  
+INFO  FindNetworkSend.java>   local_58 = DAT_141d28400 ^ (ulonglong)auStackY_308; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_298 = param_5; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_2b8 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_2c8 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   lStack_2c0 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_2d0 = param_4; (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1406bc0e0(&local_2c8,"accept","application/octet-stream"); (GhidraScript)  
+INFO  FindNetworkSend.java>   local_178 = local_168; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_170 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_16c = 0x100; (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1410efa60(&local_178,param_1 + 0x80); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (*(int *)(param_1 + 0xa0) == 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     if (0xf < (ulonglong)param_3[3]) { (GhidraScript)  
+INFO  FindNetworkSend.java>       param_3 = (undefined8 *)*param_3; (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     FUN_1410ef490(&local_178,"/observer-mode/rest/consumer/getKeyFrame/%s/%lli/%u/%s",param_3, (GhidraScript)  
+INFO  FindNetworkSend.java>                   param_2); (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   else { (GhidraScript)  
+INFO  FindNetworkSend.java>     if (0xf < (ulonglong)param_3[3]) { (GhidraScript)  
+INFO  FindNetworkSend.java>       param_3 = (undefined8 *)*param_3; (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     FUN_1410ef490(&local_178,"/rest/spectator-consumer/shards/%s/players/%s/game/key-frames/%u", (GhidraScript)  
+INFO  FindNetworkSend.java>                   param_3,*(undefined8 *)(param_1 + 0xa8)); (GhidraScript)  
+INFO  FindNetworkSend.java>     local_2d8 = *(ulonglong *)(param_1 + 0x98); (GhidraScript)  
+INFO  FindNetworkSend.java>     FUN_1406bc280(&local_2c8,"X-Riot-Spectator-Key",&local_2d8); (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar4 = *(undefined8 *)(param_1 + 0x78); (GhidraScript)  
+INFO  FindNetworkSend.java>   local_290 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   uStack_288 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_280 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   uStack_278 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   sVar9 = strlen(local_178); (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1401e0ab0(&local_290,local_178,sVar9); (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1410dfbc0(uVar4,local_2b0); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (0xf < uStack_278) { (GhidraScript)  
+INFO  FindNetworkSend.java>     if ((0xfff < uStack_278 + 1) && (0x1f < (local_290 - *(longlong *)(local_290 + -8)) - 8U)) { (GhidraScript)  
+INFO  FindNetworkSend.java>                     /* WARNING: Subroutine does not return */ (GhidraScript)  
+INFO  FindNetworkSend.java>       _invoke_watson((wchar_t *)0x0,(wchar_t *)0x0,(wchar_t *)0x0,0,0); (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     thunk_FUN_1410e1240(); (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   lVar14 = local_2a8; (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar3 = *(uint *)(param_1 + 0x90); (GhidraScript)  
+INFO  FindNetworkSend.java>   local_290 = local_2a8; (GhidraScript)  
+INFO  FindNetworkSend.java>   iVar8 = FUN_141854ac8(local_2a8); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (iVar8 != 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     FUN_141854e80(5); (GhidraScript)  
+INFO  FindNetworkSend.java>     pcVar6 = (code *)swi(3); (GhidraScript)  
+INFO  FindNetworkSend.java>     (*pcVar6)(); (GhidraScript)  
+INFO  FindNetworkSend.java>     return; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   if (*(int *)(lVar14 + 0x4c) == 0x7fffffff) { (GhidraScript)  
+INFO  FindNetworkSend.java>     *(undefined4 *)(lVar14 + 0x4c) = 0x7ffffffe; (GhidraScript)  
+INFO  FindNetworkSend.java>     FUN_141854e80(6); (GhidraScript)  
+INFO  FindNetworkSend.java>     pcVar6 = (code *)swi(3); (GhidraScript)  
+INFO  FindNetworkSend.java>     (*pcVar6)(); (GhidraScript)  
+INFO  FindNetworkSend.java>     return; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   uStack_288 = CONCAT71(uStack_288._1_7_,1); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (uVar3 == 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     bVar16 = *(char *)(local_2a8 + 0x1c2) == '\0'; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   else { (GhidraScript)  
+INFO  FindNetworkSend.java>     local_2d8 = (ulonglong)uVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>     bVar16 = FUN_1406c35b0(local_2a8 + 0x50,&local_290); (GhidraScript)  
+INFO  FindNetworkSend.java>     bVar16 = bVar16 ^ 1; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_141854ad0(lVar14); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (bVar16 == 0) { (GhidraScript)  
+INFO  FindNetworkSend.java>     FUN_1406d9530(&local_2a8,local_268); (GhidraScript)  
+INFO  FindNetworkSend.java> ... (133 more lines) (GhidraScript)  
+INFO  FindNetworkSend.java> Callers (5): (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1406de350 at 1406de350 (GhidraScript)  
+INFO  FindNetworkSend.java> 
+========================================== (GhidraScript)  
+INFO  FindNetworkSend.java> NetCryptoParent = FUN_1406c7d10 at 1406c7d10 (GhidraScript)  
+INFO  FindNetworkSend.java> ========================================== (GhidraScript)  
+INFO  FindNetworkSend.java> --- Decompiled (245 lines) --- (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Removing unreachable block (ram,0x0001406c7faa) */ (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Removing unreachable block (ram,0x0001406c7fc5) */ (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Removing unreachable block (ram,0x0001406c7fd1) */ (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Removing unreachable block (ram,0x0001406c7fd5) */ (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Removing unreachable block (ram,0x0001406c800d) */ (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Removing unreachable block (ram,0x0001406c8021) */ (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Removing unreachable block (ram,0x0001406c803a) */ (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Removing unreachable block (ram,0x0001406c803f) */ (GhidraScript)  
+INFO  FindNetworkSend.java> /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */ (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> void FUN_1406c7d10(longlong param_1,undefined8 *param_2,undefined8 param_3,char *param_4, (GhidraScript)  
+INFO  FindNetworkSend.java>                   undefined8 param_5,undefined8 param_6) (GhidraScript)  
+INFO  FindNetworkSend.java>  (GhidraScript)  
+INFO  FindNetworkSend.java> { (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *puVar1; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uVar2; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uVar3; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uVar4; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar5; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 uVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *pcVar7; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lVar8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *puVar9; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 *puVar10; (GhidraScript)  
+INFO  FindNetworkSend.java>   float fVar11; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 auStackY_1e8 [32]; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_1b0 [24]; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_198; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uStack_190; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_188; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uStack_180; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_178; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uStack_170; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_168; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uStack_160; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_158; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uStack_150; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_148; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uStack_140; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_138; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_130; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_128; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lStack_120; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined1 local_118; (GhidraScript)  
+INFO  FindNetworkSend.java>   char *local_110; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uStack_108; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_100; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_f8; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_f0; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_e8; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong lStack_e0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined4 local_d8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_d0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_c8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uStack_c0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined2 local_b8; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_b0; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uStack_a8; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_a0; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_98; (GhidraScript)  
+INFO  FindNetworkSend.java>   longlong local_88; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 uStack_80; (GhidraScript)  
+INFO  FindNetworkSend.java>   undefined8 local_78; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong uStack_70; (GhidraScript)  
+INFO  FindNetworkSend.java>   ulonglong local_68; (GhidraScript)  
+INFO  FindNetworkSend.java>    (GhidraScript)  
+INFO  FindNetworkSend.java>   local_68 = DAT_141d28400 ^ (ulonglong)auStackY_1e8; (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1401e8d80(param_1,param_3); (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar6 = DAT_14190dfa0; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined8 *)(param_1 + 0x20) = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined8 *)(param_1 + 0x28) = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined8 *)(param_1 + 0x30) = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined8 *)(param_1 + 0x38) = 0xf; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined1 *)(param_1 + 0x20) = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined8 *)(param_1 + 0x40) = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined8 *)(param_1 + 0x48) = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined8 *)(param_1 + 0x50) = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   fVar11 = (float)FUN_14109af10("Replay","MinLag",uVar6); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(int *)(param_1 + 0x58) = (int)(fVar11 * DAT_1418f85a4); (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar6 = FUN_14109aea0("Replay","MinBackfillDelay",200); (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined4 *)(param_1 + 0x5c) = uVar6; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined8 *)(param_1 + 0x70) = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined8 *)(param_1 + 0x78) = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined **)(param_1 + 0x80) = PTR_DAT_1419ecda8; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined8 *)(param_1 + 0x88) = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   *(undefined4 *)(param_1 + 0x90) = 5000; (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1410ec1c0(param_1 + 0x98,param_5); (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1410ec1c0(param_1 + 0xa8,param_6); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (0xf < *(ulonglong *)(param_4 + 0x18)) { (GhidraScript)  
+INFO  FindNetworkSend.java>     param_4 = *(char **)param_4; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   local_88 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   uStack_80 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_78 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   uStack_70 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   strlen(param_4); (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1401e0ab0(&local_88,param_4); (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1410f18a0(local_1b0,&local_88); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (0xf < uStack_70) { (GhidraScript)  
+INFO  FindNetworkSend.java>     if ((0xfff < uStack_70 + 1) && (0x1f < (local_88 - *(longlong *)(local_88 + -8)) - 8U)) { (GhidraScript)  
+INFO  FindNetworkSend.java>                     /* WARNING: Subroutine does not return */ (GhidraScript)  
+INFO  FindNetworkSend.java>       _invoke_watson((wchar_t *)0x0,(wchar_t *)0x0,(wchar_t *)0x0,0,0); (GhidraScript)  
+INFO  FindNetworkSend.java>     } (GhidraScript)  
+INFO  FindNetworkSend.java>     thunk_FUN_1410e1240(); (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1410e2fd0(param_1 + 0x60,0x10); (GhidraScript)  
+INFO  FindNetworkSend.java>   if (0xf < (ulonglong)param_2[3]) { (GhidraScript)  
+INFO  FindNetworkSend.java>     param_2 = (undefined8 *)*param_2; (GhidraScript)  
+INFO  FindNetworkSend.java>   } (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1410efbb0(param_1 + 0x80,param_2); (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar3 = _UNK_1418f85d8; (GhidraScript)  
+INFO  FindNetworkSend.java>   uVar2 = _DAT_1418f85d0; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_188 = _DAT_1418f85d0; (GhidraScript)  
+INFO  FindNetworkSend.java>   uStack_180 = _UNK_1418f85d8; (GhidraScript)  
+INFO  FindNetworkSend.java>   uStack_190 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   puVar10 = (undefined8 *)0x0; (GhidraScript)  
+INFO  FindNetworkSend.java>   uStack_170 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   local_198 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java>   uStack_150 = 0; (GhidraScript)  
+INFO  FindNetworkSend.java> ... (125 more lines) (GhidraScript)  
+INFO  FindNetworkSend.java> Callers (5): (GhidraScript)  
+INFO  FindNetworkSend.java>   FUN_1406c7740 at 1406c7740 (GhidraScript)  
+INFO  FindNetworkSend.java> 
+=== Searching for sendto/WSASendTo string references === (GhidraScript)  
+INFO  FindNetworkSend.java> 
+=== DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /LoLPrivate.exe (HeadlessAnalyzer)  

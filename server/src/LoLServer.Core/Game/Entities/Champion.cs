@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using LoLServer.Core.Config;
+using LoLServer.Core.Game.Buffs;
 
 namespace LoLServer.Core.Game.Entities;
 
@@ -29,6 +30,7 @@ public class Champion : GameEntity, IKillable, IAttacker, IMovable
 
     // IAttacker
     public float AttackDamage { get; set; } = 60;
+    public float AbilityPower { get; set; }
     public float AttackRange { get; set; } = 550;
     public float AttackSpeed { get; set; } = 0.625f;
     public float AttackCooldown { get; set; }
@@ -36,6 +38,19 @@ public class Champion : GameEntity, IKillable, IAttacker, IMovable
     // Defense
     public float Armor { get; set; } = 30;
     public float MagicResist { get; set; } = 30;
+    public float Shield { get; set; }
+
+    // Offensive stats
+    public float AbilityHaste { get; set; }
+    public float CritChance { get; set; }
+    public float Lethality { get; set; }
+    public float ArmorPenPercent { get; set; }
+    public float MagicPenFlat { get; set; }
+    public float MagicPenPercent { get; set; }
+    public float Lifesteal { get; set; }
+    public float Omnivamp { get; set; }
+    public float Tenacity { get; set; }
+    public float GrievousWoundsReduction { get; set; }
 
     // IMovable
     public float MoveSpeed { get; set; } = 340;
@@ -56,8 +71,12 @@ public class Champion : GameEntity, IKillable, IAttacker, IMovable
     // Inventory (6 item slots)
     public int[] Items { get; set; } = new int[6];
 
+    // Buffs
+    public BuffManager Buffs { get; set; } = new();
+
     // State
     public bool IsDead { get; set; }
+    public bool JustRespawned { get; set; }
     public float RespawnTimer { get; set; }
     public Vector3 SpawnPosition { get; set; }
 
@@ -78,6 +97,9 @@ public class Champion : GameEntity, IKillable, IAttacker, IMovable
             }
             return;
         }
+
+        // Update buffs
+        Buffs.Update(deltaTime, this, game);
 
         // Health/Mana regen
         Health = System.MathF.Min(Health + HealthRegen * deltaTime, MaxHealth);
@@ -117,11 +139,42 @@ public class Champion : GameEntity, IKillable, IAttacker, IMovable
         }
     }
 
+    /// <summary>
+    /// Apply damage to this champion, consuming Shield first.
+    /// Returns actual HP lost.
+    /// </summary>
+    public float ApplyDamage(float damage)
+    {
+        // Grievous wounds reduces healing, not damage - but shields absorb damage
+        if (Shield > 0)
+        {
+            if (Shield >= damage)
+            {
+                Shield -= damage;
+                return 0;
+            }
+            damage -= Shield;
+            Shield = 0;
+        }
+        Health = System.MathF.Max(0, Health - damage);
+        return damage;
+    }
+
+    /// <summary>
+    /// Get effective cooldown after Ability Haste.
+    /// AH formula: actualCD = baseCD * 100 / (100 + AH)
+    /// </summary>
+    public float GetEffectiveCooldown(float baseCooldown)
+    {
+        return baseCooldown * 100f / (100f + AbilityHaste);
+    }
+
     public void Die(GameEntity? killer)
     {
         IsDead = true;
         Deaths++;
         Health = 0;
+        Shield = 0;
         RespawnTimer = 10 + Level * 2; // Simplified respawn timer
         MoveTarget = null;
 
@@ -135,6 +188,7 @@ public class Champion : GameEntity, IKillable, IAttacker, IMovable
     public void Respawn()
     {
         IsDead = false;
+        JustRespawned = true;
         Health = MaxHealth;
         Mana = MaxMana;
         Position = SpawnPosition;

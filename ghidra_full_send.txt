@@ -1,0 +1,338 @@
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.10+7 (build 21.0.10+7-LTS, mixed mode)
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (671 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (1633 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessProject)  
+INFO  REPORT: Processing project file: /LoLPrivate.exe (HeadlessAnalyzer)  
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\DecompileAt2.java (HeadlessAnalyzer)  
+INFO  DecompileAt2.java> Looking at 14058ecbb (GhidraScript)  
+INFO  DecompileAt2.java> Bytes: 4B 38 48 8B D7 48 89 44 24 20 FF 15 3D 10 35 01 85 C0 79 2A 80 7B 34 00 74 24 E8 26 5C B6 00 3D  (GhidraScript)  
+INFO  DecompileAt2.java> Function: NET_58e860 at 14058e860 (GhidraScript)  
+INFO  DecompileAt2.java>  (GhidraScript)  
+INFO  DecompileAt2.java> /* WARNING: Function: __chkstk replaced with injection: alloca_probe */ (GhidraScript)  
+INFO  DecompileAt2.java>  (GhidraScript)  
+INFO  DecompileAt2.java> void NET_58e860(longlong param_1) (GhidraScript)  
+INFO  DecompileAt2.java>  (GhidraScript)  
+INFO  DecompileAt2.java> { (GhidraScript)  
+INFO  DecompileAt2.java>   undefined8 uVar1; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined8 *puVar2; (GhidraScript)  
+INFO  DecompileAt2.java>   longlong lVar3; (GhidraScript)  
+INFO  DecompileAt2.java>   code *pcVar4; (GhidraScript)  
+INFO  DecompileAt2.java>   char cVar5; (GhidraScript)  
+INFO  DecompileAt2.java>   int iVar6; (GhidraScript)  
+INFO  DecompileAt2.java>   longlong lVar7; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined4 *puVar8; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined4 *puVar9; (GhidraScript)  
+INFO  DecompileAt2.java>   int *piVar10; (GhidraScript)  
+INFO  DecompileAt2.java>   ushort uVar11; (GhidraScript)  
+INFO  DecompileAt2.java>   ulonglong uVar12; (GhidraScript)  
+INFO  DecompileAt2.java>   ushort uVar13; (GhidraScript)  
+INFO  DecompileAt2.java>   ushort uVar14; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined1 auStack_1138 [32]; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined2 *puStack_1118; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined4 uStack_1110; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined4 *local_1108; (GhidraScript)  
+INFO  DecompileAt2.java>   ushort local_1100; (GhidraScript)  
+INFO  DecompileAt2.java>   ushort uStack_10fe; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined2 local_10fc; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined8 local_10f8; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined8 local_10f0; (GhidraScript)  
+INFO  DecompileAt2.java>   uint local_10e8; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined4 uStack_10e4; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined8 uStack_10e0; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined8 local_10d8; (GhidraScript)  
+INFO  DecompileAt2.java>   longlong local_10d0; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined8 local_10c8; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined1 local_10c0; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined8 local_10b8; (GhidraScript)  
+INFO  DecompileAt2.java>   longlong local_10b0; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined4 local_10a8; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined2 local_10a4; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined8 local_10a0; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined8 uStack_1098; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined2 local_1090; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined2 uStack_108e; (GhidraScript)  
+INFO  DecompileAt2.java>   int local_108c; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined1 uStack_1088; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined1 uStack_1087; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined1 uStack_1086; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined1 uStack_1085; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined2 uStack_1078; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined2 uStack_1076; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined4 uStack_1074; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined8 uStack_1070; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined2 uStack_1068; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined2 uStack_1066; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined4 uStack_1064; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined4 uStack_1060; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined4 uStack_105c; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined4 uStack_1058; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined4 uStack_1054; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined4 uStack_1050; (GhidraScript)  
+INFO  DecompileAt2.java>   undefined1 auStack_1048 [4096]; (GhidraScript)  
+INFO  DecompileAt2.java>   ulonglong local_48; (GhidraScript)  
+INFO  DecompileAt2.java>    (GhidraScript)  
+INFO  DecompileAt2.java>   local_48 = DAT_141d28400 ^ (ulonglong)auStack_1138; (GhidraScript)  
+INFO  DecompileAt2.java>   cVar5 = *(char *)(param_1 + 0x50); (GhidraScript)  
+INFO  DecompileAt2.java> joined_r0x00014058e892: (GhidraScript)  
+INFO  DecompileAt2.java>   if (cVar5 != '\0') { (GhidraScript)  
+INFO  DecompileAt2.java>     FUN_14184f1f0(local_48 ^ (ulonglong)auStack_1138); (GhidraScript)  
+INFO  DecompileAt2.java>     return; (GhidraScript)  
+INFO  DecompileAt2.java>   } (GhidraScript)  
+INFO  DecompileAt2.java>   puVar9 = (undefined4 *)0x0; (GhidraScript)  
+INFO  DecompileAt2.java>   local_10c8 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   local_10d0 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   local_10c0 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   local_10a8 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   local_10a0 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   uStack_1098 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   local_1108 = (undefined4 *)0x0; (GhidraScript)  
+INFO  DecompileAt2.java>   local_10b8 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   local_1100 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   local_10f8 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   local_10f0 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   local_10e8 = local_10e8 & 0xffff0000; (GhidraScript)  
+INFO  DecompileAt2.java>   uStack_10e0 = 0xffffffffffffffff; (GhidraScript)  
+INFO  DecompileAt2.java>   local_10d8 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   local_10b0 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   local_10a4 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   local_1090 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   local_108c = 1; (GhidraScript)  
+INFO  DecompileAt2.java>   uStack_1088 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   uStack_1087 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   uStack_1086 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   uStack_1085 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>   while( true ) { (GhidraScript)  
+INFO  DecompileAt2.java>     do { (GhidraScript)  
+INFO  DecompileAt2.java>       uVar13 = local_1100; (GhidraScript)  
+INFO  DecompileAt2.java>       local_10fc = 0; (GhidraScript)  
+INFO  DecompileAt2.java>       uStack_10fe = 0; (GhidraScript)  
+INFO  DecompileAt2.java>       lVar7 = param_1 + 0x60; (GhidraScript)  
+INFO  DecompileAt2.java>       iVar6 = FUN_141854ac8(lVar7); (GhidraScript)  
+INFO  DecompileAt2.java>       if (iVar6 != 0) { (GhidraScript)  
+INFO  DecompileAt2.java>         FUN_141854e80(5); (GhidraScript)  
+INFO  DecompileAt2.java>         pcVar4 = (code *)swi(3); (GhidraScript)  
+INFO  DecompileAt2.java>         (*pcVar4)(); (GhidraScript)  
+INFO  DecompileAt2.java>         return; (GhidraScript)  
+INFO  DecompileAt2.java>       } (GhidraScript)  
+INFO  DecompileAt2.java>       if (*(int *)(param_1 + 0xac) == 0x7fffffff) { (GhidraScript)  
+INFO  DecompileAt2.java>         *(undefined4 *)(param_1 + 0xac) = 0x7ffffffe; (GhidraScript)  
+INFO  DecompileAt2.java>         FUN_141854e80(6); (GhidraScript)  
+INFO  DecompileAt2.java>         pcVar4 = (code *)swi(3); (GhidraScript)  
+INFO  DecompileAt2.java>         (*pcVar4)(); (GhidraScript)  
+INFO  DecompileAt2.java>         return; (GhidraScript)  
+INFO  DecompileAt2.java>       } (GhidraScript)  
+INFO  DecompileAt2.java>       lVar3 = *(longlong *)(param_1 + 0xd0); (GhidraScript)  
+INFO  DecompileAt2.java>       while (lVar3 == 0) { (GhidraScript)  
+INFO  DecompileAt2.java>         if (*(char *)(param_1 + 0x58) != '\0') { (GhidraScript)  
+INFO  DecompileAt2.java>           FUN_141854ad0(lVar7); (GhidraScript)  
+INFO  DecompileAt2.java>           if (local_10b0 != 0) { (GhidraScript)  
+INFO  DecompileAt2.java>             piVar10 = (int *)(local_10b0 + -4); (GhidraScript)  
+INFO  DecompileAt2.java>             LOCK(); (GhidraScript)  
+INFO  DecompileAt2.java>             iVar6 = *piVar10; (GhidraScript)  
+INFO  DecompileAt2.java>             *piVar10 = *piVar10 + -1; (GhidraScript)  
+INFO  DecompileAt2.java>             UNLOCK(); (GhidraScript)  
+INFO  DecompileAt2.java>             if (iVar6 == 1) { (GhidraScript)  
+INFO  DecompileAt2.java>               thunk_FUN_1410e1240(); (GhidraScript)  
+INFO  DecompileAt2.java>             } (GhidraScript)  
+INFO  DecompileAt2.java>           } (GhidraScript)  
+INFO  DecompileAt2.java>           if (-1 < local_10d0) { (GhidraScript)  
+INFO  DecompileAt2.java>             thunk_FUN_1410e1240(local_10d8); (GhidraScript)  
+INFO  DecompileAt2.java>           } (GhidraScript)  
+INFO  DecompileAt2.java>           if (puVar9 != (undefined4 *)0x0) { (GhidraScript)  
+INFO  DecompileAt2.java>             piVar10 = puVar9 + -1; (GhidraScript)  
+INFO  DecompileAt2.java>             LOCK(); (GhidraScript)  
+INFO  DecompileAt2.java>             iVar6 = *piVar10; (GhidraScript)  
+INFO  DecompileAt2.java>             *piVar10 = *piVar10 + -1; (GhidraScript)  
+INFO  DecompileAt2.java>             UNLOCK(); (GhidraScript)  
+INFO  DecompileAt2.java>             if (iVar6 == 1) { (GhidraScript)  
+INFO  DecompileAt2.java>               thunk_FUN_1410e1240(); (GhidraScript)  
+INFO  DecompileAt2.java>             } (GhidraScript)  
+INFO  DecompileAt2.java>           } (GhidraScript)  
+INFO  DecompileAt2.java>           cVar5 = *(char *)(param_1 + 0x50); (GhidraScript)  
+INFO  DecompileAt2.java>           goto joined_r0x00014058e892; (GhidraScript)  
+INFO  DecompileAt2.java>         } (GhidraScript)  
+INFO  DecompileAt2.java>         FUN_1418555e8(param_1 + 0xd8,lVar7); (GhidraScript)  
+INFO  DecompileAt2.java>         lVar3 = *(longlong *)(param_1 + 0xd0); (GhidraScript)  
+INFO  DecompileAt2.java>       } (GhidraScript)  
+INFO  DecompileAt2.java>       puVar2 = *(undefined8 **) (GhidraScript)  
+INFO  DecompileAt2.java>                 (*(longlong *)(param_1 + 0xb8) + (GhidraScript)  
+INFO  DecompileAt2.java>                 (*(longlong *)(param_1 + 0xc0) - 1U & *(ulonglong *)(param_1 + 200)) * 8); (GhidraScript)  
+INFO  DecompileAt2.java>       local_10f8 = *puVar2; (GhidraScript)  
+INFO  DecompileAt2.java>       local_10f0 = puVar2[1]; (GhidraScript)  
+INFO  DecompileAt2.java>       local_10e8 = *(uint *)(puVar2 + 2); (GhidraScript)  
+INFO  DecompileAt2.java>       uStack_10e4 = *(undefined4 *)((longlong)puVar2 + 0x14); (GhidraScript)  
+INFO  DecompileAt2.java>       uStack_10e0 = puVar2[3]; (GhidraScript)  
+INFO  DecompileAt2.java>       FUN_140454000(&local_10d8,puVar2 + 4); (GhidraScript)  
+INFO  DecompileAt2.java>       local_10c8 = puVar2[6]; (GhidraScript)  
+INFO  DecompileAt2.java>       local_10c0 = *(undefined1 *)(puVar2 + 7); (GhidraScript)  
+INFO  DecompileAt2.java>       local_10b8 = puVar2[8]; (GhidraScript)  
+INFO  DecompileAt2.java>       if (local_10b0 != 0) { (GhidraScript)  
+INFO  DecompileAt2.java>         piVar10 = (int *)(local_10b0 + -4); (GhidraScript)  
+INFO  DecompileAt2.java>         LOCK(); (GhidraScript)  
+INFO  DecompileAt2.java>         iVar6 = *piVar10; (GhidraScript)  
+INFO  DecompileAt2.java>         *piVar10 = *piVar10 + -1; (GhidraScript)  
+INFO  DecompileAt2.java>         UNLOCK(); (GhidraScript)  
+INFO  DecompileAt2.java>         if (iVar6 == 1) { (GhidraScript)  
+INFO  DecompileAt2.java>           thunk_FUN_1410e1240(); (GhidraScript)  
+INFO  DecompileAt2.java>         } (GhidraScript)  
+INFO  DecompileAt2.java>       } (GhidraScript)  
+INFO  DecompileAt2.java>       local_10b0 = puVar2[9]; (GhidraScript)  
+INFO  DecompileAt2.java>       local_10a8 = *(undefined4 *)(puVar2 + 10); (GhidraScript)  
+INFO  DecompileAt2.java>       local_10a4 = *(undefined2 *)((longlong)puVar2 + 0x54); (GhidraScript)  
+INFO  DecompileAt2.java>       puVar2[9] = 0; (GhidraScript)  
+INFO  DecompileAt2.java>       *(undefined4 *)(puVar2 + 10) = 0; (GhidraScript)  
+INFO  DecompileAt2.java>       *(undefined2 *)((longlong)puVar2 + 0x54) = 0; (GhidraScript)  
+INFO  DecompileAt2.java>       local_10a0 = puVar2[0xb]; (GhidraScript)  
+INFO  DecompileAt2.java>       uStack_1098 = puVar2[0xc]; (GhidraScript)  
+INFO  DecompileAt2.java>       uVar1 = puVar2[0xd]; (GhidraScript)  
+INFO  DecompileAt2.java>       local_1090 = (undefined2)uVar1; (GhidraScript)  
+INFO  DecompileAt2.java>       uStack_108e = (undefined2)((ulonglong)uVar1 >> 0x10); (GhidraScript)  
+INFO  DecompileAt2.java>       local_108c = (int)((ulonglong)uVar1 >> 0x20); (GhidraScript)  
+INFO  DecompileAt2.java>       uStack_1088 = *(undefined1 *)(puVar2 + 0xe); (GhidraScript)  
+INFO  DecompileAt2.java>       uStack_1087 = *(undefined1 *)((longlong)puVar2 + 0x71); (GhidraScript)  
+INFO  DecompileAt2.java>       uStack_1086 = *(undefined1 *)((longlong)puVar2 + 0x72); (GhidraScript)  
+INFO  DecompileAt2.java>       uStack_1085 = *(undefined1 *)((longlong)puVar2 + 0x73); (GhidraScript)  
+INFO  DecompileAt2.java>       FUN_140596260(param_1 + 0xb0); (GhidraScript)  
+INFO  DecompileAt2.java>       if (lVar7 == 0) { (GhidraScript)  
+INFO  DecompileAt2.java>         FUN_140595570(1); (GhidraScript)  
+INFO  DecompileAt2.java>         pcVar4 = (code *)swi(3); (GhidraScript)  
+INFO  DecompileAt2.java>         (*pcVar4)(); (GhidraScript)  
+INFO  DecompileAt2.java>         return; (GhidraScript)  
+INFO  DecompileAt2.java>       } (GhidraScript)  
+INFO  DecompileAt2.java>       FUN_141854ad0(lVar7); (GhidraScript)  
+INFO  DecompileAt2.java>       FUN_1418555d0(param_1 + 0xd8); (GhidraScript)  
+INFO  DecompileAt2.java>       uVar11 = *(ushort *)(param_1 + 0x142); (GhidraScript)  
+INFO  DecompileAt2.java>       uVar12 = (ulonglong)uVar11; (GhidraScript)  
+INFO  DecompileAt2.java>       lVar7 = FUN_14056e310(param_1 + 0x150,&local_10f8); (GhidraScript)  
+INFO  DecompileAt2.java>       puVar8 = puVar9; (GhidraScript)  
+INFO  DecompileAt2.java>       uVar14 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>       if (uVar11 != 0) { (GhidraScript)  
+INFO  DecompileAt2.java>         if ((uVar13 < uVar11) || ((puVar9 != (undefined4 *)0x0 && (1 < (uint)puVar9[-1])))) { (GhidraScript)  
+INFO  DecompileAt2.java>           puVar8 = (undefined4 *)FUN_1410dd1b0(uVar12 + 4); (GhidraScript)  
+INFO  DecompileAt2.java>           *puVar8 = 1; (GhidraScript)  
+INFO  DecompileAt2.java>           puVar8 = puVar8 + 1; (GhidraScript)  
+INFO  DecompileAt2.java>           local_1108 = puVar8; (GhidraScript)  
+INFO  DecompileAt2.java>           local_1100 = uVar11; (GhidraScript)  
+INFO  DecompileAt2.java>           if (puVar9 != (undefined4 *)0x0) { (GhidraScript)  
+INFO  DecompileAt2.java>             piVar10 = puVar9 + -1; (GhidraScript)  
+INFO  DecompileAt2.java>             LOCK(); (GhidraScript)  
+INFO  DecompileAt2.java>             iVar6 = *piVar10; (GhidraScript)  
+INFO  DecompileAt2.java>             *piVar10 = *piVar10 + -1; (GhidraScript)  
+INFO  DecompileAt2.java>             UNLOCK(); (GhidraScript)  
+INFO  DecompileAt2.java>             if (iVar6 == 1) { (GhidraScript)  
+INFO  DecompileAt2.java>               thunk_FUN_1410e1240(); (GhidraScript)  
+INFO  DecompileAt2.java>             } (GhidraScript)  
+INFO  DecompileAt2.java>           } (GhidraScript)  
+INFO  DecompileAt2.java>           FUN_1418b49a0(puVar8,0,uVar12); (GhidraScript)  
+INFO  DecompileAt2.java>           uVar13 = uVar11; (GhidraScript)  
+INFO  DecompileAt2.java>         } (GhidraScript)  
+INFO  DecompileAt2.java>         FUN_1418b4300(puVar8,lVar7 + 0x3c,uVar12); (GhidraScript)  
+INFO  DecompileAt2.java>         uStack_10fe = uVar11; (GhidraScript)  
+INFO  DecompileAt2.java>         uVar14 = uVar11; (GhidraScript)  
+INFO  DecompileAt2.java>       } (GhidraScript)  
+INFO  DecompileAt2.java>       if (*(longlong *)(param_1 + 0x138) != 0) { (GhidraScript)  
+INFO  DecompileAt2.java>         uVar11 = uVar14 + 4; (GhidraScript)  
+INFO  DecompileAt2.java>         if ((uVar13 < uVar11) || (GhidraScript)  
+INFO  DecompileAt2.java>            ((puVar9 = puVar8, puVar8 != (undefined4 *)0x0 && (1 < (uint)puVar8[-1])))) { (GhidraScript)  
+INFO  DecompileAt2.java>           puVar9 = (undefined4 *)FUN_1410dd1b0((ulonglong)uVar11 + 4); (GhidraScript)  
+INFO  DecompileAt2.java>           *puVar9 = 1; (GhidraScript)  
+INFO  DecompileAt2.java>           puVar9 = puVar9 + 1; (GhidraScript)  
+INFO  DecompileAt2.java>           local_1108 = puVar9; (GhidraScript)  
+INFO  DecompileAt2.java>           local_1100 = uVar11; (GhidraScript)  
+INFO  DecompileAt2.java>           if (puVar8 != (undefined4 *)0x0) { (GhidraScript)  
+INFO  DecompileAt2.java>             FUN_1418b4300(puVar9,puVar8,uVar14); (GhidraScript)  
+INFO  DecompileAt2.java>             piVar10 = puVar8 + -1; (GhidraScript)  
+INFO  DecompileAt2.java>             LOCK(); (GhidraScript)  
+INFO  DecompileAt2.java>             iVar6 = *piVar10; (GhidraScript)  
+INFO  DecompileAt2.java>             *piVar10 = *piVar10 + -1; (GhidraScript)  
+INFO  DecompileAt2.java>             UNLOCK(); (GhidraScript)  
+INFO  DecompileAt2.java>             if (iVar6 == 1) { (GhidraScript)  
+INFO  DecompileAt2.java>               thunk_FUN_1410e1240(); (GhidraScript)  
+INFO  DecompileAt2.java>             } (GhidraScript)  
+INFO  DecompileAt2.java>           } (GhidraScript)  
+INFO  DecompileAt2.java>           if (uVar14 < uVar11) { (GhidraScript)  
+INFO  DecompileAt2.java>             FUN_1418b49a0((longlong)puVar9 + (ulonglong)uVar14,0, (GhidraScript)  
+INFO  DecompileAt2.java>                           (ulonglong)uVar11 - (ulonglong)uVar14); (GhidraScript)  
+INFO  DecompileAt2.java>           } (GhidraScript)  
+INFO  DecompileAt2.java>         } (GhidraScript)  
+INFO  DecompileAt2.java>         *(undefined4 *)((ulonglong)uVar14 + (longlong)puVar9) = local_10f0._4_4_; (GhidraScript)  
+INFO  DecompileAt2.java>         uStack_10fe = uVar11; (GhidraScript)  
+INFO  DecompileAt2.java>       } (GhidraScript)  
+INFO  DecompileAt2.java>       cVar5 = FUN_14058ef90(&local_10f8,&local_1108,param_1 + 0x120); (GhidraScript)  
+INFO  DecompileAt2.java>       puVar9 = local_1108; (GhidraScript)  
+INFO  DecompileAt2.java>     } while (((cVar5 == '\0') || (*(char *)(param_1 + 0x51) == '\0')) || (GhidraScript)  
+INFO  DecompileAt2.java>             (*(char *)(param_1 + 0x34) == '\0')); (GhidraScript)  
+INFO  DecompileAt2.java>     if (local_108c != 2) break; (GhidraScript)  
+INFO  DecompileAt2.java>     uStack_1064 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>     uStack_1050 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>     uStack_1068 = 0x17; (GhidraScript)  
+INFO  DecompileAt2.java>     uStack_1060 = (undefined4)local_10a0; (GhidraScript)  
+INFO  DecompileAt2.java>     uStack_105c = local_10a0._4_4_; (GhidraScript)  
+INFO  DecompileAt2.java>     uStack_1058 = (undefined4)uStack_1098; (GhidraScript)  
+INFO  DecompileAt2.java>     uStack_1054 = uStack_1098._4_4_; (GhidraScript)  
+INFO  DecompileAt2.java>     uStack_1066 = (*DAT_1418dfd18)(local_1090); (GhidraScript)  
+INFO  DecompileAt2.java>     puStack_1118 = &uStack_1068; (GhidraScript)  
+INFO  DecompileAt2.java>     uStack_1110 = 0x1c; (GhidraScript)  
+INFO  DecompileAt2.java> LAB_14058eca0: (GhidraScript)  
+INFO  DecompileAt2.java>     iVar6 = (*DAT_1418dfcf8)(*(undefined8 *)(param_1 + 0x38),puVar9,uStack_10fe,0); (GhidraScript)  
+INFO  DecompileAt2.java>     if (iVar6 < 0) { (GhidraScript)  
+INFO  DecompileAt2.java> LAB_14058ecbf: (GhidraScript)  
+INFO  DecompileAt2.java>       if (((*(char *)(param_1 + 0x34) != '\0') && (iVar6 = FUN_1410f48f0(), iVar6 != 0x2738)) && (GhidraScript)  
+INFO  DecompileAt2.java>          (iVar6 != 0x2746)) { (GhidraScript)  
+INFO  DecompileAt2.java>         FUN_1410f6d20(iVar6,auStack_1048,0x1000); (GhidraScript)  
+INFO  DecompileAt2.java>       } (GhidraScript)  
+INFO  DecompileAt2.java>     } (GhidraScript)  
+INFO  DecompileAt2.java>   } (GhidraScript)  
+INFO  DecompileAt2.java>   if (local_108c == 1) { (GhidraScript)  
+INFO  DecompileAt2.java>     uStack_1070 = 0; (GhidraScript)  
+INFO  DecompileAt2.java>     uStack_1078 = 2; (GhidraScript)  
+INFO  DecompileAt2.java>     uStack_1074 = (undefined4)local_10a0; (GhidraScript)  
+INFO  DecompileAt2.java>     uStack_1076 = (*DAT_1418dfd18)(local_1090); (GhidraScript)  
+INFO  DecompileAt2.java>     puStack_1118 = &uStack_1078; (GhidraScript)  
+INFO  DecompileAt2.java>     uStack_1110 = 0x10; (GhidraScript)  
+INFO  DecompileAt2.java>     goto LAB_14058eca0; (GhidraScript)  
+INFO  DecompileAt2.java>   } (GhidraScript)  
+INFO  DecompileAt2.java>   goto LAB_14058ecbf; (GhidraScript)  
+INFO  DecompileAt2.java> } (GhidraScript)  
+INFO  DecompileAt2.java>  (GhidraScript)  
+INFO  DecompileAt2.java> Callers (5): (GhidraScript)  
+INFO  DecompileAt2.java> === DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /LoLPrivate.exe (HeadlessAnalyzer)  

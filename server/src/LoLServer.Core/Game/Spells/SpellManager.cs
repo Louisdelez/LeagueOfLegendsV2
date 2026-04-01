@@ -49,14 +49,15 @@ public static class SpellManager
         };
         if (spellData == null) return new CastResult(false, "No spell data");
 
-        // Deduct mana and set cooldown
+        // Deduct mana and set cooldown (with Ability Haste)
         caster.Mana -= ability.ManaCost;
-        ability.CurrentCooldown = spellData.Cooldowns[Math.Min(ability.Level - 1, spellData.Cooldowns.Length - 1)];
+        float baseCd = spellData.Cooldowns[Math.Min(ability.Level - 1, spellData.Cooldowns.Length - 1)];
+        ability.CurrentCooldown = caster.GetEffectiveCooldown(baseCd);
 
-        // Apply damage
+        // Apply damage (AD + AP scaling)
         float damage = spellData.BaseDamage[Math.Min(ability.Level - 1, spellData.BaseDamage.Length - 1)];
         damage += spellData.AdRatio * caster.AttackDamage;
-        // AP scaling would use a champion.AbilityPower stat
+        damage += spellData.ApRatio * caster.AbilityPower;
 
         if (targetEntity != null && targetEntity.Team != caster.Team)
         {
@@ -164,6 +165,13 @@ public static class SpellManager
 
     private static void RegisterChampionSpells()
     {
+        // Register extended champion databases (127 additional champions)
+        ChampionDatabase.RegisterAll(ChampionSpells);
+        ChampionDatabase2.RegisterAll(ChampionSpells);
+        ChampionDatabase3.RegisterAll(ChampionSpells);
+        ChampionDatabase4.RegisterAll(ChampionSpells);
+        ChampionDatabase5.RegisterAll(ChampionSpells);
+
         // --- EZREAL ---
         ChampionSpells["Ezreal"] = new ChampionSpellKit
         {

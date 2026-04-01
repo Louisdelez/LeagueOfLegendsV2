@@ -24,6 +24,7 @@ public class MapManager
 
     private Vector3 GetMapSize() => MapId switch
     {
+        10 => new Vector3(15398, 0, 15398), // Twisted Treeline
         11 => new Vector3(14870, 0, 14980), // Summoner's Rift
         12 => new Vector3(13100, 0, 12600), // ARAM
         _ => new Vector3(14870, 0, 14980)
@@ -33,6 +34,7 @@ public class MapManager
 
     public Vector3 GetBlueSpawn() => MapId switch
     {
+        10 => new Vector3(1060, 0, 7885),   // TT blue spawn (left)
         11 => new Vector3(394, 0, 461),
         12 => new Vector3(52, 0, 6300),
         _ => new Vector3(394, 0, 461)
@@ -40,6 +42,7 @@ public class MapManager
 
     public Vector3 GetRedSpawn() => MapId switch
     {
+        10 => new Vector3(14340, 0, 7885),  // TT red spawn (right)
         11 => new Vector3(14340, 0, 14390),
         12 => new Vector3(13050, 0, 6300),
         _ => new Vector3(14340, 0, 14390)
@@ -51,6 +54,7 @@ public class MapManager
     {
         return MapId switch
         {
+            10 => GetTwistedTreelineTurrets(),
             11 => GetSummonersRiftTurrets(),
             12 => GetAramTurrets(),
             _ => GetSummonersRiftTurrets()
@@ -103,6 +107,37 @@ public class MapManager
         };
     }
 
+    private List<TurretData> GetTwistedTreelineTurrets()
+    {
+        // Twisted Treeline: 2 lanes (top + bot), 3v3
+        return new List<TurretData>
+        {
+            // === BLUE TEAM (left) ===
+            // Top lane
+            new("TT_T1_Top_03", TeamId.Blue, new(3406, 0, 5476), 1800, 152, 775),
+            new("TT_T1_Top_02", TeamId.Blue, new(2340, 0, 5476), 2550, 170, 775),
+
+            // Bot lane
+            new("TT_T1_Bot_03", TeamId.Blue, new(3406, 0, 10294), 1800, 152, 775),
+            new("TT_T1_Bot_02", TeamId.Blue, new(2340, 0, 10294), 2550, 170, 775),
+
+            // Nexus turret
+            new("TT_T1_Nexus", TeamId.Blue, new(1580, 0, 7885), 2550, 180, 775),
+
+            // === RED TEAM (right) ===
+            // Top lane
+            new("TT_T2_Top_03", TeamId.Red, new(11994, 0, 5476), 1800, 152, 775),
+            new("TT_T2_Top_02", TeamId.Red, new(13060, 0, 5476), 2550, 170, 775),
+
+            // Bot lane
+            new("TT_T2_Bot_03", TeamId.Red, new(11994, 0, 10294), 1800, 152, 775),
+            new("TT_T2_Bot_02", TeamId.Red, new(13060, 0, 10294), 2550, 170, 775),
+
+            // Nexus turret
+            new("TT_T2_Nexus", TeamId.Red, new(13820, 0, 7885), 2550, 180, 775),
+        };
+    }
+
     private List<TurretData> GetAramTurrets()
     {
         // ARAM - single lane, 4 turrets per team
@@ -128,6 +163,13 @@ public class MapManager
     {
         return MapId switch
         {
+            10 => new List<InhibitorData>
+            {
+                new("TT_Inhib_T1_Top", TeamId.Blue, new(1870, 0, 5476)),
+                new("TT_Inhib_T1_Bot", TeamId.Blue, new(1870, 0, 10294)),
+                new("TT_Inhib_T2_Top", TeamId.Red, new(13530, 0, 5476)),
+                new("TT_Inhib_T2_Bot", TeamId.Red, new(13530, 0, 10294)),
+            },
             11 => new List<InhibitorData>
             {
                 new("Inhibitor_T1_R", TeamId.Blue, new(1171, 0, 3571)),  // Top
@@ -152,6 +194,11 @@ public class MapManager
     {
         return MapId switch
         {
+            10 => new List<NexusData>
+            {
+                new("TT_Nexus_T1", TeamId.Blue, new(1060, 0, 7885)),
+                new("TT_Nexus_T2", TeamId.Red, new(14340, 0, 7885)),
+            },
             11 => new List<NexusData>
             {
                 new("Nexus_T1", TeamId.Blue, new(1984, 0, 2040)),
@@ -172,6 +219,7 @@ public class MapManager
     {
         return MapId switch
         {
+            10 => GetTwistedTreelineLanes(),
             11 => GetSummonersRiftLanes(),
             12 => GetAramLanes(),
             _ => GetSummonersRiftLanes()
@@ -232,6 +280,49 @@ public class MapManager
                     new(13604, 0, 11316), new(13624, 0, 10572), new(13327, 0, 8226),
                     new(13866, 0, 4505), new(12500, 0, 2500), new(10504, 0, 1029),
                     new(6919, 0, 1483), new(3452, 0, 1236), new(1984, 0, 2040),
+                }
+            }
+        };
+    }
+
+    private List<LaneData> GetTwistedTreelineLanes()
+    {
+        return new List<LaneData>
+        {
+            new LaneData
+            {
+                Name = "Top",
+                BlueSpawn = new(1870, 0, 5476),
+                RedSpawn = new(13530, 0, 5476),
+                BlueWaypoints = new()
+                {
+                    new(1870, 0, 5476), new(3406, 0, 5476), new(5500, 0, 4800),
+                    new(7700, 0, 4200), new(9900, 0, 4800), new(11994, 0, 5476),
+                    new(13530, 0, 5476), new(14340, 0, 7885),
+                },
+                RedWaypoints = new()
+                {
+                    new(13530, 0, 5476), new(11994, 0, 5476), new(9900, 0, 4800),
+                    new(7700, 0, 4200), new(5500, 0, 4800), new(3406, 0, 5476),
+                    new(1870, 0, 5476), new(1060, 0, 7885),
+                }
+            },
+            new LaneData
+            {
+                Name = "Bot",
+                BlueSpawn = new(1870, 0, 10294),
+                RedSpawn = new(13530, 0, 10294),
+                BlueWaypoints = new()
+                {
+                    new(1870, 0, 10294), new(3406, 0, 10294), new(5500, 0, 10970),
+                    new(7700, 0, 11570), new(9900, 0, 10970), new(11994, 0, 10294),
+                    new(13530, 0, 10294), new(14340, 0, 7885),
+                },
+                RedWaypoints = new()
+                {
+                    new(13530, 0, 10294), new(11994, 0, 10294), new(9900, 0, 10970),
+                    new(7700, 0, 11570), new(5500, 0, 10970), new(3406, 0, 10294),
+                    new(1870, 0, 10294), new(1060, 0, 7885),
                 }
             }
         };

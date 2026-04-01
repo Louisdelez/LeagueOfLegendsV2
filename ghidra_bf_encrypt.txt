@@ -1,0 +1,599 @@
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.10+7 (build 21.0.10+7-LTS, mixed mode)
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (769 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (1888 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessProject)  
+INFO  REPORT: Processing project file: /LoLPrivate.exe (HeadlessAnalyzer)  
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\FindBFEncrypt.java (HeadlessAnalyzer)  
+INFO  FindBFEncrypt.java> 
+========================================== (GhidraScript)  
+INFO  FindBFEncrypt.java> Function at 0x10f2ce0 = FUN_1410f2ce0 (GhidraScript)  
+INFO  FindBFEncrypt.java> ========================================== (GhidraScript)  
+INFO  FindBFEncrypt.java> --- Decompiled (104 lines) --- (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> void FUN_1410f2ce0(longlong param_1,longlong param_2,longlong param_3,ulonglong param_4,int param_5) (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> { (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint uVar1; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint uVar2; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint uVar3; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 *puVar4; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint uVar5; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 *puVar6; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint local_38; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint uStack_34; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint local_30; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint uStack_2c; (GhidraScript)  
+INFO  FindBFEncrypt.java>    (GhidraScript)  
+INFO  FindBFEncrypt.java>   if (param_5 == 1) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     if (7 < param_4) { (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar6 = (undefined1 *)(param_2 + 6); (GhidraScript)  
+INFO  FindBFEncrypt.java>       param_4 = param_4 >> 3; (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4 = (undefined1 *)(param_3 + -7); (GhidraScript)  
+INFO  FindBFEncrypt.java>       uVar3 = *(uint *)(param_1 + 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>       uVar5 = *(uint *)(param_1 + 0xc); (GhidraScript)  
+INFO  FindBFEncrypt.java>       do { (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar1 = CONCAT31(CONCAT21(CONCAT11(puVar4[(param_2 - param_3) + 7],puVar6[-5]),puVar6[-4]), (GhidraScript)  
+INFO  FindBFEncrypt.java>                          puVar6[-3]); (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar2 = CONCAT31(CONCAT21(CONCAT11(puVar6[-2],puVar6[-1]),*puVar6),puVar6[1]); (GhidraScript)  
+INFO  FindBFEncrypt.java>         local_38 = uVar1; (GhidraScript)  
+INFO  FindBFEncrypt.java>         uStack_34 = uVar2; (GhidraScript)  
+INFO  FindBFEncrypt.java>         FUN_1410f25c0(param_1,&local_38); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar6 = puVar6 + 8; (GhidraScript)  
+INFO  FindBFEncrypt.java>         uStack_34 = uStack_34 ^ uVar5; (GhidraScript)  
+INFO  FindBFEncrypt.java>         local_38 = local_38 ^ uVar3; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xe] = (char)uStack_34; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xd] = (char)(uStack_34 >> 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[10] = (char)local_38; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xc] = (char)(uStack_34 >> 0x10); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[9] = (char)(local_38 >> 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xb] = (char)(uStack_34 >> 0x18); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[8] = (char)(local_38 >> 0x10); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[7] = (char)(local_38 >> 0x18); (GhidraScript)  
+INFO  FindBFEncrypt.java>         param_4 = param_4 - 1; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4 = puVar4 + 8; (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar3 = uVar1; (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar5 = uVar2; (GhidraScript)  
+INFO  FindBFEncrypt.java>       } while (param_4 != 0); (GhidraScript)  
+INFO  FindBFEncrypt.java>     } (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   else if (param_5 == 2) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     local_30 = *(uint *)(param_1 + 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>     uStack_2c = *(uint *)(param_1 + 0xc); (GhidraScript)  
+INFO  FindBFEncrypt.java>     if (7 < param_4) { (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar6 = (undefined1 *)(param_2 + 6); (GhidraScript)  
+INFO  FindBFEncrypt.java>       param_4 = param_4 >> 3; (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4 = (undefined1 *)(param_3 + -7); (GhidraScript)  
+INFO  FindBFEncrypt.java>       do { (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar5 = CONCAT31(CONCAT21(CONCAT11(puVar4[(param_2 - param_3) + 7],puVar6[-5]),puVar6[-4]), (GhidraScript)  
+INFO  FindBFEncrypt.java>                          puVar6[-3]); (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar3 = CONCAT31(CONCAT21(CONCAT11(puVar6[-2],puVar6[-1]),*puVar6),puVar6[1]); (GhidraScript)  
+INFO  FindBFEncrypt.java>         local_38 = uVar5; (GhidraScript)  
+INFO  FindBFEncrypt.java>         uStack_34 = uVar3; (GhidraScript)  
+INFO  FindBFEncrypt.java>         FUN_1410f3d90(param_1,&local_30); (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar5 = uVar5 ^ local_30; (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar3 = uVar3 ^ uStack_2c; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar6 = puVar6 + 8; (GhidraScript)  
+INFO  FindBFEncrypt.java>         local_30 = local_38; (GhidraScript)  
+INFO  FindBFEncrypt.java>         uStack_2c = uStack_34; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xd] = (char)(uVar3 >> 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xc] = (char)(uVar3 >> 0x10); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[9] = (char)(uVar5 >> 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xe] = (char)uVar3; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[10] = (char)uVar5; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xb] = (char)(uVar3 >> 0x18); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[8] = (char)(uVar5 >> 0x10); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[7] = (char)(uVar5 >> 0x18); (GhidraScript)  
+INFO  FindBFEncrypt.java>         param_4 = param_4 - 1; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4 = puVar4 + 8; (GhidraScript)  
+INFO  FindBFEncrypt.java>       } while (param_4 != 0); (GhidraScript)  
+INFO  FindBFEncrypt.java>     } (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   else if (7 < param_4) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     puVar6 = (undefined1 *)(param_2 + 6); (GhidraScript)  
+INFO  FindBFEncrypt.java>     param_4 = param_4 >> 3; (GhidraScript)  
+INFO  FindBFEncrypt.java>     puVar4 = (undefined1 *)(param_3 + -7); (GhidraScript)  
+INFO  FindBFEncrypt.java>     do { (GhidraScript)  
+INFO  FindBFEncrypt.java>       local_38 = CONCAT31(CONCAT21(CONCAT11(puVar4[(param_2 - param_3) + 7],puVar6[-5]),puVar6[-4]), (GhidraScript)  
+INFO  FindBFEncrypt.java>                           puVar6[-3]); (GhidraScript)  
+INFO  FindBFEncrypt.java>       uStack_34 = CONCAT31(CONCAT21(CONCAT11(puVar6[-2],puVar6[-1]),*puVar6),puVar6[1]); (GhidraScript)  
+INFO  FindBFEncrypt.java>       FUN_1410f25c0(param_1,&local_38); (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar6 = puVar6 + 8; (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[0xe] = (undefined1)uStack_34; (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[0xd] = (char)(uStack_34 >> 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[0xc] = (char)(uStack_34 >> 0x10); (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[10] = (undefined1)local_38; (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[0xb] = (char)(uStack_34 >> 0x18); (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[9] = (char)(local_38 >> 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[8] = (char)(local_38 >> 0x10); (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[7] = (char)(local_38 >> 0x18); (GhidraScript)  
+INFO  FindBFEncrypt.java>       param_4 = param_4 - 1; (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4 = puVar4 + 8; (GhidraScript)  
+INFO  FindBFEncrypt.java>     } while (param_4 != 0); (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   return; (GhidraScript)  
+INFO  FindBFEncrypt.java> } (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> Callers (7): (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_140601920 at 140601920 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1406e5fd0 at 1406e5fd0 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1406db490 at 1406db490 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1406dcc80 at 1406dcc80 (GhidraScript)  
+INFO  FindBFEncrypt.java> 
+========================================== (GhidraScript)  
+INFO  FindBFEncrypt.java> Function at 0x10f18a0 = FUN_1410f18a0 (GhidraScript)  
+INFO  FindBFEncrypt.java> ========================================== (GhidraScript)  
+INFO  FindBFEncrypt.java> --- Decompiled (49 lines) --- (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> undefined8 FUN_1410f18a0(undefined8 param_1,longlong param_2) (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> { (GhidraScript)  
+INFO  FindBFEncrypt.java>   ulonglong uVar1; (GhidraScript)  
+INFO  FindBFEncrypt.java>   code *pcVar2; (GhidraScript)  
+INFO  FindBFEncrypt.java>   longlong lVar3; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 uVar4; (GhidraScript)  
+INFO  FindBFEncrypt.java>   longlong local_28; (GhidraScript)  
+INFO  FindBFEncrypt.java>   longlong lStack_20; (GhidraScript)  
+INFO  FindBFEncrypt.java>   longlong local_18; (GhidraScript)  
+INFO  FindBFEncrypt.java>    (GhidraScript)  
+INFO  FindBFEncrypt.java>   uVar1 = *(ulonglong *)(param_2 + 0x10); (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_18 = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_28 = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   lStack_20 = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   if (uVar1 != 0) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     if (0x7fffffffffffffff < uVar1) { (GhidraScript)  
+INFO  FindBFEncrypt.java>       FUN_14022a180(); (GhidraScript)  
+INFO  FindBFEncrypt.java>       pcVar2 = (code *)swi(3); (GhidraScript)  
+INFO  FindBFEncrypt.java>       uVar4 = (*pcVar2)(); (GhidraScript)  
+INFO  FindBFEncrypt.java>       return uVar4; (GhidraScript)  
+INFO  FindBFEncrypt.java>     } (GhidraScript)  
+INFO  FindBFEncrypt.java>     lVar3 = FUN_1401e03b0(uVar1); (GhidraScript)  
+INFO  FindBFEncrypt.java>     FUN_1418b49a0(lVar3,0,uVar1); (GhidraScript)  
+INFO  FindBFEncrypt.java>     FUN_1418b4300(lVar3); (GhidraScript)  
+INFO  FindBFEncrypt.java>     if (local_28 != 0) { (GhidraScript)  
+INFO  FindBFEncrypt.java>       if ((0xfff < (ulonglong)(local_18 - local_28)) && (GhidraScript)  
+INFO  FindBFEncrypt.java>          (0x1f < (local_28 - *(longlong *)(local_28 + -8)) - 8U)) goto LAB_1410f19ed; (GhidraScript)  
+INFO  FindBFEncrypt.java>       thunk_FUN_1410e1240(); (GhidraScript)  
+INFO  FindBFEncrypt.java>     } (GhidraScript)  
+INFO  FindBFEncrypt.java>     local_18 = uVar1 + lVar3; (GhidraScript)  
+INFO  FindBFEncrypt.java>     local_28 = lVar3; (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   lStack_20 = local_18; (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1410e2fd0(local_28,local_18 - local_28); (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1410f0ce0(param_1,&local_28); (GhidraScript)  
+INFO  FindBFEncrypt.java>   if (local_28 != 0) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     if ((0xfff < (ulonglong)(local_18 - local_28)) && (GhidraScript)  
+INFO  FindBFEncrypt.java>        (0x1f < (local_28 - *(longlong *)(local_28 + -8)) - 8U)) { (GhidraScript)  
+INFO  FindBFEncrypt.java> LAB_1410f19ed: (GhidraScript)  
+INFO  FindBFEncrypt.java>                     /* WARNING: Subroutine does not return */ (GhidraScript)  
+INFO  FindBFEncrypt.java>       _invoke_watson((wchar_t *)0x0,(wchar_t *)0x0,(wchar_t *)0x0,0,0); (GhidraScript)  
+INFO  FindBFEncrypt.java>     } (GhidraScript)  
+INFO  FindBFEncrypt.java>     thunk_FUN_1410e1240(); (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   return param_1; (GhidraScript)  
+INFO  FindBFEncrypt.java> } (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> Callers (4): (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_140601920 at 140601920 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1406c7d10 at 1406c7d10 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1406e3480 at 1406e3480 (GhidraScript)  
+INFO  FindBFEncrypt.java> 
+========================================== (GhidraScript)  
+INFO  FindBFEncrypt.java> Function at 0x10f5860 = FUN_1410f5860 (GhidraScript)  
+INFO  FindBFEncrypt.java> ========================================== (GhidraScript)  
+INFO  FindBFEncrypt.java> --- Decompiled (14 lines) --- (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> undefined8 (GhidraScript)  
+INFO  FindBFEncrypt.java> FUN_1410f5860(undefined8 param_1,undefined8 param_2,undefined8 param_3,undefined8 param_4) (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> { (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 local_res18; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 local_res20; (GhidraScript)  
+INFO  FindBFEncrypt.java>    (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_res18 = param_3; (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_res20 = param_4; (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_141102510(param_1,param_2,&local_res18); (GhidraScript)  
+INFO  FindBFEncrypt.java>   return param_1; (GhidraScript)  
+INFO  FindBFEncrypt.java> } (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> Callers (1209): (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1410e0080 at 1410e0080 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_140ac1280 at 140ac1280 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_140acf540 at 140acf540 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_14032a230 at 14032a230 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_14041d6c0 at 14041d6c0 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_14041d6c0 at 14041d6c0 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_14041d6c0 at 14041d6c0 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_14041d6c0 at 14041d6c0 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_14041d6c0 at 14041d6c0 (GhidraScript)  
+INFO  FindBFEncrypt.java> 
+========================================== (GhidraScript)  
+INFO  FindBFEncrypt.java> Function at 0x10ede60 = FUN_1410ede60 (GhidraScript)  
+INFO  FindBFEncrypt.java> ========================================== (GhidraScript)  
+INFO  FindBFEncrypt.java> --- Decompiled (11 lines) --- (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> void FUN_1410ede60(undefined8 *param_1) (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> { (GhidraScript)  
+INFO  FindBFEncrypt.java>   if ((*(byte *)((longlong)param_1 + 0xc) & 1) != 0) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     thunk_FUN_1410e1240(*param_1); (GhidraScript)  
+INFO  FindBFEncrypt.java>     return; (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   return; (GhidraScript)  
+INFO  FindBFEncrypt.java> } (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> Callers (4096): (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1410b1830 at 1410b1830 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1400a9b00 at 1400a9b00 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1400a9b00 at 1400a9b00 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1400bbae0 at 1400bbae0 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1400bbae0 at 1400bbae0 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1400bbae0 at 1400bbae0 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1400bbae0 at 1400bbae0 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1400bbae0 at 1400bbae0 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1400bbae0 at 1400bbae0 (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1400bbae0 at 1400bbae0 (GhidraScript)  
+INFO  FindBFEncrypt.java> 
+========================================== (GhidraScript)  
+INFO  FindBFEncrypt.java> Callers of the crypto setup function (GhidraScript)  
+INFO  FindBFEncrypt.java> ========================================== (GhidraScript)  
+INFO  FindBFEncrypt.java> 
+--- FUN_140571f80 --- (GhidraScript)  
+INFO  FindBFEncrypt.java> --- Decompiled (143 lines) --- (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> undefined1 (GhidraScript)  
+INFO  FindBFEncrypt.java> FUN_140571f80(longlong *param_1,undefined8 param_2,undefined2 param_3,longlong param_4, (GhidraScript)  
+INFO  FindBFEncrypt.java>              undefined8 param_5,undefined1 param_6,undefined1 param_7,undefined8 *param_8) (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> { (GhidraScript)  
+INFO  FindBFEncrypt.java>   double dVar1; (GhidraScript)  
+INFO  FindBFEncrypt.java>   longlong lVar2; (GhidraScript)  
+INFO  FindBFEncrypt.java>   longlong *plVar3; (GhidraScript)  
+INFO  FindBFEncrypt.java>   double dVar4; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 *puVar5; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 uVar6; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 uVar7; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 *puVar8; (GhidraScript)  
+INFO  FindBFEncrypt.java>   longlong lVar9; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 uVar10; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint *puVar11; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 uVar12; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 uVar13; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 *puVar14; (GhidraScript)  
+INFO  FindBFEncrypt.java>   ulonglong uVar15; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint uVar16; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint uVar17; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint uVar18; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 *local_100; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint local_f8; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint local_f4; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 local_f0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 uStack_e8; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined2 local_e0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint local_dc; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 local_d8; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 local_d0 [24]; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 local_b8 [32]; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 local_98 [32]; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 local_78 [56]; (GhidraScript)  
+INFO  FindBFEncrypt.java>    (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_d8 = param_5; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uVar16 = *(uint *)(param_8 + 1); (GhidraScript)  
+INFO  FindBFEncrypt.java>   uVar15 = (ulonglong)uVar16; (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_100 = (undefined1 *)0x0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_f4 = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   if (uVar16 != 0) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     thunk_FUN_1410e1240(0); (GhidraScript)  
+INFO  FindBFEncrypt.java>     local_100 = (undefined1 *)FUN_1410dd1b0(uVar16); (GhidraScript)  
+INFO  FindBFEncrypt.java>     local_f4 = uVar16; (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   uVar17 = local_f4; (GhidraScript)  
+INFO  FindBFEncrypt.java>   puVar5 = local_100; (GhidraScript)  
+INFO  FindBFEncrypt.java>   puVar8 = (undefined1 *)*param_8; (GhidraScript)  
+INFO  FindBFEncrypt.java>   for (puVar14 = local_100; puVar14 < local_100 + uVar15; puVar14 = puVar14 + 1) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     uVar7 = *puVar8; (GhidraScript)  
+INFO  FindBFEncrypt.java>     puVar8 = puVar8 + 1; (GhidraScript)  
+INFO  FindBFEncrypt.java>     *puVar14 = uVar7; (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_f8 = uVar16; (GhidraScript)  
+INFO  FindBFEncrypt.java>   if ((uVar16 == 0) && (uVar15 != 8)) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     if (uVar15 < 9) { (GhidraScript)  
+INFO  FindBFEncrypt.java>       if ((local_f4 & 0x7fffffff) < 8) { (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar8 = (undefined1 *)FUN_1410dd1b0(8); (GhidraScript)  
+INFO  FindBFEncrypt.java>         if (puVar5 < puVar5 + uVar15) { (GhidraScript)  
+INFO  FindBFEncrypt.java>           puVar14 = puVar5; (GhidraScript)  
+INFO  FindBFEncrypt.java>           do { (GhidraScript)  
+INFO  FindBFEncrypt.java>             puVar14[(longlong)puVar8 - (longlong)puVar5] = *puVar14; (GhidraScript)  
+INFO  FindBFEncrypt.java>             puVar14 = puVar14 + 1; (GhidraScript)  
+INFO  FindBFEncrypt.java>           } while (puVar14 < puVar5 + uVar15); (GhidraScript)  
+INFO  FindBFEncrypt.java>         } (GhidraScript)  
+INFO  FindBFEncrypt.java>         if (-1 < (int)uVar17) { (GhidraScript)  
+INFO  FindBFEncrypt.java>           thunk_FUN_1410e1240(puVar5); (GhidraScript)  
+INFO  FindBFEncrypt.java>         } (GhidraScript)  
+INFO  FindBFEncrypt.java>         local_f4 = 8; (GhidraScript)  
+INFO  FindBFEncrypt.java>         local_100 = puVar8; (GhidraScript)  
+INFO  FindBFEncrypt.java>       } (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar8 = local_100 + uVar15; (GhidraScript)  
+INFO  FindBFEncrypt.java>       if (puVar8 < local_100 + 8) { (GhidraScript)  
+INFO  FindBFEncrypt.java>         FUN_1418b49a0(puVar8,0,(longlong)(local_100 + 8) - (longlong)puVar8); (GhidraScript)  
+INFO  FindBFEncrypt.java>       } (GhidraScript)  
+INFO  FindBFEncrypt.java>     } (GhidraScript)  
+INFO  FindBFEncrypt.java>     local_f8 = 8; (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   dVar4 = (double)FUN_141179dc0(*(undefined8 *)(DAT_141da1490 + 0x40)); (GhidraScript)  
+INFO  FindBFEncrypt.java>   lVar2 = *param_1; (GhidraScript)  
+INFO  FindBFEncrypt.java>   *(undefined1 *)(param_1 + 2) = param_7; (GhidraScript)  
+INFO  FindBFEncrypt.java>   lVar9 = FUN_140578990(lVar2 + 0x1600,param_4); (GhidraScript)  
+INFO  FindBFEncrypt.java>   uVar6 = local_d8; (GhidraScript)  
+INFO  FindBFEncrypt.java>   if (*(int *)(lVar9 + 0x34) != 1) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     *(undefined4 *)(lVar9 + 0x34) = 2; (GhidraScript)  
+INFO  FindBFEncrypt.java>     dVar1 = *(double *)(lVar2 + 0x1640); (GhidraScript)  
+INFO  FindBFEncrypt.java>     *(undefined1 *)(lVar9 + 0x30) = param_6; (GhidraScript)  
+INFO  FindBFEncrypt.java>     *(undefined1 *)(lVar9 + 0x38) = param_7; (GhidraScript)  
+INFO  FindBFEncrypt.java>     *(double *)(lVar9 + 8) = dVar4 + dVar1; (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   plVar3 = *(longlong **)(*param_1 + 0x1780); (GhidraScript)  
+INFO  FindBFEncrypt.java>   uVar10 = FUN_1401e8d80(local_b8,local_d8); (GhidraScript)  
+INFO  FindBFEncrypt.java>   puVar11 = (uint *)FUN_140566250(local_d0,param_2,param_3); (GhidraScript)  
+INFO  FindBFEncrypt.java>   uVar12 = FUN_1401e8d80(local_98,uVar10); (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_dc = puVar11[5]; (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_e0 = (undefined2)puVar11[4]; (GhidraScript)  
+INFO  FindBFEncrypt.java>   if (local_dc == 1) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     uVar16 = *puVar11; (GhidraScript)  
+INFO  FindBFEncrypt.java>     local_f0._4_4_ = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>     uStack_e8._0_4_ = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>     uStack_e8._4_4_ = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>     uVar17 = (uint)uStack_e8; (GhidraScript)  
+INFO  FindBFEncrypt.java>     uVar18 = uStack_e8._4_4_; (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   else { (GhidraScript)  
+INFO  FindBFEncrypt.java>     uVar16 = *puVar11; (GhidraScript)  
+INFO  FindBFEncrypt.java>     local_f0._4_4_ = puVar11[1]; (GhidraScript)  
+INFO  FindBFEncrypt.java>     uVar17 = puVar11[2]; (GhidraScript)  
+INFO  FindBFEncrypt.java>     uVar18 = puVar11[3]; (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   if ((*(char *)((longlong)plVar3 + 0x141) == '\0') && ((char)plVar3[0x28] == '\0')) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     *(undefined1 *)((longlong)plVar3 + 0x141) = 1; (GhidraScript)  
+INFO  FindBFEncrypt.java>     *(undefined2 *)((longlong)plVar3 + 0x146) = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>     *(undefined4 *)((longlong)plVar3 + 0x142) = 0x40008; (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   plVar3[0x27] = param_4; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uStack_e8 = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   if (local_dc == 1) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     local_f0 = (ulonglong)uVar16; (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   else { (GhidraScript)  
+INFO  FindBFEncrypt.java>     local_f0 = CONCAT44(local_f0._4_4_,uVar16); (GhidraScript)  
+INFO  FindBFEncrypt.java>     uStack_e8 = CONCAT44(uVar18,uVar17); (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   uVar13 = FUN_1401e8d80(local_78,uVar12); (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_14058b8d0(plVar3,param_4,uVar13,&local_100,&local_f0); (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_140229c40(uVar12); (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_e0 = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_dc = puVar11[5]; (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_f0 = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uStack_e8 = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uVar7 = (**(code **)(*plVar3 + 0x58))(plVar3,&local_f0,0); (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_140229c40(uVar10); (GhidraScript)  
+INFO  FindBFEncrypt.java>   if ((local_f4 & 0x80000000) == 0) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     thunk_FUN_1410e1240(local_100); (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_140229c40(param_2); (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_140229c40(uVar6); (GhidraScript)  
+INFO  FindBFEncrypt.java>   return uVar7; (GhidraScript)  
+INFO  FindBFEncrypt.java> } (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> 
+--- FUN_14058b770 --- (GhidraScript)  
+INFO  FindBFEncrypt.java> --- Decompiled (55 lines) --- (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> void FUN_14058b770(longlong *param_1,undefined8 param_2,undefined8 param_3) (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> { (GhidraScript)  
+INFO  FindBFEncrypt.java>   longlong lVar1; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 uVar2; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 uVar3; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 auStack_f8 [32]; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 *local_d8; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 local_c8; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 local_c0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 uStack_b8; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined2 local_b0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined4 local_ac; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 local_a8; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined8 uStack_a0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 local_88 [32]; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 *local_68; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined4 local_60; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint local_5c; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 local_58 [32]; (GhidraScript)  
+INFO  FindBFEncrypt.java>   ulonglong local_38; (GhidraScript)  
+INFO  FindBFEncrypt.java>    (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_38 = DAT_141d28400 ^ (ulonglong)auStack_f8; (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_c8 = param_2; (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_14056dfe0(*param_1 + 0x1510,&local_c8); (GhidraScript)  
+INFO  FindBFEncrypt.java>   lVar1 = *(longlong *)(*param_1 + 0x1780); (GhidraScript)  
+INFO  FindBFEncrypt.java>   uVar2 = FUN_1401e8d80(local_88,param_3); (GhidraScript)  
+INFO  FindBFEncrypt.java>   if ((*(char *)(lVar1 + 0x141) == '\0') && (*(char *)(lVar1 + 0x140) == '\0')) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     *(undefined1 *)(lVar1 + 0x140) = 1; (GhidraScript)  
+INFO  FindBFEncrypt.java>     *(undefined2 *)(lVar1 + 0x146) = 4; (GhidraScript)  
+INFO  FindBFEncrypt.java>     *(undefined4 *)(lVar1 + 0x142) = 0x40004; (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_5c = 0x80000020; (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_68 = local_58; (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_60 = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_b0 = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_ac = 1; (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_a8 = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uStack_a0 = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uStack_b8 = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_c0 = 0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uVar3 = FUN_1401e8d80(&local_a8,uVar2); (GhidraScript)  
+INFO  FindBFEncrypt.java>   local_d8 = &local_c0; (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_14058b8d0(lVar1,param_2,uVar3,&local_68); (GhidraScript)  
+INFO  FindBFEncrypt.java>   if ((local_5c & 0x80000000) == 0) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     thunk_FUN_1410e1240(local_68); (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_140229c40(uVar2); (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_14057d4c0(*(undefined8 *)*param_1,param_2); (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_140229c40(param_3); (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_14184f1f0(local_38 ^ (ulonglong)auStack_f8); (GhidraScript)  
+INFO  FindBFEncrypt.java>   return; (GhidraScript)  
+INFO  FindBFEncrypt.java> } (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> 
+========================================== (GhidraScript)  
+INFO  FindBFEncrypt.java> CRITICAL: FUN_1410f2ce0 (called after BF_set_key) (GhidraScript)  
+INFO  FindBFEncrypt.java> This is likely the encrypt/decrypt function! (GhidraScript)  
+INFO  FindBFEncrypt.java> ========================================== (GhidraScript)  
+INFO  FindBFEncrypt.java> --- Decompiled (104 lines) --- (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> void FUN_1410f2ce0(longlong param_1,longlong param_2,longlong param_3,ulonglong param_4,int param_5) (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> { (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint uVar1; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint uVar2; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint uVar3; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 *puVar4; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint uVar5; (GhidraScript)  
+INFO  FindBFEncrypt.java>   undefined1 *puVar6; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint local_38; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint uStack_34; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint local_30; (GhidraScript)  
+INFO  FindBFEncrypt.java>   uint uStack_2c; (GhidraScript)  
+INFO  FindBFEncrypt.java>    (GhidraScript)  
+INFO  FindBFEncrypt.java>   if (param_5 == 1) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     if (7 < param_4) { (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar6 = (undefined1 *)(param_2 + 6); (GhidraScript)  
+INFO  FindBFEncrypt.java>       param_4 = param_4 >> 3; (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4 = (undefined1 *)(param_3 + -7); (GhidraScript)  
+INFO  FindBFEncrypt.java>       uVar3 = *(uint *)(param_1 + 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>       uVar5 = *(uint *)(param_1 + 0xc); (GhidraScript)  
+INFO  FindBFEncrypt.java>       do { (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar1 = CONCAT31(CONCAT21(CONCAT11(puVar4[(param_2 - param_3) + 7],puVar6[-5]),puVar6[-4]), (GhidraScript)  
+INFO  FindBFEncrypt.java>                          puVar6[-3]); (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar2 = CONCAT31(CONCAT21(CONCAT11(puVar6[-2],puVar6[-1]),*puVar6),puVar6[1]); (GhidraScript)  
+INFO  FindBFEncrypt.java>         local_38 = uVar1; (GhidraScript)  
+INFO  FindBFEncrypt.java>         uStack_34 = uVar2; (GhidraScript)  
+INFO  FindBFEncrypt.java>         FUN_1410f25c0(param_1,&local_38); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar6 = puVar6 + 8; (GhidraScript)  
+INFO  FindBFEncrypt.java>         uStack_34 = uStack_34 ^ uVar5; (GhidraScript)  
+INFO  FindBFEncrypt.java>         local_38 = local_38 ^ uVar3; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xe] = (char)uStack_34; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xd] = (char)(uStack_34 >> 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[10] = (char)local_38; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xc] = (char)(uStack_34 >> 0x10); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[9] = (char)(local_38 >> 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xb] = (char)(uStack_34 >> 0x18); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[8] = (char)(local_38 >> 0x10); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[7] = (char)(local_38 >> 0x18); (GhidraScript)  
+INFO  FindBFEncrypt.java>         param_4 = param_4 - 1; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4 = puVar4 + 8; (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar3 = uVar1; (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar5 = uVar2; (GhidraScript)  
+INFO  FindBFEncrypt.java>       } while (param_4 != 0); (GhidraScript)  
+INFO  FindBFEncrypt.java>     } (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   else if (param_5 == 2) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     local_30 = *(uint *)(param_1 + 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>     uStack_2c = *(uint *)(param_1 + 0xc); (GhidraScript)  
+INFO  FindBFEncrypt.java>     if (7 < param_4) { (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar6 = (undefined1 *)(param_2 + 6); (GhidraScript)  
+INFO  FindBFEncrypt.java>       param_4 = param_4 >> 3; (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4 = (undefined1 *)(param_3 + -7); (GhidraScript)  
+INFO  FindBFEncrypt.java>       do { (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar5 = CONCAT31(CONCAT21(CONCAT11(puVar4[(param_2 - param_3) + 7],puVar6[-5]),puVar6[-4]), (GhidraScript)  
+INFO  FindBFEncrypt.java>                          puVar6[-3]); (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar3 = CONCAT31(CONCAT21(CONCAT11(puVar6[-2],puVar6[-1]),*puVar6),puVar6[1]); (GhidraScript)  
+INFO  FindBFEncrypt.java>         local_38 = uVar5; (GhidraScript)  
+INFO  FindBFEncrypt.java>         uStack_34 = uVar3; (GhidraScript)  
+INFO  FindBFEncrypt.java>         FUN_1410f3d90(param_1,&local_30); (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar5 = uVar5 ^ local_30; (GhidraScript)  
+INFO  FindBFEncrypt.java>         uVar3 = uVar3 ^ uStack_2c; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar6 = puVar6 + 8; (GhidraScript)  
+INFO  FindBFEncrypt.java>         local_30 = local_38; (GhidraScript)  
+INFO  FindBFEncrypt.java>         uStack_2c = uStack_34; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xd] = (char)(uVar3 >> 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xc] = (char)(uVar3 >> 0x10); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[9] = (char)(uVar5 >> 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xe] = (char)uVar3; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[10] = (char)uVar5; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[0xb] = (char)(uVar3 >> 0x18); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[8] = (char)(uVar5 >> 0x10); (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4[7] = (char)(uVar5 >> 0x18); (GhidraScript)  
+INFO  FindBFEncrypt.java>         param_4 = param_4 - 1; (GhidraScript)  
+INFO  FindBFEncrypt.java>         puVar4 = puVar4 + 8; (GhidraScript)  
+INFO  FindBFEncrypt.java>       } while (param_4 != 0); (GhidraScript)  
+INFO  FindBFEncrypt.java>     } (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   else if (7 < param_4) { (GhidraScript)  
+INFO  FindBFEncrypt.java>     puVar6 = (undefined1 *)(param_2 + 6); (GhidraScript)  
+INFO  FindBFEncrypt.java>     param_4 = param_4 >> 3; (GhidraScript)  
+INFO  FindBFEncrypt.java>     puVar4 = (undefined1 *)(param_3 + -7); (GhidraScript)  
+INFO  FindBFEncrypt.java>     do { (GhidraScript)  
+INFO  FindBFEncrypt.java>       local_38 = CONCAT31(CONCAT21(CONCAT11(puVar4[(param_2 - param_3) + 7],puVar6[-5]),puVar6[-4]), (GhidraScript)  
+INFO  FindBFEncrypt.java>                           puVar6[-3]); (GhidraScript)  
+INFO  FindBFEncrypt.java>       uStack_34 = CONCAT31(CONCAT21(CONCAT11(puVar6[-2],puVar6[-1]),*puVar6),puVar6[1]); (GhidraScript)  
+INFO  FindBFEncrypt.java>       FUN_1410f25c0(param_1,&local_38); (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar6 = puVar6 + 8; (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[0xe] = (undefined1)uStack_34; (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[0xd] = (char)(uStack_34 >> 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[0xc] = (char)(uStack_34 >> 0x10); (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[10] = (undefined1)local_38; (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[0xb] = (char)(uStack_34 >> 0x18); (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[9] = (char)(local_38 >> 8); (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[8] = (char)(local_38 >> 0x10); (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4[7] = (char)(local_38 >> 0x18); (GhidraScript)  
+INFO  FindBFEncrypt.java>       param_4 = param_4 - 1; (GhidraScript)  
+INFO  FindBFEncrypt.java>       puVar4 = puVar4 + 8; (GhidraScript)  
+INFO  FindBFEncrypt.java>     } while (param_4 != 0); (GhidraScript)  
+INFO  FindBFEncrypt.java>   } (GhidraScript)  
+INFO  FindBFEncrypt.java>   return; (GhidraScript)  
+INFO  FindBFEncrypt.java> } (GhidraScript)  
+INFO  FindBFEncrypt.java>  (GhidraScript)  
+INFO  FindBFEncrypt.java> 
+All callers of encrypt function (7): (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_140601920 at 140601920 (call at 140601a41) (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1406e5fd0 at 1406e5fd0 (call at 1406e66c7) (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1406db490 at 1406db490 (call at 1406db733) (GhidraScript)  
+INFO  FindBFEncrypt.java>   FUN_1406dcc80 at 1406dcc80 (call at 1406dcf24) (GhidraScript)  
+INFO  FindBFEncrypt.java> 
+=== DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /LoLPrivate.exe (HeadlessAnalyzer)  

@@ -1,0 +1,487 @@
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.10+7 (build 21.0.10+7-LTS, mixed mode)
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (763 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (5674 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessProject)  
+INFO  REPORT: Processing project file: /LoLPrivate.exe (HeadlessAnalyzer)  
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\FindEnqueueWrite.java (HeadlessAnalyzer)  
+INFO  FindEnqueueWrite.java> === Finding enqueue function (writes to circular buffer queue) === (GhidraScript)  
+INFO  FindEnqueueWrite.java> 
+CondVar_Signal? = FUN_1418555d0 at 1418555d0 (15 callers) (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_140593b30 at 140593b30 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_140571d80 at 140571d80 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_14056bd90 at 14056bd90 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_1405883d0 at 1405883d0 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_14070fed0 at 14070fed0 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_14076dc30 at 14076dc30 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_141371060 at 141371060 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_140589a90 at 140589a90 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_1405897f0 at 1405897f0 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_140589970 at 140589970 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_140588730 at 140588730 (GhidraScript)  
+INFO  FindEnqueueWrite.java> 
+CondVar_Wait? = FUN_1418555e8 at 1418555e8 (13 callers) (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_141366e50 at 141366e50 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_140593b30 at 140593b30 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_1406d9530 at 1406d9530 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_14093fed0 at 14093fed0 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_14132eb60 at 14132eb60 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_141356b10 at 141356b10 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   FUN_140588730 at 140588730 (GhidraScript)  
+INFO  FindEnqueueWrite.java>   NET_58e860 at 14058e860 (GhidraScript)  
+INFO  FindEnqueueWrite.java> 
+Mutex_Lock? = FUN_141854ad0 at 141854ad0 (189 callers) (GhidraScript)  
+INFO  FindEnqueueWrite.java> 
+Mutex_TryLock? = FUN_141854ac8 at 141854ac8 (170 callers) (GhidraScript)  
+INFO  FindEnqueueWrite.java> 
+=== Searching for 0x207 (519) in all functions === (GhidraScript)  
+INFO  FindEnqueueWrite.java>   519 at 14051f787 in FUN_14051f780 (14051f780) (GhidraScript)  
+INFO  FindEnqueueWrite.java>   519 at 141577f2d in FUN_141577d00 (141577d00) (GhidraScript)  
+INFO  FindEnqueueWrite.java>     *** HAS QUEUE OFFSETS (0xB8/0xC0/0xC8/0xD0) *** (GhidraScript)  
+INFO  FindEnqueueWrite.java>      (GhidraScript)  
+INFO  FindEnqueueWrite.java>     void FUN_141577d00(longlong param_1,longlong *param_2,longlong param_3) (GhidraScript)  
+INFO  FindEnqueueWrite.java>      (GhidraScript)  
+INFO  FindEnqueueWrite.java>     { (GhidraScript)  
+INFO  FindEnqueueWrite.java>       undefined4 uVar1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       byte bVar2; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       int iVar3; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float fVar4; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float fVar5; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       char cVar6; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       longlong lVar7; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       longlong lVar8; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       longlong *plVar9; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       longlong *plVar10; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       longlong *plVar11; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       longlong *plVar12; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float fVar13; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float fVar14; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float fVar15; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float fVar16; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float fVar17; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float fVar18; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float fVar19; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float fVar20; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float local_res20; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float local_178; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       longlong *local_170; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       longlong *local_168; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       longlong *local_160; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       longlong *local_158; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       longlong *local_150; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       longlong *local_148; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       undefined4 local_140; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float local_13c; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       undefined4 local_138; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float local_134; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       undefined4 local_130; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float local_12c; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       undefined4 local_128; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float local_124; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       undefined4 local_120; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float local_11c; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       undefined4 local_118; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float local_114; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       undefined4 local_110; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float local_10c; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       undefined4 local_108; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float local_104; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       undefined4 local_100; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float local_fc; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       undefined4 local_f8; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       float local_f4; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       longlong local_f0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>        (GhidraScript)  
+INFO  FindEnqueueWrite.java>       if ((*(byte *)(param_1 + 0x18c) & 0x40) == 0) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>         cVar6 = FUN_1415398e0(); (GhidraScript)  
+INFO  FindEnqueueWrite.java>       } (GhidraScript)  
+INFO  FindEnqueueWrite.java>       else { (GhidraScript)  
+INFO  FindEnqueueWrite.java>         lVar7 = FUN_14153a510(param_1 + 0x178); (GhidraScript)  
+INFO  FindEnqueueWrite.java>         plVar10 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         local_res20 = 0.0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         local_178 = 0.0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         local_160 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         local_168 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         local_158 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         local_150 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         cVar6 = FUN_1415398e0(param_1); (GhidraScript)  
+INFO  FindEnqueueWrite.java>         if (lVar7 != 0) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>           if ((*(byte *)(lVar7 + 0x1fb) == 0xff) || (GhidraScript)  
+INFO  FindEnqueueWrite.java>              (local_170 = (longlong *)(lVar7 + ((ulonglong)*(byte *)(lVar7 + 0x1fb) + 2) * 0x18), (GhidraScript)  
+INFO  FindEnqueueWrite.java>              *local_170 == 0)) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             local_170 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>           } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           if ((*(byte *)(lVar7 + 0x1fc) == 0xff) || (GhidraScript)  
+INFO  FindEnqueueWrite.java>              (lVar8 = (ulonglong)*(byte *)(lVar7 + 0x1fc) + 2, (GhidraScript)  
+INFO  FindEnqueueWrite.java>              plVar9 = (longlong *)(lVar7 + lVar8 * 0x18), *(longlong *)(lVar7 + lVar8 * 0x18) == 0)) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             plVar9 = plVar10; (GhidraScript)  
+INFO  FindEnqueueWrite.java>           } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           if ((*(byte *)(lVar7 + 0x20b) & 1) != 0) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             local_res20 = *(float *)(param_1 + 0x184); (GhidraScript)  
+INFO  FindEnqueueWrite.java>             local_178 = *(float *)(param_1 + 0x188); (GhidraScript)  
+INFO  FindEnqueueWrite.java>           } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           if (cVar6 != '\0') { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             bVar2 = *(byte *)(lVar7 + 0x200); (GhidraScript)  
+INFO  FindEnqueueWrite.java>             local_160 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>             if (bVar2 == 0xfe) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               if ((*(char *)(DAT_141e69768 + 1) != '\0') && (*(longlong *)(DAT_141e69768 + 0x20) != 0)) (GhidraScript)  
+INFO  FindEnqueueWrite.java>               { (GhidraScript)  
+INFO  FindEnqueueWrite.java>                 local_160 = (longlong *)(DAT_141e69768 + 0x20); (GhidraScript)  
+INFO  FindEnqueueWrite.java>               } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             else if ((bVar2 == 0xff) || (GhidraScript)  
+INFO  FindEnqueueWrite.java>                     (local_160 = (longlong *)(lVar7 + ((ulonglong)bVar2 + 2) * 0x18), *local_160 == 0)) (GhidraScript)  
+INFO  FindEnqueueWrite.java>             { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               local_160 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             bVar2 = *(byte *)(lVar7 + 0x201); (GhidraScript)  
+INFO  FindEnqueueWrite.java>             local_168 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>             if (bVar2 == 0xfe) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               if ((*(char *)(DAT_141e69768 + 2) != '\0') && (*(longlong *)(DAT_141e69768 + 0x38) != 0)) (GhidraScript)  
+INFO  FindEnqueueWrite.java>               { (GhidraScript)  
+INFO  FindEnqueueWrite.java>                 local_168 = (longlong *)(DAT_141e69768 + 0x38); (GhidraScript)  
+INFO  FindEnqueueWrite.java>               } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             else if ((bVar2 == 0xff) || (GhidraScript)  
+INFO  FindEnqueueWrite.java>                     (local_168 = (longlong *)(lVar7 + ((ulonglong)bVar2 + 2) * 0x18), *local_168 == 0)) (GhidraScript)  
+INFO  FindEnqueueWrite.java>             { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               local_168 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             bVar2 = *(byte *)(lVar7 + 0x206); (GhidraScript)  
+INFO  FindEnqueueWrite.java>             local_158 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>             if (bVar2 == 0xfe) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               if ((*(char *)(DAT_141e69768 + 1) != '\0') && (*(longlong *)(DAT_141e69768 + 0x20) != 0)) (GhidraScript)  
+INFO  FindEnqueueWrite.java>               { (GhidraScript)  
+INFO  FindEnqueueWrite.java>                 local_158 = (longlong *)(DAT_141e69768 + 0x20); (GhidraScript)  
+INFO  FindEnqueueWrite.java>               } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             else if ((bVar2 == 0xff) || (GhidraScript)  
+INFO  FindEnqueueWrite.java>                     (local_158 = (longlong *)(lVar7 + ((ulonglong)bVar2 + 2) * 0x18), *local_158 == 0)) (GhidraScript)  
+INFO  FindEnqueueWrite.java>             { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               local_158 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             bVar2 = *(byte *)(lVar7 + 0x207); (GhidraScript)  
+INFO  FindEnqueueWrite.java>             local_150 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>             if (bVar2 == 0xfe) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               if ((*(char *)(DAT_141e69768 + 2) != '\0') && (*(longlong *)(DAT_141e69768 + 0x38) != 0)) (GhidraScript)  
+INFO  FindEnqueueWrite.java>               { (GhidraScript)  
+INFO  FindEnqueueWrite.java>                 local_150 = (longlong *)(DAT_141e69768 + 0x38); (GhidraScript)  
+INFO  FindEnqueueWrite.java>               } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             else if ((bVar2 == 0xff) || (GhidraScript)  
+INFO  FindEnqueueWrite.java>                     (local_150 = (longlong *)(lVar7 + ((ulonglong)bVar2 + 2) * 0x18), *local_150 == 0)) (GhidraScript)  
+INFO  FindEnqueueWrite.java>             { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               local_150 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           bVar2 = *(byte *)(lVar7 + 0x203); (GhidraScript)  
+INFO  FindEnqueueWrite.java>           if (bVar2 == 0xfe) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             plVar11 = plVar10; (GhidraScript)  
+INFO  FindEnqueueWrite.java>             if ((*(char *)(DAT_141e69768 + 4) != '\0') && (GhidraScript)  
+INFO  FindEnqueueWrite.java>                (plVar11 = (longlong *)0x0, *(longlong *)(DAT_141e69768 + 0x68) != 0)) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               plVar11 = (longlong *)(DAT_141e69768 + 0x68); (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           else if ((bVar2 == 0xff) || (GhidraScript)  
+INFO  FindEnqueueWrite.java>                   (plVar11 = (longlong *)(lVar7 + ((ulonglong)bVar2 + 2) * 0x18), (GhidraScript)  
+INFO  FindEnqueueWrite.java>                   *(longlong *)(lVar7 + ((ulonglong)bVar2 + 2) * 0x18) == 0)) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             plVar11 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>           } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           bVar2 = *(byte *)(lVar7 + 0x204); (GhidraScript)  
+INFO  FindEnqueueWrite.java>           if (bVar2 == 0xfe) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             plVar12 = plVar10; (GhidraScript)  
+INFO  FindEnqueueWrite.java>             if ((*(char *)(DAT_141e69768 + 5) != '\0') && (GhidraScript)  
+INFO  FindEnqueueWrite.java>                (plVar12 = (longlong *)0x0, *(longlong *)(DAT_141e69768 + 0x80) != 0)) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               plVar12 = (longlong *)(DAT_141e69768 + 0x80); (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           else if ((bVar2 == 0xff) || (GhidraScript)  
+INFO  FindEnqueueWrite.java>                   (plVar12 = (longlong *)(lVar7 + ((ulonglong)bVar2 + 2) * 0x18), (GhidraScript)  
+INFO  FindEnqueueWrite.java>                   *(longlong *)(lVar7 + ((ulonglong)bVar2 + 2) * 0x18) == 0)) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             plVar12 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>           } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           bVar2 = *(byte *)(lVar7 + 0x209); (GhidraScript)  
+INFO  FindEnqueueWrite.java>           local_148 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>           if (bVar2 == 0xfe) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             if ((*(char *)(DAT_141e69768 + 4) != '\0') && (*(longlong *)(DAT_141e69768 + 0x68) != 0)) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               local_148 = (longlong *)(DAT_141e69768 + 0x68); (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           else if ((bVar2 == 0xff) || (GhidraScript)  
+INFO  FindEnqueueWrite.java>                   (local_148 = (longlong *)(lVar7 + ((ulonglong)bVar2 + 2) * 0x18), *local_148 == 0)) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             local_148 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>           } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           bVar2 = *(byte *)(lVar7 + 0x20a); (GhidraScript)  
+INFO  FindEnqueueWrite.java>           if (bVar2 == 0xfe) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             if ((*(char *)(DAT_141e69768 + 5) != '\0') && (GhidraScript)  
+INFO  FindEnqueueWrite.java>                (plVar10 = (longlong *)0x0, *(longlong *)(DAT_141e69768 + 0x80) != 0)) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               plVar10 = (longlong *)(DAT_141e69768 + 0x80); (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           else if ((bVar2 == 0xff) || (GhidraScript)  
+INFO  FindEnqueueWrite.java>                   (plVar10 = (longlong *)(lVar7 + ((ulonglong)bVar2 + 2) * 0x18), (GhidraScript)  
+INFO  FindEnqueueWrite.java>                   *(longlong *)(lVar7 + ((ulonglong)bVar2 + 2) * 0x18) == 0)) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             plVar10 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>           } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           goto LAB_1415781a2; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         } (GhidraScript)  
+INFO  FindEnqueueWrite.java>       } (GhidraScript)  
+INFO  FindEnqueueWrite.java>       local_160 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       local_168 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       plVar9 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       if (cVar6 != '\0') { (GhidraScript)  
+INFO  FindEnqueueWrite.java>         if ((*(char *)(DAT_141e69768 + 1) != '\0') && (*(longlong *)(DAT_141e69768 + 0x20) != 0)) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>           local_160 = (longlong *)(DAT_141e69768 + 0x20); (GhidraScript)  
+INFO  FindEnqueueWrite.java>         } (GhidraScript)  
+INFO  FindEnqueueWrite.java>         local_168 = (longlong *)0x0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         if ((*(char *)(DAT_141e69768 + 2) != '\0') && (*(longlong *)(DAT_141e69768 + 0x38) != 0)) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>           local_168 = (longlong *)(DAT_141e69768 + 0x38); (GhidraScript)  
+INFO  FindEnqueueWrite.java>         } (GhidraScript)  
+INFO  FindEnqueueWrite.java>       } (GhidraScript)  
+INFO  FindEnqueueWrite.java>     ... (271 more) (GhidraScript)  
+INFO  FindEnqueueWrite.java>   519 at 1415bce8c in FUN_1415bcd40 (1415bcd40) (GhidraScript)  
+INFO  FindEnqueueWrite.java>   519 at 1416454bc in FUN_141645470 (141645470) (GhidraScript)  
+INFO  FindEnqueueWrite.java>   519 at 1416d83bf in FUN_1416d8200 (1416d8200) (GhidraScript)  
+INFO  FindEnqueueWrite.java>   519 at 1417c99c7 in FUN_1417c94e0 (1417c94e0) (GhidraScript)  
+INFO  FindEnqueueWrite.java>     *** HAS QUEUE OFFSETS (0xB8/0xC0/0xC8/0xD0) *** (GhidraScript)  
+INFO  FindEnqueueWrite.java>      (GhidraScript)  
+INFO  FindEnqueueWrite.java>     void FUN_1417c94e0(longlong param_1,undefined4 *param_2,int param_3,int param_4) (GhidraScript)  
+INFO  FindEnqueueWrite.java>      (GhidraScript)  
+INFO  FindEnqueueWrite.java>     { (GhidraScript)  
+INFO  FindEnqueueWrite.java>       int iVar1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       int iVar2; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       uint uVar3; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       undefined4 uVar4; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       int iVar5; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       longlong lVar6; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       undefined8 uVar7; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       undefined1 uVar8; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       char cVar9; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       int iVar10; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       int iVar11; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       bool bVar12; (GhidraScript)  
+INFO  FindEnqueueWrite.java>        (GhidraScript)  
+INFO  FindEnqueueWrite.java>       iVar5 = *(int *)(param_1 + 0x2919c); (GhidraScript)  
+INFO  FindEnqueueWrite.java>       iVar10 = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       iVar11 = iVar10; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       if (iVar5 != 0) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>         iVar11 = *(int *)(param_1 + 0xb30a8); (GhidraScript)  
+INFO  FindEnqueueWrite.java>       } (GhidraScript)  
+INFO  FindEnqueueWrite.java>       param_2[0xe] = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       *(undefined8 *)(param_2 + 0x10) = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       param_2[0x73] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       param_2[0x37] = 0x7fffffff; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       *(undefined8 *)(param_2 + 0x1a) = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       *(undefined8 *)(param_2 + 0x8f) = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       *(undefined8 *)(param_2 + 0x91) = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       *(undefined8 *)(param_2 + 0x94) = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       *(undefined8 *)(param_2 + 0x96) = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       *(undefined8 *)(param_2 + 0x98) = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       *(undefined8 *)(param_2 + 0x9a) = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       param_2[0x36] = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       if (0 < param_3) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x1c] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         *(undefined8 *)(param_2 + 0x1e) = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x16] = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         *(undefined8 *)(param_2 + 0x18) = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         if ((*(int *)(param_1 + 0x2919c) == 0) || (iVar2 = 1, *(char *)(param_1 + 0x291ac) != '\0')) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>           iVar2 = iVar10; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         } (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x29] = iVar2; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x28] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         if ((*(int *)(param_1 + 0x2919c) == 0) || (iVar2 = 1, *(char *)(param_1 + 0x291ac) != '\0')) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>           iVar2 = iVar10; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         } (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x21] = iVar2; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x61] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x35] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x41] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[2] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x10] = 2; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x4f] = 7; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x53] = 7; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x52] = 7; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       } (GhidraScript)  
+INFO  FindEnqueueWrite.java>       if (1 < param_3) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>         iVar2 = *(int *)(param_1 + 0x2919c); (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x41] = 2; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x4a] = -(uint)(iVar2 != 0) & 0x3a; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         bVar12 = *(int *)(param_1 + 0xb5198) == 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x25] = (uint)bVar12; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         if ((bVar12) && ((*(int *)(param_1 + 0xcbac8) == 1 || (*(int *)(param_1 + 0x2d494) == 2)))) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>           cVar9 = '\x01'; (GhidraScript)  
+INFO  FindEnqueueWrite.java>           do { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             if (cVar9 == '\x01') { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               iVar2 = *(int *)(param_1 + 0x2e484); (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             else if (cVar9 == '\x02') { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               iVar2 = *(int *)(param_1 + 0x2e488); (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             else { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               iVar2 = *(int *)(param_1 + 0x2e48c); (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             if ((((iVar2 != -1) && (GhidraScript)  
+INFO  FindEnqueueWrite.java>                  (iVar2 = *(int *)(param_1 + 0x29000 + (longlong)iVar2 * 4), iVar2 != -1)) && (GhidraScript)  
+INFO  FindEnqueueWrite.java>                 ((longlong)iVar2 * 0xd8 + *(longlong *)(param_1 + 0x2d3d8) + 0x50 != 0)) && (GhidraScript)  
+INFO  FindEnqueueWrite.java>                ((*(uint *)(param_1 + 0xb3440) & *(uint *)(&DAT_141b81f58 + (longlong)cVar9 * 4)) != 0)) (GhidraScript)  
+INFO  FindEnqueueWrite.java>             { (GhidraScript)  
+INFO  FindEnqueueWrite.java>               lVar6 = (longlong)cVar9 * 0x70; (GhidraScript)  
+INFO  FindEnqueueWrite.java>               iVar2 = *(int *)(lVar6 + 0x28fe0 + param_1); (GhidraScript)  
+INFO  FindEnqueueWrite.java>               if (((iVar2 != -1) && (iVar1 = *(int *)(lVar6 + 0x28fe4 + param_1), iVar1 != -1)) && (GhidraScript)  
+INFO  FindEnqueueWrite.java>                  ((iVar2 != 0x4000 || (iVar1 != 0x4000)))) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>                 param_2[0x25] = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>               } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             } (GhidraScript)  
+INFO  FindEnqueueWrite.java>             cVar9 = cVar9 + '\x01'; (GhidraScript)  
+INFO  FindEnqueueWrite.java>           } while (cVar9 < '\x04'); (GhidraScript)  
+INFO  FindEnqueueWrite.java>         } (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x4b] = 0x32; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         *(undefined1 *)(param_2 + 0xf) = 0xd; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x30] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x20] = 7; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x32] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x33] = 3; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x23] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x24] = 0xb; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x4e] = 7; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       } (GhidraScript)  
+INFO  FindEnqueueWrite.java>       if (2 < param_3) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x29] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x4b] = 100; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x62] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x12] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[4] = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x10] = 4; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x24] = 6; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x14] = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0xd] = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x34] = 0x3f; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[99] = 2; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       } (GhidraScript)  
+INFO  FindEnqueueWrite.java>       if (3 < param_3) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>         if ((*(int *)(param_1 + 0x2d454) == 0) && (0 < *(int *)(param_1 + 0x2d450))) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>           param_2[0x94] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         } (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x33] = 4; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x10] = 5; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x73] = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x30] = 2; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         if (*(int *)(param_1 + 0x29198) == *(int *)(param_1 + 0x2919c)) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>           uVar3 = iVar11 + 1U & 0x80000003; (GhidraScript)  
+INFO  FindEnqueueWrite.java>           if ((int)uVar3 < 0) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             uVar3 = (uVar3 - 1 | 0xfffffffc) + 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>           } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           if (uVar3 == 0) goto LAB_1417c9811; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         } (GhidraScript)  
+INFO  FindEnqueueWrite.java>         else { (GhidraScript)  
+INFO  FindEnqueueWrite.java>     LAB_1417c9811: (GhidraScript)  
+INFO  FindEnqueueWrite.java>           iVar10 = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         } (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x32] = iVar10; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[5] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x4c] = 7; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x50] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x4d] = 7; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x51] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x4e] = 7; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x52] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x53] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x4f] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0xb] = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         *param_2 = 5; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x6f] = 0x2c00; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x70] = 0x400; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x71] = 0x400; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x72] = 0x400; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         *(undefined1 *)(param_2 + 0x76) = 9; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x14] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>       } (GhidraScript)  
+INFO  FindEnqueueWrite.java>       if (4 < param_3) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x94] = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         *(undefined2 *)((longlong)param_2 + 0xc5) = 0x903; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x47] = (uint)(iVar5 != 0); (GhidraScript)  
+INFO  FindEnqueueWrite.java>         iVar10 = (iVar5 != 0) + 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x30] = iVar10; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         if ((iVar5 == 0) || (uVar4 = 0, iVar11 % (param_2[0x33] * 2) == 1)) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>           uVar4 = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         } (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x48] = uVar4; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x26] = 2; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         uVar4 = 0xf; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         if (iVar5 == 0) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>           uVar4 = 0x14; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         } (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x49] = uVar4; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         if ((*(int *)(param_1 + 0x2d454) == 0) && (0 < *(int *)(param_1 + 0x2d450))) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>           uVar4 = param_2[0x26]; (GhidraScript)  
+INFO  FindEnqueueWrite.java>           if (*(int *)(param_1 + 0xb30bc) != 0) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             uVar4 = 3; (GhidraScript)  
+INFO  FindEnqueueWrite.java>           } (GhidraScript)  
+INFO  FindEnqueueWrite.java>           param_2[0x26] = uVar4; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         } (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x65] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x14] = 0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x6f] = 0x3400; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x70] = 0x3400; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x71] = 0x3400; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x72] = 0x3400; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x10] = 2; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x78] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x15] = 4; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[100] = (uint)(iVar5 != 0); (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x4a] = 0x10; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x21] = iVar10; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         param_2[0x89] = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         if (*(int *)(param_1 + 0x2d454) == 0) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>           *param_2 = 1; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         } (GhidraScript)  
+INFO  FindEnqueueWrite.java>         if (iVar5 == 0) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>     LAB_1417c9abb: (GhidraScript)  
+INFO  FindEnqueueWrite.java>           if (param_4 == 1) goto LAB_1417c9ac0; (GhidraScript)  
+INFO  FindEnqueueWrite.java>         } (GhidraScript)  
+INFO  FindEnqueueWrite.java>         else { (GhidraScript)  
+INFO  FindEnqueueWrite.java>           if (param_4 != 1) { (GhidraScript)  
+INFO  FindEnqueueWrite.java>             param_2[0x54] = 7; (GhidraScript)  
+INFO  FindEnqueueWrite.java>             param_2[0x55] = 7; (GhidraScript)  
+INFO  FindEnqueueWrite.java>             param_2[0x56] = 7; (GhidraScript)  
+INFO  FindEnqueueWrite.java>     ... (242 more) (GhidraScript)  
+INFO  FindEnqueueWrite.java> 
+=== DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /LoLPrivate.exe (HeadlessAnalyzer)  

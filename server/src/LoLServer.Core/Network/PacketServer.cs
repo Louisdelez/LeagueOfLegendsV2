@@ -12,9 +12,9 @@ namespace LoLServer.Core.Network;
 /// <summary>
 /// ENet game server for League of Legends.
 /// Uses LENet (LoL-compatible ENet) to handle client connections.
-/// Supports multiple protocol versions for testing against modern client.
+/// Supports auto-detection of protocol version by cycling through all known versions.
 /// </summary>
-public class PacketServer : IDisposable
+public class PacketServer : IGameServer, IDisposable
 {
     private Host? _server;
     private readonly int _port;
@@ -23,19 +23,23 @@ public class PacketServer : IDisposable
     private readonly Dictionary<ushort, ClientInfo> _clients = new();
     private bool _running;
     private bool _rawCaptureMode;
+    private int _connectionAttempts;
+    private DateTime _lastConnectionTime = DateTime.MinValue;
 
     // Protocol versions to try (note: LENet has typo "Seasson")
+    // Modern LoL client (16.6+) sends 8-byte checksum headers
     private static readonly LENet.Version[] VersionsToTry =
     {
-        LENet.Version.Patch420,          // 4-byte CRC32 both ways
-        LENet.Version.Seasson8_Server,   // Server: 0 send, 8 receive checksum
-        LENet.Version.Seasson8_Client,   // Client: 8 send, 0 receive checksum
-        LENet.Version.Seasson12,         // Newer
+        LENet.Version.Seasson8_Server,   // Server: 0 send, 8 receive checksum ← modern client
         LENet.Version.Seasson34,         // Even newer
+        LENet.Version.Seasson12,         // Newer
+        LENet.Version.Patch420,          // 4-byte CRC32 both ways (old 4.20)
+        LENet.Version.Seasson8_Client,   // Client: 8 send, 0 receive checksum
     };
 
     private int _versionIndex;
     private LENet.Version _currentVersion;
+    private bool _autoDetect = true;
 
     public event Action<string>? OnLog;
     public event Action<byte[], int, string>? OnRawPacket;
@@ -53,28 +57,117 @@ public class PacketServer : IDisposable
         _rawCaptureMode = enable;
     }
 
+    public IReadOnlyDictionary<ushort, ClientInfo> Clients => _clients;
+
     public void Start()
     {
         Log($"=== LoL Private Server ===");
         Log($"Port: {_port}");
         Log($"Protocol: ChecksumSend={_currentVersion.ChecksumSizeSend} ChecksumRecv={_currentVersion.ChecksumSizeReceive} MaxPeerID={_currentVersion.MaxPeerID}");
+        Log($"Auto-detect: {_autoDetect}");
         Log($"Game mode: {_config.GameMode}");
         Log($"Map: {_config.MapId}");
         Log($"Players: {_config.Players.Count}");
         Log($"");
 
-        var address = new Address(0u, (ushort)_port); // 0 = INADDR_ANY
+        if (_autoDetect)
+        {
+            StartWithAutoDetect();
+        }
+        else
+        {
+            StartWithVersion(_currentVersion);
+        }
+    }
+
+    /// <summary>
+    /// Try each protocol version. Start with the most likely one for modern clients.
+    /// Each version runs for a few seconds; if a client connects, we lock it in.
+    /// If no client connects within the timeout, we try the next version.
+    /// </summary>
+    private void StartWithAutoDetect()
+    {
+        Log($"[AUTO-DETECT] Will try {VersionsToTry.Length} protocol versions (10s each)...");
+
+        for (int attempt = 0; attempt < VersionsToTry.Length; attempt++)
+        {
+            var version = VersionsToTry[attempt];
+            Log($"");
+            Log($"[AUTO-DETECT] Attempt {attempt + 1}/{VersionsToTry.Length}: ChecksumSend={version.ChecksumSizeSend} ChecksumRecv={version.ChecksumSizeReceive}");
+
+            try
+            {
+                _currentVersion = version;
+                _versionIndex = attempt;
+
+                var address = new Address(0u, (ushort)_port);
+                _server = new Host(version, address, 32, 32, 0, 0, 996);
+                _running = true;
+
+                Log($"[OK] Listening on UDP port {_port} with this version...");
+
+                // Try this version for 10 seconds
+                var ev = new Event();
+                var deadline = DateTime.Now.AddSeconds(10);
+
+                while (DateTime.Now < deadline)
+                {
+                    int result = _server.HostService(ev, 500);
+
+                    if (result > 0 && ev.Type == EventType.CONNECT)
+                    {
+                        HandleConnect(ev);
+                        _connectionAttempts++;
+                        _autoDetect = false;
+                        Log($"[AUTO-DETECT] Client connected! Protocol version LOCKED.");
+                        RunEventLoop(); // Continue with this version
+                        return;
+                    }
+
+                    if (result > 0 && ev.Type == EventType.RECEIVE)
+                    {
+                        // Got data! This version might work
+                        HandleReceive(ev);
+                        _autoDetect = false;
+                        Log($"[AUTO-DETECT] Received data! Protocol version LOCKED.");
+                        RunEventLoop();
+                        return;
+                    }
+                }
+
+                Log($"[AUTO-DETECT] No connection on this version, trying next...");
+                _server.Dispose();
+                _server = null;
+            }
+            catch (Exception ex)
+            {
+                Log($"[AUTO-DETECT] Version failed: {ex.Message}");
+                _server?.Dispose();
+                _server = null;
+            }
+        }
+
+        // All versions tried, restart with first version and wait indefinitely
+        Log($"");
+        Log($"[AUTO-DETECT] No client connected during auto-detect.");
+        Log($"[AUTO-DETECT] Starting with Season8_Server (most likely for modern client) and waiting...");
+        _currentVersion = VersionsToTry[0];
+        _autoDetect = true;
+        StartWithVersion(_currentVersion);
+    }
+
+    private void StartWithVersion(LENet.Version version)
+    {
+        var address = new Address(0u, (ushort)_port);
 
         try
         {
-            _server = new Host(_currentVersion, address, 32, 32, 0, 0, 996);
+            _server = new Host(version, address, 32, 32, 0, 0, 996);
         }
         catch (Exception ex)
         {
             Log($"[ERROR] Failed to create LENet Host: {ex.Message}");
-            Log($"Falling back to raw UDP socket for protocol analysis...");
-            StartRawUdpFallback();
-            return;
+            throw;
         }
 
         _running = true;
@@ -88,6 +181,8 @@ public class PacketServer : IDisposable
     private void RunEventLoop()
     {
         var ev = new Event();
+        int noActivityTicks = 0;
+        const int maxNoActivityForAutoDetect = 300; // ~30 seconds
 
         while (_running && _server != null)
         {
@@ -96,16 +191,35 @@ public class PacketServer : IDisposable
             if (result < 0)
             {
                 Log($"[ERROR] HostService returned error");
+                if (_autoDetect && _connectionAttempts == 0)
+                {
+                    Log($"[AUTO-DETECT] ENet error, trying next version...");
+                    break; // Try next version
+                }
                 continue;
             }
 
             if (result == 0)
+            {
+                // No activity — if auto-detecting and we've waited too long without
+                // a connection, keep waiting (client might not be started yet)
+                noActivityTicks++;
                 continue;
+            }
+
+            noActivityTicks = 0;
 
             switch (ev.Type)
             {
                 case EventType.CONNECT:
                     HandleConnect(ev);
+                    _connectionAttempts++;
+                    _lastConnectionTime = DateTime.Now;
+                    if (_autoDetect)
+                    {
+                        _autoDetect = false; // Found working version
+                        Log($"[AUTO-DETECT] Client connected! Protocol version locked.");
+                    }
                     break;
 
                 case EventType.RECEIVE:
@@ -213,9 +327,20 @@ public class PacketServer : IDisposable
                     bool valid = keyCheck.Verify(client.Cipher);
                     Log($"  Checksum valid: {valid}");
 
-                    // Accept anyway for testing (valid || true)
-                    client.PlayerId = keyCheck.PlayerId;
-                    client.State = ClientState.Authenticated;
+                    // Check for reconnection
+                    if (IsAwaitingReconnect(keyCheck.PlayerId))
+                    {
+                        var oldClient = TryReconnect(keyCheck.PlayerId, client);
+                        if (oldClient != null)
+                        {
+                            Log($"  [RECONNECT] Reconnection successful!");
+                        }
+                    }
+                    else
+                    {
+                        client.PlayerId = keyCheck.PlayerId;
+                        client.State = ClientState.Authenticated;
+                    }
 
                     // Send KeyCheck response
                     var response = KeyCheck.CreateResponse(
@@ -232,6 +357,10 @@ public class PacketServer : IDisposable
             {
                 Log($"  [WARN] Failed to parse as KeyCheck: {ex.Message}");
                 Log($"  This might be a different protocol version. Raw bytes logged above.");
+
+                // In raw capture mode, save the failed packet for analysis
+                if (_rawCaptureMode)
+                    OnRawPacket?.Invoke(data, 0, "failed_keycheck");
             }
         }
         else
@@ -240,12 +369,57 @@ public class PacketServer : IDisposable
         }
     }
 
+    // Disconnected players eligible for reconnection
+    private readonly Dictionary<ulong, ClientInfo> _disconnectedPlayers = new();
+
     private void HandleDisconnect(Event ev)
     {
         var peerId = ev.Peer.IncomingPeerID;
-        Log($"[DISCONNECT] Client {peerId} disconnected");
-        _clients.Remove(peerId);
+
+        if (_clients.TryGetValue(peerId, out var client))
+        {
+            Log($"[DISCONNECT] Client {peerId} ({client.SummonerName ?? client.Name}) disconnected");
+            client.State = ClientState.Disconnected;
+
+            // Store for reconnection (keyed by PlayerId)
+            if (client.PlayerId != 0)
+            {
+                _disconnectedPlayers[client.PlayerId] = client;
+                Log($"  [RECONNECT] Player {client.PlayerId} saved for reconnection (champion: {client.Champion})");
+            }
+
+            _clients.Remove(peerId);
+        }
+        else
+        {
+            Log($"[DISCONNECT] Unknown client {peerId} disconnected");
+        }
     }
+
+    /// <summary>
+    /// Try to reconnect a player using their PlayerId from the KeyCheck.
+    /// </summary>
+    public ClientInfo? TryReconnect(ulong playerId, ClientInfo newClient)
+    {
+        if (_disconnectedPlayers.TryGetValue(playerId, out var oldClient))
+        {
+            Log($"[RECONNECT] Player {playerId} ({oldClient.SummonerName}) is reconnecting!");
+
+            newClient.SummonerName = oldClient.SummonerName;
+            newClient.Champion = oldClient.Champion;
+            newClient.SkinId = oldClient.SkinId;
+            newClient.ChampionNetId = oldClient.ChampionNetId;
+            newClient.Team = oldClient.Team;
+            newClient.State = ClientState.InGame;
+
+            _disconnectedPlayers.Remove(playerId);
+            return oldClient;
+        }
+        return null;
+    }
+
+    public bool IsAwaitingReconnect(ulong playerId)
+        => _disconnectedPlayers.ContainsKey(playerId);
 
     public void SendPacket(ClientInfo client, byte[] data, Channel channel)
     {
@@ -267,7 +441,17 @@ public class PacketServer : IDisposable
     {
         foreach (var client in _clients.Values)
         {
-            SendPacket(client, data, channel);
+            if (client.State == ClientState.InGame || client.State == ClientState.Loading || client.State == ClientState.Authenticated)
+                SendPacket(client, data, channel);
+        }
+    }
+
+    public void BroadcastPacketToTeam(byte[] data, Channel channel, Config.TeamId team)
+    {
+        foreach (var client in _clients.Values)
+        {
+            if (client.Team == team && (client.State == ClientState.InGame || client.State == ClientState.Loading))
+                SendPacket(client, data, channel);
         }
     }
 
@@ -288,6 +472,7 @@ public class PacketServer : IDisposable
 
     /// <summary>
     /// Fallback: raw UDP socket for when LENet version is incompatible.
+    /// Captures raw ENet packets for protocol analysis.
     /// </summary>
     private void StartRawUdpFallback()
     {
@@ -296,6 +481,7 @@ public class PacketServer : IDisposable
         _running = true;
 
         Log($"[OK] Raw UDP listener active. Waiting for packets...");
+        Log($"[INFO] Raw packets will be saved to logs/packets/ for analysis");
 
         while (_running)
         {
@@ -306,6 +492,7 @@ public class PacketServer : IDisposable
                 Log($"[RAW-UDP] From={remote} Len={data.Length}");
                 Log($"  Hex: {BitConverter.ToString(data, 0, Math.Min(128, data.Length))}");
                 AnalyzeRawENetHeader(data);
+                OnRawPacket?.Invoke(data, 255, $"raw_udp_{remote}");
             }
             else
             {
@@ -336,6 +523,18 @@ public class PacketServer : IDisposable
 
         // Try no checksum: [1B sessionID][1B peerID|flags]
         Log($"    NoCheck: Session=0x{data[0]:X2} PeerFlags=0x{data[1]:X2}");
+
+        // Detect ENet protocol command in first data byte (after checksum)
+        foreach (var offset in new[] { 4, 8, 0 })
+        {
+            if (data.Length <= offset + 1) continue;
+            var cmdByte = data[offset];
+            var enetCmd = cmdByte & 0x0F;
+            if (enetCmd >= 1 && enetCmd <= 12)
+            {
+                Log($"    @offset={offset}: ENet cmd={enetCmd} (0x{cmdByte:X2}) — possible protocol header size={offset}");
+            }
+        }
     }
 
     public void Stop()
@@ -375,9 +574,12 @@ public class ClientInfo
     public BlowFish? Cipher { get; set; }
     public ClientState State { get; set; }
     public string Name { get; set; } = "";
+    public string? SummonerName { get; set; }
     public string Champion { get; set; } = "";
     public int SkinId { get; set; }
     public float LoadingProgress { get; set; }
+    public uint ChampionNetId { get; set; }
+    public Config.TeamId Team { get; set; }
 }
 
 public enum ClientState

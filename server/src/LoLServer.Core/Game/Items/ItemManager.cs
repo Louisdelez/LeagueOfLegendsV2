@@ -16,6 +16,7 @@ public static class ItemManager
     static ItemManager()
     {
         RegisterAllItems();
+        ItemDatabase2.RegisterAll(Items);
     }
 
     public static ItemData? GetItem(int id) => Items.TryGetValue(id, out var item) ? item : null;
@@ -134,12 +135,16 @@ public static class ItemManager
         champion.MaxMana += item.Stats.Mana;
         champion.Mana += item.Stats.Mana;
         champion.AttackDamage += item.Stats.AttackDamage;
+        champion.AbilityPower += item.Stats.AbilityPower;
         champion.Armor += item.Stats.Armor;
         champion.MagicResist += item.Stats.MagicResist;
         champion.AttackSpeed *= (1 + item.Stats.AttackSpeedPercent / 100f);
+        champion.CritChance += item.Stats.CritChancePercent;
         champion.MoveSpeed += item.Stats.MoveSpeed;
         champion.HealthRegen += item.Stats.HealthRegen;
         champion.ManaRegen += item.Stats.ManaRegen;
+        champion.AbilityHaste += item.Stats.AbilityHaste;
+        champion.Lethality += item.Stats.Lethality;
     }
 
     private static void RemoveItemStats(Champion champion, ItemData item)
@@ -149,13 +154,17 @@ public static class ItemManager
         champion.MaxMana -= item.Stats.Mana;
         champion.Mana = MathF.Min(champion.Mana, champion.MaxMana);
         champion.AttackDamage -= item.Stats.AttackDamage;
+        champion.AbilityPower -= item.Stats.AbilityPower;
         champion.Armor -= item.Stats.Armor;
         champion.MagicResist -= item.Stats.MagicResist;
         if (item.Stats.AttackSpeedPercent != 0)
             champion.AttackSpeed /= (1 + item.Stats.AttackSpeedPercent / 100f);
+        champion.CritChance -= item.Stats.CritChancePercent;
         champion.MoveSpeed -= item.Stats.MoveSpeed;
         champion.HealthRegen -= item.Stats.HealthRegen;
         champion.ManaRegen -= item.Stats.ManaRegen;
+        champion.AbilityHaste -= item.Stats.AbilityHaste;
+        champion.Lethality -= item.Stats.Lethality;
     }
 
     // ============== ITEM DATABASE ==============
@@ -188,7 +197,7 @@ public static class ItemManager
         Register(1018, "Cloak of Agility", ItemCategory.Component, 600, new ItemStats { CritChancePercent = 15 });
         Register(3024, "Glacial Buckler", ItemCategory.Component, 900, new ItemStats { Armor = 20, Mana = 250 });
         Register(3044, "Phage", ItemCategory.Component, 1100, new ItemStats { Health = 200, AttackDamage = 15 });
-        Register(3067, "Kindlegem", ItemCategory.Component, 800, new ItemStats { Health = 200 }); // +10% CDR
+        Register(3067, "Kindlegem", ItemCategory.Component, 800, new ItemStats { Health = 200, AbilityHaste = 10 });
         Register(3076, "Bramble Vest", ItemCategory.Component, 800, new ItemStats { Armor = 30 });
 
         // === BOOTS (COMPLETED) ===
@@ -197,27 +206,27 @@ public static class ItemManager
         Register(3020, "Sorcerer's Shoes", ItemCategory.Boots, 1100, new ItemStats { MoveSpeed = 45 }, new[] { 1001 }); // +18 magic pen
         Register(3047, "Plated Steelcaps", ItemCategory.Boots, 1100, new ItemStats { MoveSpeed = 45, Armor = 20 }, new[] { 1001, 1029 });
         Register(3111, "Mercury's Treads", ItemCategory.Boots, 1100, new ItemStats { MoveSpeed = 45, MagicResist = 25 }, new[] { 1001, 1033 });
-        Register(3158, "Ionian Boots of Lucidity", ItemCategory.Boots, 950, new ItemStats { MoveSpeed = 45 }, new[] { 1001 }); // +20 AH
+        Register(3158, "Ionian Boots of Lucidity", ItemCategory.Boots, 950, new ItemStats { MoveSpeed = 45, AbilityHaste = 20 }, new[] { 1001 });
 
         // === AD ITEMS (COMPLETED) ===
         Register(3031, "Infinity Edge", ItemCategory.ADCrit, 3400, new ItemStats { AttackDamage = 70, CritChancePercent = 25 }, new[] { 1038, 1018, 1036 });
         Register(3072, "Bloodthirster", ItemCategory.ADCrit, 3400, new ItemStats { AttackDamage = 55 }, new[] { 1038, 1037 }); // +20% lifesteal
         Register(3153, "Blade of the Ruined King", ItemCategory.ADAttackSpeed, 3200, new ItemStats { AttackDamage = 40, AttackSpeedPercent = 25 }, new[] { 1043, 1036 }); // +12% lifesteal + %hp dmg
-        Register(3004, "Manamune", ItemCategory.ADMana, 2900, new ItemStats { AttackDamage = 35, Mana = 500 }, new[] { 1037 }); // +15 AH
-        Register(3071, "Black Cleaver", ItemCategory.ADHealth, 3000, new ItemStats { Health = 350, AttackDamage = 40 }, new[] { 3044, 3067 }); // +25 AH, armor shred
-        Register(3074, "Ravenous Hydra", ItemCategory.ADLifesteal, 3300, new ItemStats { AttackDamage = 65 }, new[] { 1038, 1036 }); // +20 AH, omnivamp
-        Register(3142, "Youmuu's Ghostblade", ItemCategory.ADLethality, 2800, new ItemStats { AttackDamage = 55 }, new[] { 1036, 1036 }); // +18 lethality, active MS
+        Register(3004, "Manamune", ItemCategory.ADMana, 2900, new ItemStats { AttackDamage = 35, Mana = 500, AbilityHaste = 15 }, new[] { 1037 });
+        Register(3071, "Black Cleaver", ItemCategory.ADHealth, 3000, new ItemStats { Health = 350, AttackDamage = 40, AbilityHaste = 25 }, new[] { 3044, 3067 });
+        Register(3074, "Ravenous Hydra", ItemCategory.ADLifesteal, 3300, new ItemStats { AttackDamage = 65, AbilityHaste = 20 }, new[] { 1038, 1036 });
+        Register(3142, "Youmuu's Ghostblade", ItemCategory.ADLethality, 2800, new ItemStats { AttackDamage = 55, Lethality = 18 }, new[] { 1036, 1036 });
         Register(3156, "Maw of Malmortius", ItemCategory.ADHealth, 2800, new ItemStats { AttackDamage = 55, MagicResist = 40 }, new[] { 1037, 1033 }); // magic shield
         Register(6672, "Kraken Slayer", ItemCategory.ADCrit, 3100, new ItemStats { AttackDamage = 45, AttackSpeedPercent = 25, CritChancePercent = 25 }, new[] { 1043, 1018 });
         Register(6673, "Immortal Shieldbow", ItemCategory.ADCrit, 3000, new ItemStats { AttackDamage = 50, CritChancePercent = 25 }, new[] { 1038, 1018 }); // lifeline shield
-        Register(6676, "The Collector", ItemCategory.ADLethality, 3000, new ItemStats { AttackDamage = 55, CritChancePercent = 25 }, new[] { 1038, 1018 }); // execute
+        Register(6676, "The Collector", ItemCategory.ADLethality, 3000, new ItemStats { AttackDamage = 55, CritChancePercent = 25, Lethality = 12 }, new[] { 1038, 1018 });
 
         // === AP ITEMS (COMPLETED) ===
         Register(3089, "Rabadon's Deathcap", ItemCategory.AP, 3600, new ItemStats { AbilityPower = 120 }, new[] { 1058, 1026 }); // +35% AP
         Register(3135, "Void Staff", ItemCategory.AP, 2800, new ItemStats { AbilityPower = 65 }, new[] { 1026 }); // +40% magic pen
         Register(3157, "Zhonya's Hourglass", ItemCategory.AP, 2600, new ItemStats { AbilityPower = 80, Armor = 45 }, new[] { 1052, 1029 }); // stasis active
         Register(3165, "Morellonomicon", ItemCategory.AP, 2500, new ItemStats { AbilityPower = 80, Health = 300 }, new[] { 1052, 1028 }); // grievous wounds
-        Register(3003, "Archangel's Staff", ItemCategory.APMana, 3000, new ItemStats { AbilityPower = 60, Mana = 600 }, new[] { 1026 }); // +20 AH, evolves
+        Register(3003, "Archangel's Staff", ItemCategory.APMana, 3000, new ItemStats { AbilityPower = 60, Mana = 600, AbilityHaste = 20 }, new[] { 1026 });
         Register(3100, "Lich Bane", ItemCategory.AP, 2800, new ItemStats { AbilityPower = 75, MoveSpeed = 8 }, new[] { 1052 }); // spellblade
         Register(3116, "Rylai's Crystal Scepter", ItemCategory.AP, 2600, new ItemStats { AbilityPower = 75, Health = 350 }, new[] { 1026, 1028 }); // slow
         Register(3152, "Hextech Rocketbelt", ItemCategory.AP, 2600, new ItemStats { AbilityPower = 60, Health = 250 }, new[] { 1052, 1028 }); // dash active

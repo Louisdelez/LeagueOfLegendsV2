@@ -1,0 +1,500 @@
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.10+7 (build 21.0.10+7-LTS, mixed mode)
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (786 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (6457 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessProject)  
+INFO  REPORT: Processing project file: /LoLPrivate.exe (HeadlessAnalyzer)  
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\FindBlowfishXrefs.java (HeadlessAnalyzer)  
+INFO  FindBlowfishXrefs.java> Image base: 140000000 (GhidraScript)  
+INFO  FindBlowfishXrefs.java> 
+======================================== (GhidraScript)  
+INFO  FindBlowfishXrefs.java> P-BOX at 1419ecdc0 (offset 0x19ecdc0) (GhidraScript)  
+INFO  FindBlowfishXrefs.java> ======================================== (GhidraScript)  
+INFO  FindBlowfishXrefs.java> Direct references: 1 (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   REF from 1410ec4af in FUN_1410ec460 (+79) (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   --- Decompiled FUN_1410ec460 (128 lines) --- (GhidraScript)  
+INFO  FindBlowfishXrefs.java>    (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */ (GhidraScript)  
+INFO  FindBlowfishXrefs.java>    (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   void FUN_1410ec460(undefined4 *param_1,undefined8 param_2,ulonglong param_3,undefined4 *param_4) (GhidraScript)  
+INFO  FindBlowfishXrefs.java>    (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined8 uVar1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined4 uVar2; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined4 uVar3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined4 uVar4; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uint uVar5; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     ulonglong uVar7; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uint *puVar8; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     ulonglong uVar9; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined4 *puVar10; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uint uVar11; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     byte *pbVar12; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     byte *pbVar13; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     ulonglong uVar14; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     int iVar15; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     longlong lVar16; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined1 auStack_98 [32]; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined8 local_78; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     byte local_70 [56]; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     ulonglong local_38; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     ulonglong uVar6; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>      (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     local_38 = DAT_141d28400 ^ (ulonglong)auStack_98; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     *param_1 = *param_4; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     param_1[1] = param_4[1]; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar9 = 0x38; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     if (param_3 < 0x39) { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       uVar9 = param_3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     } (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     param_1[2] = *param_4; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     param_1[3] = param_4[1]; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1418b4300(local_70,param_2,uVar9); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = _UNK_1419ecdc8; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     puVar8 = param_1 + 4; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     *(undefined8 *)puVar8 = _DAT_1419ecdc0; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     *(undefined8 *)(param_1 + 6) = uVar1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = _UNK_1419ecdd8; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     *(undefined8 *)(param_1 + 8) = _DAT_1419ecdd0; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     *(undefined8 *)(param_1 + 10) = uVar1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = _UNK_1419ecde8; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     *(undefined8 *)(param_1 + 0xc) = _DAT_1419ecde0; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     *(undefined8 *)(param_1 + 0xe) = uVar1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar4 = _UNK_1419ecdfc; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar3 = _UNK_1419ecdf8; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar2 = _UNK_1419ecdf4; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     param_1[0x10] = _DAT_1419ecdf0; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     param_1[0x11] = uVar2; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     param_1[0x12] = uVar3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     param_1[0x13] = uVar4; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     *(undefined8 *)(param_1 + 0x14) = DAT_1419ece00; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1418b4300(param_1 + 0x16,&DAT_1419ece10,0x1000); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar7 = 0; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     pbVar12 = local_70; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     lVar16 = 0x12; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar14 = uVar7; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     do { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       iVar15 = 4; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       uVar6 = uVar7; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       do { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         uVar11 = (int)uVar14 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         pbVar13 = pbVar12 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         uVar5 = (int)uVar6 << 8 | (uint)*pbVar12; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         uVar6 = (ulonglong)uVar5; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         uVar14 = uVar7; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         pbVar12 = local_70; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         if (uVar11 != uVar9) { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>           uVar14 = (ulonglong)uVar11; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>           pbVar12 = pbVar13; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         } (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         iVar15 = iVar15 + -1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       } while (iVar15 != 0); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       *puVar8 = *puVar8 ^ uVar5; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar8 = puVar8 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       lVar16 = lVar16 + -1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     } while (lVar16 != 0); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   ... (48 more lines) (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   --- End --- (GhidraScript)  
+INFO  FindBlowfishXrefs.java> 
+Searching for nearby address references... (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   1 refs to 1419ecdc0 (P-box+0) (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     from 1410ec4af in FUN_1410ec460 (GhidraScript)  
+INFO  FindBlowfishXrefs.java> 
+======================================== (GhidraScript)  
+INFO  FindBlowfishXrefs.java> P-BOX at 141adee20 (offset 0x1adee20) (GhidraScript)  
+INFO  FindBlowfishXrefs.java> ======================================== (GhidraScript)  
+INFO  FindBlowfishXrefs.java> Direct references: 1 (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   REF from 14174f163 in FUN_14174f140 (+35) (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   --- Decompiled FUN_14174f140 (202 lines) --- (GhidraScript)  
+INFO  FindBlowfishXrefs.java>    (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   /* WARNING: Function: __chkstk replaced with injection: alloca_probe */ (GhidraScript)  
+INFO  FindBlowfishXrefs.java>    (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   void FUN_14174f140(longlong param_1,int param_2,undefined1 *param_3) (GhidraScript)  
+INFO  FindBlowfishXrefs.java>    (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     int iVar1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined1 *puVar2; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined1 *puVar3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined1 *puVar4; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined1 *puVar5; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined1 *puVar6; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     longlong lVar7; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined1 *puVar8; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uint *puVar9; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     longlong lVar10; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined8 local_res8; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>      (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1418b4300(param_1,&DAT_141adee20,0x1048); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     lVar10 = 2; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     iVar1 = 0x48; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     if (param_2 < 0x49) { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       iVar1 = param_2; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     } (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     puVar8 = param_3 + iVar1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     puVar6 = param_3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     puVar9 = (uint *)(param_1 + 8); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     do { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar3 = puVar6 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       if (puVar8 <= puVar6 + 1) { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         puVar3 = param_3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       } (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar4 = puVar3 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       if (puVar8 <= puVar3 + 1) { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         puVar4 = param_3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       } (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar2 = puVar4 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       if (puVar8 <= puVar4 + 1) { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         puVar2 = param_3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       } (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar5 = puVar2 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       if (puVar8 <= puVar2 + 1) { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         puVar5 = param_3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       } (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar9[-2] = puVar9[-2] ^ CONCAT31(CONCAT21(CONCAT11(*puVar6,*puVar3),*puVar4),*puVar2); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar6 = puVar5 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       if (puVar8 <= puVar5 + 1) { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         puVar6 = param_3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       } (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar3 = puVar6 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       if (puVar8 <= puVar6 + 1) { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         puVar3 = param_3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       } (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar4 = puVar3 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       if (puVar8 <= puVar3 + 1) { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         puVar4 = param_3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       } (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar2 = puVar4 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       if (puVar8 <= puVar4 + 1) { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         puVar2 = param_3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       } (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar9[-1] = puVar9[-1] ^ CONCAT31(CONCAT21(CONCAT11(*puVar5,*puVar6),*puVar3),*puVar4); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar6 = puVar2 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       if (puVar8 <= puVar2 + 1) { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         puVar6 = param_3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       } (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar3 = puVar6 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       if (puVar8 <= puVar6 + 1) { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         puVar3 = param_3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       } (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar4 = puVar3 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       if (puVar8 <= puVar3 + 1) { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         puVar4 = param_3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       } (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar5 = puVar4 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       if (puVar8 <= puVar4 + 1) { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>         puVar5 = param_3; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       } (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       *puVar9 = *puVar9 ^ CONCAT31(CONCAT21(CONCAT11(*puVar2,*puVar6),*puVar3),*puVar4); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>       puVar6 = puVar5 + 1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   ... (122 more lines) (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   --- End --- (GhidraScript)  
+INFO  FindBlowfishXrefs.java> 
+Searching for nearby address references... (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   1 refs to 141aded20 (P-box+-256) (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     from 14174e0d0 in FUN_14174e0d0 (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   1 refs to 141adee20 (P-box+0) (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     from 14174f163 in FUN_14174f140 (GhidraScript)  
+INFO  FindBlowfishXrefs.java> 
+======================================== (GhidraScript)  
+INFO  FindBlowfishXrefs.java> Searching for BF-CBC string references (GhidraScript)  
+INFO  FindBlowfishXrefs.java> ======================================== (GhidraScript)  
+INFO  FindBlowfishXrefs.java> BF-CBC string at 141a98f60 (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   References: 4 (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   from 1416e4139 in FUN_1416e3ce0 (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   --- Decompiled FUN_1416e3ce0 (341 lines) --- (GhidraScript)  
+INFO  FindBlowfishXrefs.java>    (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   /* WARNING: Function: __chkstk replaced with injection: alloca_probe */ (GhidraScript)  
+INFO  FindBlowfishXrefs.java>    (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   void FUN_1416e3ce0(void) (GhidraScript)  
+INFO  FindBlowfishXrefs.java>    (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined8 uVar1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>      (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd9a0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd990(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd9b0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be660(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be610(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be600(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be620(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd9d0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be670(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be630(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_141725300(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2540,0x8002,"DESX-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2548,0x8002,"DESX-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd980(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2550,0x8002,"DES-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2554,0x8002,"DES-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be650(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be5f0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2558,0x8002,"DES-EDE3-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2560,0x8002,"DES-EDE3-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd9c0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be5d0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870("DES-EDE-ECB",0x8002,"DES-EDE"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870("des-ede-ecb",0x8002,"DES-EDE"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be5e0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870("DES-EDE3-ECB",0x8002,"DES-EDE3"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870("des-ede3-ecb",0x8002,"DES-EDE3"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be640(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870("des3-wrap",0x8002,"id-smime-alg-CMS3DESwrap"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be980(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be990(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bf120(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bf5e0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bf5d0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bf5f0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bf5c0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141a77a44,0x8002,"IDEA-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab25b4,0x8002,"IDEA-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416c6390(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416c6380(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416c63a0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416c6370(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141a77a4c,0x8002,"SEED-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   ... (261 more lines) (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   --- End --- (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   from 1416e4151 in FUN_1416e3ce0 (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   --- Decompiled FUN_1416e3ce0 (341 lines) --- (GhidraScript)  
+INFO  FindBlowfishXrefs.java>    (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   /* WARNING: Function: __chkstk replaced with injection: alloca_probe */ (GhidraScript)  
+INFO  FindBlowfishXrefs.java>    (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   void FUN_1416e3ce0(void) (GhidraScript)  
+INFO  FindBlowfishXrefs.java>    (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined8 uVar1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>      (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd9a0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd990(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd9b0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be660(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be610(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be600(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be620(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd9d0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be670(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be630(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_141725300(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2540,0x8002,"DESX-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2548,0x8002,"DESX-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd980(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2550,0x8002,"DES-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2554,0x8002,"DES-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be650(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be5f0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2558,0x8002,"DES-EDE3-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2560,0x8002,"DES-EDE3-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd9c0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be5d0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870("DES-EDE-ECB",0x8002,"DES-EDE"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870("des-ede-ecb",0x8002,"DES-EDE"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be5e0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870("DES-EDE3-ECB",0x8002,"DES-EDE3"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870("des-ede3-ecb",0x8002,"DES-EDE3"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be640(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870("des3-wrap",0x8002,"id-smime-alg-CMS3DESwrap"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be980(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be990(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bf120(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bf5e0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bf5d0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bf5f0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bf5c0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141a77a44,0x8002,"IDEA-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab25b4,0x8002,"IDEA-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416c6390(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416c6380(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416c63a0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416c6370(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141a77a4c,0x8002,"SEED-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   ... (261 more lines) (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   --- End --- (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   from 1416e4169 in FUN_1416e3ce0 (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   --- Decompiled FUN_1416e3ce0 (341 lines) --- (GhidraScript)  
+INFO  FindBlowfishXrefs.java>    (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   /* WARNING: Function: __chkstk replaced with injection: alloca_probe */ (GhidraScript)  
+INFO  FindBlowfishXrefs.java>    (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   void FUN_1416e3ce0(void) (GhidraScript)  
+INFO  FindBlowfishXrefs.java>    (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   { (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     undefined8 uVar1; (GhidraScript)  
+INFO  FindBlowfishXrefs.java>      (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd9a0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd990(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd9b0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be660(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be610(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be600(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be620(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd9d0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be670(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be630(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_141725300(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2540,0x8002,"DESX-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2548,0x8002,"DESX-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd980(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2550,0x8002,"DES-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2554,0x8002,"DES-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be650(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be5f0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2558,0x8002,"DES-EDE3-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab2560,0x8002,"DES-EDE3-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bd9c0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be5d0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870("DES-EDE-ECB",0x8002,"DES-EDE"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870("des-ede-ecb",0x8002,"DES-EDE"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be5e0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870("DES-EDE3-ECB",0x8002,"DES-EDE3"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870("des-ede3-ecb",0x8002,"DES-EDE3"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be640(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870("des3-wrap",0x8002,"id-smime-alg-CMS3DESwrap"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be980(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416be990(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bf120(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bf5e0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bf5d0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bf5f0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416bf5c0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141a77a44,0x8002,"IDEA-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141ab25b4,0x8002,"IDEA-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416c6390(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416c6380(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416c63a0(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     uVar1 = FUN_1416c6370(); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>     FUN_1416bc870(&DAT_141a77a4c,0x8002,"SEED-CBC"); (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   ... (261 more lines) (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   --- End --- (GhidraScript)  
+INFO  FindBlowfishXrefs.java>   from 141a8d8f8 in <none> (GhidraScript)  
+INFO  FindBlowfishXrefs.java> 
+======================================== (GhidraScript)  
+INFO  FindBlowfishXrefs.java> Searching for EncryptThenMac string (GhidraScript)  
+INFO  FindBlowfishXrefs.java> ======================================== (GhidraScript)  
+INFO  FindBlowfishXrefs.java> EncryptThenMac at 141a84488 (GhidraScript)  
+INFO  FindBlowfishXrefs.java> 
+=== DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /LoLPrivate.exe (HeadlessAnalyzer)  

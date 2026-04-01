@@ -39,7 +39,7 @@ public static class RuneManager
             {
                 case StatShard.AdaptiveForce: champion.AttackDamage += 5.4f; break;
                 case StatShard.AttackSpeed: champion.AttackSpeed *= 1.10f; break;
-                case StatShard.AbilityHaste: break; // +8 AH
+                case StatShard.AbilityHaste: champion.AbilityHaste += 8; break;
                 case StatShard.Armor: champion.Armor += 6; break;
                 case StatShard.MagicResist: champion.MagicResist += 8; break;
                 case StatShard.Health: champion.MaxHealth += 15; champion.Health += 15; break;

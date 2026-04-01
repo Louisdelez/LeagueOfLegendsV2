@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "screenshot": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "universal-screenshot-mcp"]
+    }
+  }
+}

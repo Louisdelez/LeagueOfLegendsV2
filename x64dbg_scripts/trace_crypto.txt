@@ -1,0 +1,16 @@
+// x64dbg script: trace recvfrom and find crypto processing
+// Set breakpoints on network receive functions
+
+// Break on WSARecvFrom in ws2_32.dll
+bp ws2_32.WSARecvFrom
+bp ws2_32.recvfrom
+
+// Log when hit
+bpcnd ws2_32.WSARecvFrom, "1"
+bplog ws2_32.WSARecvFrom, "WSARecvFrom called: buf={arg2} len={arg3}"
+
+bpcnd ws2_32.recvfrom, "1"  
+bplog ws2_32.recvfrom, "recvfrom called: buf={arg2} len={arg3}"
+
+// Run
+run

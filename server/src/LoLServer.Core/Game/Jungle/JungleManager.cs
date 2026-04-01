@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LoLServer.Core.Config;
+using LoLServer.Core.Game.Buffs;
 using LoLServer.Core.Game.Entities;
 using LoLServer.Core.Game.Spells;
 
@@ -56,12 +58,49 @@ public class JungleManager
         // Special effects for epic monsters
         switch (camp.Type)
         {
+            case CampType.Buff:
+                // Blue or Red buff - goes to killer
+                if (camp.Name.Contains("Blue Sentinel"))
+                {
+                    killer.Buffs.AddBuff(BuffManager.CreateBlueBuff(), killer);
+                    Console.WriteLine($"[BUFF] {killer.SummonerName} got Blue Buff!");
+                }
+                else if (camp.Name.Contains("Red Brambleback"))
+                {
+                    killer.Buffs.AddBuff(BuffManager.CreateRedBuff(), killer);
+                    Console.WriteLine($"[BUFF] {killer.SummonerName} got Red Buff!");
+                }
+                break;
+
             case CampType.Dragon:
-                Console.WriteLine($"[DRAGON] {killer.Team} team slayed Dragon!");
+                // Dragon buff to entire team
+                var dragonElement = GetRandomDragonElement();
+                int teamDragonStacks = 0;
+                foreach (var champ in _game.Champions.Where(c => c.Team == killer.Team))
+                {
+                    champ.Buffs.AddBuff(BuffManager.CreateDragonBuff(dragonElement), champ);
+                    teamDragonStacks = champ.Buffs.GetStacks(BuffManager.CreateDragonBuff(dragonElement).Type);
+                }
+                Console.WriteLine($"[DRAGON] {killer.Team} team slayed {dragonElement} Dragon! (Stack {teamDragonStacks})");
+
+                // Dragon Soul at 4 stacks
+                if (teamDragonStacks >= 4)
+                {
+                    foreach (var champ in _game.Champions.Where(c => c.Team == killer.Team))
+                        champ.Buffs.AddBuff(BuffManager.CreateDragonSoul(dragonElement), champ);
+                    Console.WriteLine($"[DRAGON SOUL] {killer.Team} team obtained {dragonElement} Dragon Soul!");
+                }
                 break;
+
             case CampType.Baron:
-                Console.WriteLine($"[BARON] {killer.Team} team slayed Baron Nashor! (Buff applied)");
+                // Baron buff to entire living team
+                foreach (var champ in _game.Champions.Where(c => c.Team == killer.Team && !c.IsDead))
+                {
+                    champ.Buffs.AddBuff(BuffManager.CreateBaronBuff(), champ);
+                }
+                Console.WriteLine($"[BARON] {killer.Team} team slayed Baron Nashor! Buff applied to all living members!");
                 break;
+
             case CampType.Herald:
                 Console.WriteLine($"[HERALD] {killer.Team} team defeated Rift Herald!");
                 break;
@@ -87,6 +126,14 @@ public class JungleManager
         }
 
         Console.WriteLine($"[JUNGLE] {camp.Name} spawned at {_game.GameTime:F0}s");
+    }
+
+    private static readonly DragonElement[] DragonElements =
+        { DragonElement.Infernal, DragonElement.Mountain, DragonElement.Ocean, DragonElement.Cloud, DragonElement.Hextech, DragonElement.Chemtech };
+
+    private DragonElement GetRandomDragonElement()
+    {
+        return DragonElements[Random.Shared.Next(DragonElements.Length)];
     }
 
     private void InitializeSummonersRiftCamps()

@@ -1,0 +1,473 @@
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.10+7 (build 21.0.10+7-LTS, mixed mode)
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (674 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (1700 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessProject)  
+INFO  REPORT: Processing project file: /RiotGamesApi.dll (HeadlessAnalyzer)  
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\FindEncryptLayer.java (HeadlessAnalyzer)  
+INFO  FindEncryptLayer.java> 
+========================================== (GhidraScript)  
+INFO  FindEncryptLayer.java> FUN_1801ce8c0 at 1801ce8c0 (GhidraScript)  
+INFO  FindEncryptLayer.java> ========================================== (GhidraScript)  
+INFO  FindEncryptLayer.java>  (GhidraScript)  
+INFO  FindEncryptLayer.java> /* WARNING: Function: __chkstk replaced with injection: alloca_probe */ (GhidraScript)  
+INFO  FindEncryptLayer.java> /* WARNING: Type propagation algorithm not settling */ (GhidraScript)  
+INFO  FindEncryptLayer.java>  (GhidraScript)  
+INFO  FindEncryptLayer.java> void FUN_1801ce8c0(longlong param_1,char *param_2,undefined8 param_3) (GhidraScript)  
+INFO  FindEncryptLayer.java>  (GhidraScript)  
+INFO  FindEncryptLayer.java> { (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong uVar1; (GhidraScript)  
+INFO  FindEncryptLayer.java>   size_t *psVar2; (GhidraScript)  
+INFO  FindEncryptLayer.java>   longlong *plVar3; (GhidraScript)  
+INFO  FindEncryptLayer.java>   code *pcVar4; (GhidraScript)  
+INFO  FindEncryptLayer.java>   bool bVar5; (GhidraScript)  
+INFO  FindEncryptLayer.java>   longlong *plVar6; (GhidraScript)  
+INFO  FindEncryptLayer.java>   longlong lVar7; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uVar8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char cVar9; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char cVar10; (GhidraScript)  
+INFO  FindEncryptLayer.java>   uint uVar11; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 uVar12; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ******ppppppuVar13; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong uVar14; (GhidraScript)  
+INFO  FindEncryptLayer.java>   longlong lVar15; (GhidraScript)  
+INFO  FindEncryptLayer.java>   short *psVar16; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 *puVar17; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 *puVar18; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 *puVar19; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ******ppppppuVar20; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong uVar21; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 *****pppppuVar22; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 *******pppppppuVar23; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong uVar24; (GhidraScript)  
+INFO  FindEncryptLayer.java>   int iVar25; (GhidraScript)  
+INFO  FindEncryptLayer.java>   byte bVar26; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uVar27; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 auStack_12f8 [32]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ******local_12d8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ******local_12d0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_12c8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ******local_12c0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ******local_12b8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ******local_12b0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char local_12a8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char local_12a7 [7]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_12a0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_1298; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 local_1290 [2]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   longlong local_1288; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_1280; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 *local_1278; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 *puStack_1270; (GhidraScript)  
+INFO  FindEncryptLayer.java>   longlong local_1268; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_1260; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_1258; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ushort local_1250; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_124e; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uStack_124c; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 local_1248; (GhidraScript)  
+INFO  FindEncryptLayer.java>   uint uStack_1244; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_1240; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_1238 [2]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_1228; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_1220; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ******local_1218; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uStack_1210; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uStack_120c; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 *****local_1208; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 *****pppppuStack_1200; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ******local_11f8 [2]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_11e8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_11e0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ******local_11d8 [2]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_11c8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_11c0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_11b8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined7 uStack_11b7; (GhidraScript)  
+INFO  FindEncryptLayer.java>   size_t local_11a8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_11a0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_1198; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined7 uStack_1197; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_1188; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_1180; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_1178; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined7 uStack_1177; (GhidraScript)  
+INFO  FindEncryptLayer.java>   longlong local_1168; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_1160; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 *******local_1158 [2]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_1148; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_1140; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_1118; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uStack_1110; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uStack_110c; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_1108; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong uStack_1100; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ******local_10f8 [2]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_10e8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_10e0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ******local_10d8 [2]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_10c8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_10c0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ******local_10b8 [2]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_10a8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_10a0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ******local_1098 [3]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_1080; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 local_1078; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 local_1074; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 local_1070; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 local_106c; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_1068 [32]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char local_1048 [4096]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_48; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 uStack_40; (GhidraScript)  
+INFO  FindEncryptLayer.java>    (GhidraScript)  
+INFO  FindEncryptLayer.java>   uStack_40 = 0x1801ce8f1; (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_48 = DAT_181f8ed08 ^ (ulonglong)auStack_12f8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   bVar26 = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_1290[0] = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_12a8 = '\0'; (GhidraScript)  
+INFO  FindEncryptLayer.java>   uVar11 = FUN_180196ed0(&local_12a8); (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_1298 = 0xffffffff00000000; (GhidraScript)  
+INFO  FindEncryptLayer.java>   iVar25 = uVar11 + (int)((longlong)((ulonglong)uVar11 * 0x100000003) >> 0x3f) * 0x7fffffff; (GhidraScript)  
+INFO  FindEncryptLayer.java>   if (iVar25 == 0) { (GhidraScript)  
+INFO  FindEncryptLayer.java>     iVar25 = 1; (GhidraScript)  
+INFO  FindEncryptLayer.java>   } (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_12a0 = CONCAT44(local_12a0._4_4_,iVar25); (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_1078 = FUN_1801aea80(&local_1298,&local_12a0); (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_1074 = FUN_1801aea80(&local_1298,&local_12a0); (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_1070 = FUN_1801aea80(&local_1298,&local_12a0); (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_106c = FUN_1801aea80(&local_1298,&local_12a0); (GhidraScript)  
+INFO  FindEncryptLayer.java>   FUN_180247360(local_1098,&local_1078,0x10); (GhidraScript)  
+INFO  FindEncryptLayer.java>   FUN_180133220(&local_1198,local_1098,PTR_s_258EAFA5_E914_47DA_95CA_C5AB0DC8_1819b11e0); (GhidraScript)  
+INFO  FindEncryptLayer.java>   puVar19 = &local_1198; (GhidraScript)  
+INFO  FindEncryptLayer.java>   if (0xf < local_1180) { (GhidraScript)  
+INFO  FindEncryptLayer.java>     puVar19 = (undefined1 *)CONCAT71(uStack_1197,local_1198); (GhidraScript)  
+INFO  FindEncryptLayer.java>   } (GhidraScript)  
+INFO  FindEncryptLayer.java>   FUN_181675630(puVar19,local_1188,local_1068); (GhidraScript)  
+INFO  FindEncryptLayer.java>   FUN_180247360(&local_11b8,local_1068,0x14); (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_10b8[0] = (undefined8 ******)0x0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_10a8 = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_10a0 = 0xf; (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_11d8[0] = (undefined8 ******)0x0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_11c8 = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_11c0 = 0xf; (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_1290[0] = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_11f8[0] = (undefined8 ******)0x0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_11e8 = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_11e0 = 0xf; (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_12d8 = local_11f8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   cVar9 = FUN_1801d8440(param_2,local_10b8,local_11d8,local_1290); (GhidraScript)  
+INFO  FindEncryptLayer.java>   if (cVar9 == '\0') { (GhidraScript)  
+INFO  FindEncryptLayer.java> ... (774 more) (GhidraScript)  
+INFO  FindEncryptLayer.java> Callers (2): (GhidraScript)  
+INFO  FindEncryptLayer.java>   FUN_1801cb560 at 1801cb560 (GhidraScript)  
+INFO  FindEncryptLayer.java> 
+========================================== (GhidraScript)  
+INFO  FindEncryptLayer.java> FUN_1801d3000 at 1801d3000 (GhidraScript)  
+INFO  FindEncryptLayer.java> ========================================== (GhidraScript)  
+INFO  FindEncryptLayer.java>  (GhidraScript)  
+INFO  FindEncryptLayer.java> /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */ (GhidraScript)  
+INFO  FindEncryptLayer.java>  (GhidraScript)  
+INFO  FindEncryptLayer.java> void FUN_1801d3000(longlong *param_1,undefined4 *param_2,int param_3) (GhidraScript)  
+INFO  FindEncryptLayer.java>  (GhidraScript)  
+INFO  FindEncryptLayer.java> { (GhidraScript)  
+INFO  FindEncryptLayer.java>   code *pcVar1; (GhidraScript)  
+INFO  FindEncryptLayer.java>   double dVar2; (GhidraScript)  
+INFO  FindEncryptLayer.java>   double dVar3; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uVar4; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uVar5; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uVar6; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char *pcVar7; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char *pcVar8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char cVar9; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char **ppcVar10; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 uVar11; (GhidraScript)  
+INFO  FindEncryptLayer.java>   bool bVar12; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 auStack_2e8 [32]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 *local_2c8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_2b8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_2b7 [15]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 local_2a8 [2]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   longlong local_2a0 [3]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_288; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char local_280; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_278 [64]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char local_238; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 local_230; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uStack_22c; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uStack_228; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uStack_224; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_220; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char local_218; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_208; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char *pcStack_200; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_1f8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 uStack_1f0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_1e8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 uStack_1e0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_1d8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 uStack_1d0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_1c8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 uStack_1c0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_1b8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 uStack_1b0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_1a8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 uStack_1a0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_198; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 uStack_190; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 local_188; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong uStack_180; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 local_178 [2]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char *local_170 [3]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_158; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char local_150; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_148 [64]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char local_108; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 local_100; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uStack_fc; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uStack_f8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined4 uStack_f4; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_f0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_e8 [8]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_e0 [32]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char local_c0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_b8 [64]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char local_78; (GhidraScript)  
+INFO  FindEncryptLayer.java>   char local_58; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_48; (GhidraScript)  
+INFO  FindEncryptLayer.java>    (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_48 = DAT_181f8ed08 ^ (ulonglong)auStack_2e8; (GhidraScript)  
+INFO  FindEncryptLayer.java>   if (*(char *)((longlong)param_1 + 0x14) == '\0') { (GhidraScript)  
+INFO  FindEncryptLayer.java>     local_178[0] = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>     local_170[0] = "Disconnected"; (GhidraScript)  
+INFO  FindEncryptLayer.java>     local_150 = '\x01'; (GhidraScript)  
+INFO  FindEncryptLayer.java>     local_108 = '\0'; (GhidraScript)  
+INFO  FindEncryptLayer.java>     local_f0 = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>     FUN_18017c1c0(local_178); (GhidraScript)  
+INFO  FindEncryptLayer.java>     *(undefined1 *)(param_2 + 0x24) = 1; (GhidraScript)  
+INFO  FindEncryptLayer.java>     *param_2 = local_178[0]; (GhidraScript)  
+INFO  FindEncryptLayer.java>     *(char *)(param_2 + 10) = local_150; (GhidraScript)  
+INFO  FindEncryptLayer.java>     bVar12 = local_150 == '\0'; (GhidraScript)  
+INFO  FindEncryptLayer.java>     if (bVar12) { (GhidraScript)  
+INFO  FindEncryptLayer.java>       ppcVar10 = local_170; (GhidraScript)  
+INFO  FindEncryptLayer.java>       if (!bVar12) { (GhidraScript)  
+INFO  FindEncryptLayer.java>         ppcVar10 = (char **)0x0; (GhidraScript)  
+INFO  FindEncryptLayer.java>       } (GhidraScript)  
+INFO  FindEncryptLayer.java>       uVar4 = *(undefined4 *)((longlong)ppcVar10 + 4); (GhidraScript)  
+INFO  FindEncryptLayer.java>       uVar5 = *(undefined4 *)(ppcVar10 + 1); (GhidraScript)  
+INFO  FindEncryptLayer.java>       uVar6 = *(undefined4 *)((longlong)ppcVar10 + 0xc); (GhidraScript)  
+INFO  FindEncryptLayer.java>       pcVar7 = ppcVar10[2]; (GhidraScript)  
+INFO  FindEncryptLayer.java>       pcVar8 = ppcVar10[3]; (GhidraScript)  
+INFO  FindEncryptLayer.java>       ppcVar10[2] = (char *)0x0; (GhidraScript)  
+INFO  FindEncryptLayer.java>       param_2[2] = *(undefined4 *)ppcVar10; (GhidraScript)  
+INFO  FindEncryptLayer.java>       param_2[3] = uVar4; (GhidraScript)  
+INFO  FindEncryptLayer.java>       param_2[4] = uVar5; (GhidraScript)  
+INFO  FindEncryptLayer.java>       param_2[5] = uVar6; (GhidraScript)  
+INFO  FindEncryptLayer.java>       ppcVar10[3] = (char *)0xf; (GhidraScript)  
+INFO  FindEncryptLayer.java>       *(undefined1 *)ppcVar10 = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>       *(char **)(param_2 + 6) = pcVar7; (GhidraScript)  
+INFO  FindEncryptLayer.java>       *(char **)(param_2 + 8) = pcVar8; (GhidraScript)  
+INFO  FindEncryptLayer.java>     } (GhidraScript)  
+INFO  FindEncryptLayer.java>     else { (GhidraScript)  
+INFO  FindEncryptLayer.java>       ppcVar10 = local_170; (GhidraScript)  
+INFO  FindEncryptLayer.java>       if (bVar12) { (GhidraScript)  
+INFO  FindEncryptLayer.java>         ppcVar10 = (char **)0x0; (GhidraScript)  
+INFO  FindEncryptLayer.java>       } (GhidraScript)  
+INFO  FindEncryptLayer.java>       *(char **)(param_2 + 2) = *ppcVar10; (GhidraScript)  
+INFO  FindEncryptLayer.java>     } (GhidraScript)  
+INFO  FindEncryptLayer.java>     *(undefined1 *)(param_2 + 0x1c) = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>     if (local_108 != '\0') { (GhidraScript)  
+INFO  FindEncryptLayer.java>       FUN_18007fe10(param_2 + 0xc,local_148); (GhidraScript)  
+INFO  FindEncryptLayer.java>       *(undefined1 *)(param_2 + 0x1c) = 1; (GhidraScript)  
+INFO  FindEncryptLayer.java>     } (GhidraScript)  
+INFO  FindEncryptLayer.java>     param_2[0x1e] = local_100; (GhidraScript)  
+INFO  FindEncryptLayer.java>     param_2[0x1f] = uStack_fc; (GhidraScript)  
+INFO  FindEncryptLayer.java>     param_2[0x20] = uStack_f8; (GhidraScript)  
+INFO  FindEncryptLayer.java>     param_2[0x21] = uStack_f4; (GhidraScript)  
+INFO  FindEncryptLayer.java>     *(undefined1 *)(param_2 + 0x22) = local_f0; (GhidraScript)  
+INFO  FindEncryptLayer.java>     if (local_108 != '\0') { (GhidraScript)  
+INFO  FindEncryptLayer.java>       FUN_180083d30(local_148); (GhidraScript)  
+INFO  FindEncryptLayer.java>     } (GhidraScript)  
+INFO  FindEncryptLayer.java>     if ((local_150 == '\0') && (0xf < local_158)) { (GhidraScript)  
+INFO  FindEncryptLayer.java>       if (0xfff < local_158 + 1) { (GhidraScript)  
+INFO  FindEncryptLayer.java>         if ((char *)0x1f < local_170[0] + (-8 - *(longlong *)(local_170[0] + -8))) { (GhidraScript)  
+INFO  FindEncryptLayer.java>           FUN_1818d8f58(*(longlong *)(local_170[0] + -8),local_158 + 0x28); (GhidraScript)  
+INFO  FindEncryptLayer.java>           pcVar1 = (code *)swi(3); (GhidraScript)  
+INFO  FindEncryptLayer.java>           (*pcVar1)(); (GhidraScript)  
+INFO  FindEncryptLayer.java>           return; (GhidraScript)  
+INFO  FindEncryptLayer.java>         } (GhidraScript)  
+INFO  FindEncryptLayer.java>       } (GhidraScript)  
+INFO  FindEncryptLayer.java> LAB_1801d3187: (GhidraScript)  
+INFO  FindEncryptLayer.java>       thunk_FUN_180086950(); (GhidraScript)  
+INFO  FindEncryptLayer.java>     } (GhidraScript)  
+INFO  FindEncryptLayer.java>   } (GhidraScript)  
+INFO  FindEncryptLayer.java>   else { (GhidraScript)  
+INFO  FindEncryptLayer.java>     local_218 = '\x01'; (GhidraScript)  
+INFO  FindEncryptLayer.java>     local_208 = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>     pcStack_200 = (char *)0x0; (GhidraScript)  
+INFO  FindEncryptLayer.java>     local_1e8 = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>     uStack_1e0 = 1; (GhidraScript)  
+INFO  FindEncryptLayer.java>     uStack_190 = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>     local_198 = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>     local_188 = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>     uStack_180 = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>     local_1f8 = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>     uStack_1f0 = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>     local_2a8[0] = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>     local_1d8 = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java> ... (136 more) (GhidraScript)  
+INFO  FindEncryptLayer.java> Callers (2): (GhidraScript)  
+INFO  FindEncryptLayer.java> 
+========================================== (GhidraScript)  
+INFO  FindEncryptLayer.java> FUN_1801d73d0 at 1801d73d0 (GhidraScript)  
+INFO  FindEncryptLayer.java> ========================================== (GhidraScript)  
+INFO  FindEncryptLayer.java>  (GhidraScript)  
+INFO  FindEncryptLayer.java> void FUN_1801d73d0(longlong *param_1,undefined8 param_2) (GhidraScript)  
+INFO  FindEncryptLayer.java>  (GhidraScript)  
+INFO  FindEncryptLayer.java> { (GhidraScript)  
+INFO  FindEncryptLayer.java>   int iVar1; (GhidraScript)  
+INFO  FindEncryptLayer.java>   code *pcVar2; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ****ppppuVar3; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined2 *puVar4; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 auStack_68 [32]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_48; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_38 [8]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined8 ***local_30; (GhidraScript)  
+INFO  FindEncryptLayer.java>   longlong local_28; (GhidraScript)  
+INFO  FindEncryptLayer.java>   longlong local_20; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_18; (GhidraScript)  
+INFO  FindEncryptLayer.java>   ulonglong local_10; (GhidraScript)  
+INFO  FindEncryptLayer.java>    (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_10 = DAT_181f8ed08 ^ (ulonglong)auStack_68; (GhidraScript)  
+INFO  FindEncryptLayer.java>   if (*(char *)((longlong)param_1 + 0x14) == '\0') goto LAB_1801d75b5; (GhidraScript)  
+INFO  FindEncryptLayer.java>   iVar1 = (int)param_1[2]; (GhidraScript)  
+INFO  FindEncryptLayer.java>   if (iVar1 == 1) { (GhidraScript)  
+INFO  FindEncryptLayer.java>     puVar4 = (undefined2 *)0x0; (GhidraScript)  
+INFO  FindEncryptLayer.java>     if (*(char *)((longlong)param_1 + 0x54c) != '\0') { (GhidraScript)  
+INFO  FindEncryptLayer.java>       puVar4 = &DAT_181961fe4; (GhidraScript)  
+INFO  FindEncryptLayer.java>     } (GhidraScript)  
+INFO  FindEncryptLayer.java>     FUN_1801a7000(&local_30,param_2,param_1[1],puVar4); (GhidraScript)  
+INFO  FindEncryptLayer.java>     ppppuVar3 = &local_30; (GhidraScript)  
+INFO  FindEncryptLayer.java>     if (0xf < local_18) { (GhidraScript)  
+INFO  FindEncryptLayer.java>       ppppuVar3 = (undefined8 ****)local_30; (GhidraScript)  
+INFO  FindEncryptLayer.java>     } (GhidraScript)  
+INFO  FindEncryptLayer.java>     FUN_1801ddd00(param_1 + 0x26,ppppuVar3,local_20,1); (GhidraScript)  
+INFO  FindEncryptLayer.java>     if (0xf < local_18) { (GhidraScript)  
+INFO  FindEncryptLayer.java>       if (0xfff < local_18 + 1) { (GhidraScript)  
+INFO  FindEncryptLayer.java>         if (0x1f < (ulonglong)((longlong)local_30 + (-8 - (longlong)local_30[-1]))) { (GhidraScript)  
+INFO  FindEncryptLayer.java>           FUN_1818d8f58(local_30[-1],local_18 + 0x28); (GhidraScript)  
+INFO  FindEncryptLayer.java>           pcVar2 = (code *)swi(3); (GhidraScript)  
+INFO  FindEncryptLayer.java>           (*pcVar2)(); (GhidraScript)  
+INFO  FindEncryptLayer.java>           return; (GhidraScript)  
+INFO  FindEncryptLayer.java>         } (GhidraScript)  
+INFO  FindEncryptLayer.java>       } (GhidraScript)  
+INFO  FindEncryptLayer.java> LAB_1801d7584: (GhidraScript)  
+INFO  FindEncryptLayer.java>       thunk_FUN_180086950(); (GhidraScript)  
+INFO  FindEncryptLayer.java>     } (GhidraScript)  
+INFO  FindEncryptLayer.java>   } (GhidraScript)  
+INFO  FindEncryptLayer.java>   else if (iVar1 == 2) { (GhidraScript)  
+INFO  FindEncryptLayer.java>     local_48 = 1; (GhidraScript)  
+INFO  FindEncryptLayer.java>     FUN_1801d7bd0(&local_30,param_2,param_1[1],&DAT_181961fe4); (GhidraScript)  
+INFO  FindEncryptLayer.java>     ppppuVar3 = &local_30; (GhidraScript)  
+INFO  FindEncryptLayer.java>     if (0xf < local_18) { (GhidraScript)  
+INFO  FindEncryptLayer.java>       ppppuVar3 = (undefined8 ****)local_30; (GhidraScript)  
+INFO  FindEncryptLayer.java>     } (GhidraScript)  
+INFO  FindEncryptLayer.java>     FUN_1801ddd00(param_1 + 0x26,ppppuVar3,local_20,1); (GhidraScript)  
+INFO  FindEncryptLayer.java>     if (0xf < local_18) { (GhidraScript)  
+INFO  FindEncryptLayer.java>       if (0xfff < local_18 + 1) { (GhidraScript)  
+INFO  FindEncryptLayer.java>         if (0x1f < (ulonglong)((longlong)local_30 + (-8 - (longlong)local_30[-1]))) { (GhidraScript)  
+INFO  FindEncryptLayer.java>           FUN_1818d8f58(local_30[-1],local_18 + 0x28); (GhidraScript)  
+INFO  FindEncryptLayer.java>           pcVar2 = (code *)swi(3); (GhidraScript)  
+INFO  FindEncryptLayer.java>           (*pcVar2)(); (GhidraScript)  
+INFO  FindEncryptLayer.java>           return; (GhidraScript)  
+INFO  FindEncryptLayer.java>         } (GhidraScript)  
+INFO  FindEncryptLayer.java>       } (GhidraScript)  
+INFO  FindEncryptLayer.java>       goto LAB_1801d7584; (GhidraScript)  
+INFO  FindEncryptLayer.java>     } (GhidraScript)  
+INFO  FindEncryptLayer.java>   } (GhidraScript)  
+INFO  FindEncryptLayer.java>   else if (iVar1 == 3) { (GhidraScript)  
+INFO  FindEncryptLayer.java>     FUN_180124b00(&local_30,param_2,param_1[1],0); (GhidraScript)  
+INFO  FindEncryptLayer.java>     FUN_1801ddd00(param_1 + 0x26,local_30,local_28 - (longlong)local_30,0); (GhidraScript)  
+INFO  FindEncryptLayer.java>     if ((undefined8 ****)local_30 != (undefined8 ****)0x0) { (GhidraScript)  
+INFO  FindEncryptLayer.java>       if (0xfff < (ulonglong)(local_20 - (longlong)local_30)) { (GhidraScript)  
+INFO  FindEncryptLayer.java>         if (0x1f < (ulonglong)((longlong)local_30 + (-8 - (longlong)local_30[-1]))) { (GhidraScript)  
+INFO  FindEncryptLayer.java>           FUN_1818d8f58(local_30[-1],(local_20 - (longlong)local_30) + 0x27); (GhidraScript)  
+INFO  FindEncryptLayer.java>           pcVar2 = (code *)swi(3); (GhidraScript)  
+INFO  FindEncryptLayer.java>           (*pcVar2)(); (GhidraScript)  
+INFO  FindEncryptLayer.java>           return; (GhidraScript)  
+INFO  FindEncryptLayer.java>         } (GhidraScript)  
+INFO  FindEncryptLayer.java>       } (GhidraScript)  
+INFO  FindEncryptLayer.java>       goto LAB_1801d7584; (GhidraScript)  
+INFO  FindEncryptLayer.java>     } (GhidraScript)  
+INFO  FindEncryptLayer.java>   } (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_38[0] = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   FUN_1801da010(param_1 + 0x26,local_38,0); (GhidraScript)  
+INFO  FindEncryptLayer.java>   if ((int)param_1[0x4a] == -1) { (GhidraScript)  
+INFO  FindEncryptLayer.java>     (**(code **)(*param_1 + 0x18))(param_1); (GhidraScript)  
+INFO  FindEncryptLayer.java>   } (GhidraScript)  
+INFO  FindEncryptLayer.java> LAB_1801d75b5: (GhidraScript)  
+INFO  FindEncryptLayer.java>   FUN_1818c9bc0(local_10 ^ (ulonglong)auStack_68); (GhidraScript)  
+INFO  FindEncryptLayer.java>   return; (GhidraScript)  
+INFO  FindEncryptLayer.java> } (GhidraScript)  
+INFO  FindEncryptLayer.java>  (GhidraScript)  
+INFO  FindEncryptLayer.java> Callers (2): (GhidraScript)  
+INFO  FindEncryptLayer.java> 
+========================================== (GhidraScript)  
+INFO  FindEncryptLayer.java> FUN_1801da520 at 1801da520 (GhidraScript)  
+INFO  FindEncryptLayer.java> ========================================== (GhidraScript)  
+INFO  FindEncryptLayer.java>  (GhidraScript)  
+INFO  FindEncryptLayer.java> void FUN_1801da520(undefined8 param_1,undefined4 param_2) (GhidraScript)  
+INFO  FindEncryptLayer.java>  (GhidraScript)  
+INFO  FindEncryptLayer.java> { (GhidraScript)  
+INFO  FindEncryptLayer.java>   undefined1 local_18 [24]; (GhidraScript)  
+INFO  FindEncryptLayer.java>    (GhidraScript)  
+INFO  FindEncryptLayer.java>   local_18[0] = 0; (GhidraScript)  
+INFO  FindEncryptLayer.java>   FUN_1801da010(param_1,local_18,param_2); (GhidraScript)  
+INFO  FindEncryptLayer.java>   return; (GhidraScript)  
+INFO  FindEncryptLayer.java> } (GhidraScript)  
+INFO  FindEncryptLayer.java>  (GhidraScript)  
+INFO  FindEncryptLayer.java> Callers (4): (GhidraScript)  
+INFO  FindEncryptLayer.java>   FUN_180b53790 at 180b53790 (GhidraScript)  
+INFO  FindEncryptLayer.java>   FUN_180b7feb0 at 180b7feb0 (GhidraScript)  
+INFO  FindEncryptLayer.java>   FUN_180f121a0 at 180f121a0 (GhidraScript)  
+INFO  FindEncryptLayer.java> 
+=== DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /RiotGamesApi.dll (HeadlessAnalyzer)  

@@ -1,0 +1,186 @@
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.10+7 (build 21.0.10+7-LTS, mixed mode)
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (701 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (1775 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessProject)  
+INFO  REPORT: Processing project file: /LoLPrivate.exe (HeadlessAnalyzer)  
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\DecompileEncrypt.java (HeadlessAnalyzer)  
+INFO  DecompileEncrypt.java> 
+========================================== (GhidraScript)  
+INFO  DecompileEncrypt.java> EncryptCandidate at offset 0x596260 (GhidraScript)  
+INFO  DecompileEncrypt.java> Function: FUN_140596260 at 140596260 (GhidraScript)  
+INFO  DecompileEncrypt.java>  (GhidraScript)  
+INFO  DecompileEncrypt.java> void FUN_140596260(longlong param_1) (GhidraScript)  
+INFO  DecompileEncrypt.java>  (GhidraScript)  
+INFO  DecompileEncrypt.java> { (GhidraScript)  
+INFO  DecompileEncrypt.java>   longlong *plVar1; (GhidraScript)  
+INFO  DecompileEncrypt.java>   int iVar2; (GhidraScript)  
+INFO  DecompileEncrypt.java>   longlong lVar3; (GhidraScript)  
+INFO  DecompileEncrypt.java>   int *piVar4; (GhidraScript)  
+INFO  DecompileEncrypt.java>    (GhidraScript)  
+INFO  DecompileEncrypt.java>   lVar3 = *(longlong *) (GhidraScript)  
+INFO  DecompileEncrypt.java>            (*(longlong *)(param_1 + 8) + (GhidraScript)  
+INFO  DecompileEncrypt.java>            (*(longlong *)(param_1 + 0x10) - 1U & *(ulonglong *)(param_1 + 0x18)) * 8); (GhidraScript)  
+INFO  DecompileEncrypt.java>   if (*(longlong *)(lVar3 + 0x48) != 0) { (GhidraScript)  
+INFO  DecompileEncrypt.java>     piVar4 = (int *)(*(longlong *)(lVar3 + 0x48) + -4); (GhidraScript)  
+INFO  DecompileEncrypt.java>     LOCK(); (GhidraScript)  
+INFO  DecompileEncrypt.java>     iVar2 = *piVar4; (GhidraScript)  
+INFO  DecompileEncrypt.java>     *piVar4 = *piVar4 + -1; (GhidraScript)  
+INFO  DecompileEncrypt.java>     UNLOCK(); (GhidraScript)  
+INFO  DecompileEncrypt.java>     if (iVar2 == 1) { (GhidraScript)  
+INFO  DecompileEncrypt.java>       thunk_FUN_1410e1240(); (GhidraScript)  
+INFO  DecompileEncrypt.java>     } (GhidraScript)  
+INFO  DecompileEncrypt.java>   } (GhidraScript)  
+INFO  DecompileEncrypt.java>   if (-1 < *(int *)(lVar3 + 0x2c)) { (GhidraScript)  
+INFO  DecompileEncrypt.java>     thunk_FUN_1410e1240(*(undefined8 *)(lVar3 + 0x20)); (GhidraScript)  
+INFO  DecompileEncrypt.java>   } (GhidraScript)  
+INFO  DecompileEncrypt.java>   plVar1 = (longlong *)(param_1 + 0x20); (GhidraScript)  
+INFO  DecompileEncrypt.java>   *plVar1 = *plVar1 + -1; (GhidraScript)  
+INFO  DecompileEncrypt.java>   if (*plVar1 == 0) { (GhidraScript)  
+INFO  DecompileEncrypt.java>     *(undefined8 *)(param_1 + 0x18) = 0; (GhidraScript)  
+INFO  DecompileEncrypt.java>     return; (GhidraScript)  
+INFO  DecompileEncrypt.java>   } (GhidraScript)  
+INFO  DecompileEncrypt.java>   *(longlong *)(param_1 + 0x18) = *(longlong *)(param_1 + 0x18) + 1; (GhidraScript)  
+INFO  DecompileEncrypt.java>   return; (GhidraScript)  
+INFO  DecompileEncrypt.java> } (GhidraScript)  
+INFO  DecompileEncrypt.java>  (GhidraScript)  
+INFO  DecompileEncrypt.java> 
+Callers (4): (GhidraScript)  
+INFO  DecompileEncrypt.java> 
+========================================== (GhidraScript)  
+INFO  DecompileEncrypt.java> SendtoContainer at offset 0x58e580 (GhidraScript)  
+INFO  DecompileEncrypt.java> Function: FUN_14058e580 at 14058e580 (GhidraScript)  
+INFO  DecompileEncrypt.java>  (GhidraScript)  
+INFO  DecompileEncrypt.java> void FUN_14058e580(longlong param_1) (GhidraScript)  
+INFO  DecompileEncrypt.java>  (GhidraScript)  
+INFO  DecompileEncrypt.java> { (GhidraScript)  
+INFO  DecompileEncrypt.java>   undefined1 uVar1; (GhidraScript)  
+INFO  DecompileEncrypt.java>   int iVar2; (GhidraScript)  
+INFO  DecompileEncrypt.java>   uint uVar3; (GhidraScript)  
+INFO  DecompileEncrypt.java>   undefined8 uVar4; (GhidraScript)  
+INFO  DecompileEncrypt.java>   longlong *plVar5; (GhidraScript)  
+INFO  DecompileEncrypt.java>   ulonglong *puVar6; (GhidraScript)  
+INFO  DecompileEncrypt.java>   longlong lVar7; (GhidraScript)  
+INFO  DecompileEncrypt.java>   char *pcVar8; (GhidraScript)  
+INFO  DecompileEncrypt.java>   undefined1 auStack_178 [32]; (GhidraScript)  
+INFO  DecompileEncrypt.java>   undefined1 local_158 [32]; (GhidraScript)  
+INFO  DecompileEncrypt.java>   undefined1 *local_138; (GhidraScript)  
+INFO  DecompileEncrypt.java>   undefined4 local_130; (GhidraScript)  
+INFO  DecompileEncrypt.java>   undefined4 local_12c; (GhidraScript)  
+INFO  DecompileEncrypt.java>   undefined1 local_128 [272]; (GhidraScript)  
+INFO  DecompileEncrypt.java>   ulonglong local_18; (GhidraScript)  
+INFO  DecompileEncrypt.java>    (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_18 = DAT_141d28400 ^ (ulonglong)auStack_178; (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_141074c40(local_158); (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_138 = local_128; (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_130 = 0; (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_12c = 0x100; (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_128[0] = 0; (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_140467830(DAT_141db7e68,0xc,&local_138); (GhidraScript)  
+INFO  DecompileEncrypt.java>   uVar4 = FUN_140467750(0xc); (GhidraScript)  
+INFO  DecompileEncrypt.java>   uVar4 = FUN_14107a720(local_158,uVar4); (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_14107a090(uVar4,&local_138); (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_1410ede60(&local_138); (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_138 = local_128; (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_130 = 0; (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_12c = 0x100; (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_128[0] = 0; (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_140467830(DAT_141db7e68,7,&local_138); (GhidraScript)  
+INFO  DecompileEncrypt.java>   uVar4 = FUN_140467750(7); (GhidraScript)  
+INFO  DecompileEncrypt.java>   uVar4 = FUN_14107a720(local_158,uVar4); (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_14107a090(uVar4,&local_138); (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_1410ede60(&local_138); (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_138 = local_128; (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_130 = 0; (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_12c = 0x100; (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_128[0] = 0; (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_140467830(DAT_141db7e68,0xb,&local_138); (GhidraScript)  
+INFO  DecompileEncrypt.java>   uVar4 = FUN_140467750(0xb); (GhidraScript)  
+INFO  DecompileEncrypt.java>   uVar4 = FUN_14107a720(local_158,uVar4); (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_14107a090(uVar4,&local_138); (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_1410ede60(&local_138); (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_138 = local_128; (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_130 = 0; (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_12c = 0x100; (GhidraScript)  
+INFO  DecompileEncrypt.java>   local_128[0] = 0; (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_140467830(DAT_141db7e68,0,&local_138); (GhidraScript)  
+INFO  DecompileEncrypt.java>   uVar4 = FUN_140467750(0); (GhidraScript)  
+INFO  DecompileEncrypt.java>   uVar4 = FUN_14107a720(local_158,uVar4); (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_14107a090(uVar4,&local_138); (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_1410ede60(&local_138); (GhidraScript)  
+INFO  DecompileEncrypt.java>   lVar7 = (ulonglong)*(byte *)(param_1 + 0x424) * 0x1d8 + DAT_141da14f8; (GhidraScript)  
+INFO  DecompileEncrypt.java>   uVar4 = FUN_14107a720(local_158,"championName"); (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_14107a090(uVar4,lVar7 + 0x70); (GhidraScript)  
+INFO  DecompileEncrypt.java>   pcVar8 = *(char **)((ulonglong)*(byte *)(param_1 + 0x424) * 0x1d8 + 0xa8 + DAT_141da14f8); (GhidraScript)  
+INFO  DecompileEncrypt.java>   if ((pcVar8 == (char *)0x0) || (*pcVar8 == '\0')) { (GhidraScript)  
+INFO  DecompileEncrypt.java>     pcVar8 = "NONE"; (GhidraScript)  
+INFO  DecompileEncrypt.java>   } (GhidraScript)  
+INFO  DecompileEncrypt.java>   uVar4 = FUN_14107a720(local_158,&DAT_14191bc2c); (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_14107a0d0(uVar4,pcVar8); (GhidraScript)  
+INFO  DecompileEncrypt.java>   uVar1 = *(undefined1 *)(param_1 + 0x4cc); (GhidraScript)  
+INFO  DecompileEncrypt.java>   uVar4 = FUN_14107a720(local_158,"isOverride"); (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_14107a110(uVar4,uVar1); (GhidraScript)  
+INFO  DecompileEncrypt.java>   if (*(char *)(param_1 + 0x4cc) == '\0') { (GhidraScript)  
+INFO  DecompileEncrypt.java>     iVar2 = *(int *)(param_1 + 0x4d4); (GhidraScript)  
+INFO  DecompileEncrypt.java>   } (GhidraScript)  
+INFO  DecompileEncrypt.java>   else { (GhidraScript)  
+INFO  DecompileEncrypt.java>     iVar2 = *(int *)(param_1 + 0x4d0); (GhidraScript)  
+INFO  DecompileEncrypt.java>   } (GhidraScript)  
+INFO  DecompileEncrypt.java>   plVar5 = (longlong *)FUN_14107a720(local_158,"selectedIndex"); (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_14107ea10(plVar5); (GhidraScript)  
+INFO  DecompileEncrypt.java>   *plVar5 = (longlong)iVar2; (GhidraScript)  
+INFO  DecompileEncrypt.java>   *(undefined1 *)(plVar5 + 2) = 2; (GhidraScript)  
+INFO  DecompileEncrypt.java>   uVar3 = *(uint *)(param_1 + 0x4d8); (GhidraScript)  
+INFO  DecompileEncrypt.java>   puVar6 = (ulonglong *)FUN_14107a720(local_158,"loadingStatus"); (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_14107ea10(puVar6); (GhidraScript)  
+INFO  DecompileEncrypt.java>   *(undefined1 *)(puVar6 + 2) = 3; (GhidraScript)  
+INFO  DecompileEncrypt.java>   *puVar6 = (ulonglong)uVar3; (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_1403ec580(0x2a,local_158); (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_141078710(local_158); (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_14184f1f0(local_18 ^ (ulonglong)auStack_178); (GhidraScript)  
+INFO  DecompileEncrypt.java>   return; (GhidraScript)  
+INFO  DecompileEncrypt.java> } (GhidraScript)  
+INFO  DecompileEncrypt.java>  (GhidraScript)  
+INFO  DecompileEncrypt.java> 
+Callers (2): (GhidraScript)  
+INFO  DecompileEncrypt.java>   FUN_14058c7a0 at 14058c7a0 (GhidraScript)  
+INFO  DecompileEncrypt.java> 
+=== DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /LoLPrivate.exe (HeadlessAnalyzer)  

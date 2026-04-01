@@ -1,0 +1,176 @@
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.10+7 (build 21.0.10+7-LTS, mixed mode)
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (694 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (1692 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessProject)  
+INFO  REPORT: Processing project file: /LoLPrivate.exe (HeadlessAnalyzer)  
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\DecompFinalCrypt.java (HeadlessAnalyzer)  
+INFO  DecompFinalCrypt.java> === CRYPTO CORE: FUN_1410f41e0 at 1410f41e0 === (GhidraScript)  
+INFO  DecompFinalCrypt.java> Lines: 84 (GhidraScript)  
+INFO  DecompFinalCrypt.java>  (GhidraScript)  
+INFO  DecompFinalCrypt.java> void FUN_1410f41e0(longlong param_1,longlong param_2,ulonglong param_3,int param_4) (GhidraScript)  
+INFO  DecompFinalCrypt.java>  (GhidraScript)  
+INFO  DecompFinalCrypt.java> { (GhidraScript)  
+INFO  DecompFinalCrypt.java>   undefined1 *puVar1; (GhidraScript)  
+INFO  DecompFinalCrypt.java>   uint local_18; (GhidraScript)  
+INFO  DecompFinalCrypt.java>   uint uStack_14; (GhidraScript)  
+INFO  DecompFinalCrypt.java>   uint local_10; (GhidraScript)  
+INFO  DecompFinalCrypt.java>   uint uStack_c; (GhidraScript)  
+INFO  DecompFinalCrypt.java>    (GhidraScript)  
+INFO  DecompFinalCrypt.java>   if (param_4 == 1) { (GhidraScript)  
+INFO  DecompFinalCrypt.java>     local_18 = *(uint *)(param_1 + 8); (GhidraScript)  
+INFO  DecompFinalCrypt.java>     uStack_14 = *(uint *)(param_1 + 0xc); (GhidraScript)  
+INFO  DecompFinalCrypt.java>     if (7 < param_3) { (GhidraScript)  
+INFO  DecompFinalCrypt.java>       param_3 = param_3 >> 3; (GhidraScript)  
+INFO  DecompFinalCrypt.java>       puVar1 = (undefined1 *)(param_2 + 7); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       do { (GhidraScript)  
+INFO  DecompFinalCrypt.java>         local_18 = CONCAT31(CONCAT21(CONCAT11(puVar1[-7],puVar1[-6]),puVar1[-5]),puVar1[-4]) ^ (GhidraScript)  
+INFO  DecompFinalCrypt.java>                    local_18; (GhidraScript)  
+INFO  DecompFinalCrypt.java>         uStack_14 = CONCAT31(CONCAT21(CONCAT11(puVar1[-3],puVar1[-2]),puVar1[-1]),*puVar1) ^ (GhidraScript)  
+INFO  DecompFinalCrypt.java>                     uStack_14; (GhidraScript)  
+INFO  DecompFinalCrypt.java>         FUN_1410f3d90(param_1,&local_18); (GhidraScript)  
+INFO  DecompFinalCrypt.java>         *puVar1 = (undefined1)uStack_14; (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1[-1] = (char)(uStack_14 >> 8); (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1[-2] = (char)(uStack_14 >> 0x10); (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1[-4] = (undefined1)local_18; (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1[-5] = (char)(local_18 >> 8); (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1[-6] = (char)(local_18 >> 0x10); (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1[-3] = (char)(uStack_14 >> 0x18); (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1[-7] = (char)(local_18 >> 0x18); (GhidraScript)  
+INFO  DecompFinalCrypt.java>         param_3 = param_3 - 1; (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1 = puVar1 + 8; (GhidraScript)  
+INFO  DecompFinalCrypt.java>       } while (param_3 != 0); (GhidraScript)  
+INFO  DecompFinalCrypt.java>     } (GhidraScript)  
+INFO  DecompFinalCrypt.java>   } (GhidraScript)  
+INFO  DecompFinalCrypt.java>   else if (param_4 == 2) { (GhidraScript)  
+INFO  DecompFinalCrypt.java>     local_10 = *(uint *)(param_1 + 8); (GhidraScript)  
+INFO  DecompFinalCrypt.java>     uStack_c = *(uint *)(param_1 + 0xc); (GhidraScript)  
+INFO  DecompFinalCrypt.java>     if (7 < param_3) { (GhidraScript)  
+INFO  DecompFinalCrypt.java>       param_3 = param_3 >> 3; (GhidraScript)  
+INFO  DecompFinalCrypt.java>       puVar1 = (undefined1 *)(param_2 + 7); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       do { (GhidraScript)  
+INFO  DecompFinalCrypt.java>         FUN_1410f3d90(param_1,&local_10); (GhidraScript)  
+INFO  DecompFinalCrypt.java>         local_18 = CONCAT31(CONCAT21(CONCAT11(puVar1[-7],puVar1[-6]),puVar1[-5]),puVar1[-4]) ^ (GhidraScript)  
+INFO  DecompFinalCrypt.java>                    local_10; (GhidraScript)  
+INFO  DecompFinalCrypt.java>         uStack_14 = CONCAT31(CONCAT21(CONCAT11(puVar1[-3],puVar1[-2]),puVar1[-1]),*puVar1) ^ (GhidraScript)  
+INFO  DecompFinalCrypt.java>                     uStack_c; (GhidraScript)  
+INFO  DecompFinalCrypt.java>         *puVar1 = (char)uStack_14; (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1[-1] = (char)(uStack_14 >> 8); (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1[-2] = (char)(uStack_14 >> 0x10); (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1[-5] = (char)(local_18 >> 8); (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1[-4] = (char)local_18; (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1[-3] = (char)(uStack_14 >> 0x18); (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1[-6] = (char)(local_18 >> 0x10); (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1[-7] = (char)(local_18 >> 0x18); (GhidraScript)  
+INFO  DecompFinalCrypt.java>         param_3 = param_3 - 1; (GhidraScript)  
+INFO  DecompFinalCrypt.java>         puVar1 = puVar1 + 8; (GhidraScript)  
+INFO  DecompFinalCrypt.java>         local_10 = local_18; (GhidraScript)  
+INFO  DecompFinalCrypt.java>         uStack_c = uStack_14; (GhidraScript)  
+INFO  DecompFinalCrypt.java>       } while (param_3 != 0); (GhidraScript)  
+INFO  DecompFinalCrypt.java>     } (GhidraScript)  
+INFO  DecompFinalCrypt.java>   } (GhidraScript)  
+INFO  DecompFinalCrypt.java>   else if (7 < param_3) { (GhidraScript)  
+INFO  DecompFinalCrypt.java>     param_3 = param_3 >> 3; (GhidraScript)  
+INFO  DecompFinalCrypt.java>     puVar1 = (undefined1 *)(param_2 + 7); (GhidraScript)  
+INFO  DecompFinalCrypt.java>     do { (GhidraScript)  
+INFO  DecompFinalCrypt.java>       local_18 = CONCAT31(CONCAT21(CONCAT11(puVar1[-7],puVar1[-6]),puVar1[-5]),puVar1[-4]); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       uStack_14 = CONCAT31(CONCAT21(CONCAT11(puVar1[-3],puVar1[-2]),puVar1[-1]),*puVar1); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       FUN_1410f3d90(param_1,&local_18); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       *puVar1 = (undefined1)uStack_14; (GhidraScript)  
+INFO  DecompFinalCrypt.java>       puVar1[-1] = (char)(uStack_14 >> 8); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       puVar1[-2] = (char)(uStack_14 >> 0x10); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       puVar1[-4] = (undefined1)local_18; (GhidraScript)  
+INFO  DecompFinalCrypt.java>       puVar1[-3] = (char)(uStack_14 >> 0x18); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       puVar1[-5] = (char)(local_18 >> 8); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       puVar1[-6] = (char)(local_18 >> 0x10); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       puVar1[-7] = (char)(local_18 >> 0x18); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       param_3 = param_3 - 1; (GhidraScript)  
+INFO  DecompFinalCrypt.java>       puVar1 = puVar1 + 8; (GhidraScript)  
+INFO  DecompFinalCrypt.java>     } while (param_3 != 0); (GhidraScript)  
+INFO  DecompFinalCrypt.java>   } (GhidraScript)  
+INFO  DecompFinalCrypt.java>   return; (GhidraScript)  
+INFO  DecompFinalCrypt.java> } (GhidraScript)  
+INFO  DecompFinalCrypt.java>  (GhidraScript)  
+INFO  DecompFinalCrypt.java> 
+=== Calls === (GhidraScript)  
+INFO  DecompFinalCrypt.java>   FUN_1410f3d90 at 1410f3d90 (GhidraScript)  
+INFO  DecompFinalCrypt.java>   FUN_1410f3d90 at 1410f3d90 (GhidraScript)  
+INFO  DecompFinalCrypt.java>   FUN_1410f3d90 at 1410f3d90 (GhidraScript)  
+INFO  DecompFinalCrypt.java> 
+=== BUFFER WRITE: FUN_14058bfb0 === (GhidraScript)  
+INFO  DecompFinalCrypt.java>  (GhidraScript)  
+INFO  DecompFinalCrypt.java> void FUN_14058bfb0(longlong *param_1,ushort param_2) (GhidraScript)  
+INFO  DecompFinalCrypt.java>  (GhidraScript)  
+INFO  DecompFinalCrypt.java> { (GhidraScript)  
+INFO  DecompFinalCrypt.java>   int *piVar1; (GhidraScript)  
+INFO  DecompFinalCrypt.java>   int iVar2; (GhidraScript)  
+INFO  DecompFinalCrypt.java>   ushort uVar3; (GhidraScript)  
+INFO  DecompFinalCrypt.java>   longlong lVar4; (GhidraScript)  
+INFO  DecompFinalCrypt.java>   undefined4 *puVar5; (GhidraScript)  
+INFO  DecompFinalCrypt.java>    (GhidraScript)  
+INFO  DecompFinalCrypt.java>   if ((*(ushort *)(param_1 + 1) < param_2) || ((*param_1 != 0 && (1 < *(uint *)(*param_1 + -4))))) { (GhidraScript)  
+INFO  DecompFinalCrypt.java>     lVar4 = *param_1; (GhidraScript)  
+INFO  DecompFinalCrypt.java>     puVar5 = (undefined4 *)FUN_1410dd1b0((ulonglong)param_2 + 4); (GhidraScript)  
+INFO  DecompFinalCrypt.java>     *puVar5 = 1; (GhidraScript)  
+INFO  DecompFinalCrypt.java>     *param_1 = (longlong)(puVar5 + 1); (GhidraScript)  
+INFO  DecompFinalCrypt.java>     *(ushort *)(param_1 + 1) = param_2; (GhidraScript)  
+INFO  DecompFinalCrypt.java>     if (lVar4 != 0) { (GhidraScript)  
+INFO  DecompFinalCrypt.java>       FUN_1418b4300(puVar5 + 1,lVar4,*(undefined2 *)((longlong)param_1 + 10)); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       piVar1 = (int *)(lVar4 + -4); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       LOCK(); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       iVar2 = *piVar1; (GhidraScript)  
+INFO  DecompFinalCrypt.java>       *piVar1 = *piVar1 + -1; (GhidraScript)  
+INFO  DecompFinalCrypt.java>       UNLOCK(); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       if (iVar2 == 1) { (GhidraScript)  
+INFO  DecompFinalCrypt.java>         thunk_FUN_1410e1240(); (GhidraScript)  
+INFO  DecompFinalCrypt.java>       } (GhidraScript)  
+INFO  DecompFinalCrypt.java>     } (GhidraScript)  
+INFO  DecompFinalCrypt.java>     uVar3 = *(ushort *)((longlong)param_1 + 10); (GhidraScript)  
+INFO  DecompFinalCrypt.java>     if (uVar3 < *(ushort *)(param_1 + 1)) { (GhidraScript)  
+INFO  DecompFinalCrypt.java>       FUN_1418b49a0((ulonglong)uVar3 + *param_1,0, (GhidraScript)  
+INFO  DecompFinalCrypt.java>                     (ulonglong)*(ushort *)(param_1 + 1) - (ulonglong)uVar3); (GhidraScript)  
+INFO  DecompFinalCrypt.java>     } (GhidraScript)  
+INFO  DecompFinalCrypt.java>   } (GhidraScript)  
+INFO  DecompFinalCrypt.java>   return; (GhidraScript)  
+INFO  DecompFinalCrypt.java> } (GhidraScript)  
+INFO  DecompFinalCrypt.java>  (GhidraScript)  
+INFO  DecompFinalCrypt.java> 
+=== DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /LoLPrivate.exe (HeadlessAnalyzer)  

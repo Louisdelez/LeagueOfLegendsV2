@@ -139,4 +139,21 @@ public class Minion : GameEntity, IKillable, IAttacker, IMovable
             killable.Health -= AttackDamage;
         }
     }
+
+    /// <summary>
+    /// Get the internal minion name used in packets (e.g. "SRU_OrderMinionMelee").
+    /// </summary>
+    public string GetMinionName()
+    {
+        var teamPrefix = Team == TeamId.Blue ? "SRU_Order" : "SRU_Chaos";
+        var typeStr = MinionType switch
+        {
+            MinionType.Melee => "MinionMelee",
+            MinionType.Caster => "MinionRanged",
+            MinionType.Cannon => "MinionSiege",
+            MinionType.Super => "MinionSuper",
+            _ => "MinionMelee"
+        };
+        return $"{teamPrefix}{typeStr}";
+    }
 }

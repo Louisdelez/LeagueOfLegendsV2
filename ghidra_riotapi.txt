@@ -1,0 +1,416 @@
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.10+7 (build 21.0.10+7-LTS, mixed mode)
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (654 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (1649 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessProject)  
+INFO  REPORT: Processing input files:  (HeadlessAnalyzer)  
+INFO       project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessAnalyzer)  
+INFO  IMPORTING: file:///D:/LeagueOfLegendsV2/client-private/Game/RiotGamesApi.dll (HeadlessAnalyzer)  
+INFO  Using Loader: Portable Executable (PE) (AutoImporter)  
+INFO  Using Language/Compiler: x86:LE:64:default:windows (AutoImporter)  
+INFO  Using Library Search Path: [., C:\WINDOWS\SysWOW64, D:\LeagueOfLegendsV2\jdk21\jdk-21.0.10+7\bin, C:\WINDOWS\Sun\Java\bin, C:\WINDOWS\system32, C:\WINDOWS, D, C:\Program Files\Git\LeagueOfLegendsV2\jdk21\jdk-21.0.10+7\bin, C:\Program Files\Git\mingw64\bin, C:\Program Files\Git\usr\bin, C:\Users\loicd\bin, C:\WINDOWS\System32\Wbem, C:\WINDOWS\System32\WindowsPowerShell\v1.0, C:\WINDOWS\System32\OpenSSH, C:\WINDOWS\AtlasModules, C:\WINDOWS\AtlasModules\Tools, C:\WINDOWS\AtlasModules\Scripts, C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common, C:\Program Files\dotnet, C:\Program Files\PuTTY, C:\Program Files\WireGuard, C:\Program Files\Git\cmd, C:\Program Files\nodejs, C:\Program Files\GitHub CLI, C:\Program Files\WezTerm, C:\Users\loicd\AppData\Local\Microsoft\WindowsApps, C:\Users\loicd\.lmstudio\bin, C:\Users\loicd\.local\bin, C:\Users\loicd\AppData\Roaming\npm, C:\Users\loicd\AppData\Local\Programs\Ollama, C:\Users\loicd\AppData\Local\Programs\Warp\bin, C:\Users\loicd\AppData\Local\Programs\Zed\bin, C:\Users\loicd\.dotnet\tools] (AutoImporter)  
+INFO  TLS callbacks at 18195fb38 (TLSDirectory)  
+INFO  TLS callbacks at 1801422e0 (TLSDirectory)  
+WARN  Invalid or missing function at 180157b10 (ExportDataDirectory)  
+INFO  TLS callbacks at 1800e0880 (TLSDirectory)  
+INFO  TLS callbacks at 1800ad9c8 (TLSDirectory)  
+WARN  Invalid or missing function at 1800c13e8 (ExportDataDirectory)  
+INFO  TLS callbacks at 180603ef8 (TLSDirectory)  
+WARN  Invalid or missing function at 1806e3ef8 (ExportDataDirectory)  
+INFO  TLS callbacks at 18003fe60 (TLSDirectory)  
+WARN  Invalid or missing function at 1800be448 (ExportDataDirectory)  
+WARN  Invalid or missing function at 180056554 (ExportDataDirectory)  
+INFO  Additional info:
+Loading file:///D:/LeagueOfLegendsV2/client-private/Game/RiotGamesApi.dll?MD5=ecc8b58db62dc45e82fe544bd89a6894...
+------------------------------------------------
+
+Searching 29 paths for library ACLSDK.DLL...
+Library not found.
+------------------------------------------------
+
+Searching 29 paths for library ADVAPI32.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/advapi32.dll
+Loading file:///C:/Windows/System32/advapi32.dll?MD5=257019b58c582195e3aaed3ed4d2917c...
+Created exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\advapi32.exports
+------------------------------------------------
+
+Searching 29 paths for library BCRYPT.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/bcrypt.dll
+Loading file:///C:/Windows/System32/bcrypt.dll?MD5=d90ae9f28f81827783414e4a5a2d40bd...
+[bcrypt.dll]: failed to create WEVTResource at 1800284d0: Failed to resolve data length for WEVTResource
+Created exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\bcrypt.exports
+------------------------------------------------
+
+Searching 29 paths for library CRYPT32.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/crypt32.dll
+Loading file:///C:/Windows/System32/crypt32.dll?MD5=5cc04b1a168cdef0d0fa78d5e2952d77...
+Created exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\crypt32.exports
+------------------------------------------------
+
+Searching 29 paths for library DISCORD_PARTNER_SDK.DLL...
+Library not found.
+------------------------------------------------
+
+Searching 29 paths for library DNSAPI.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/dnsapi.dll
+Loading file:///C:/Windows/System32/dnsapi.dll?MD5=8a70142024b4d5d164bbf0b5ea15d288...
+[dnsapi.dll]: failed to create WEVTResource at 180117498: Failed to resolve data length for WEVTResource
+Created exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\dnsapi.exports
+------------------------------------------------
+
+Searching 29 paths for library DWRITE.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/DWrite.dll
+Loading file:///C:/Windows/System32/DWrite.dll?MD5=0a3a346567ff342a2dac345eb700bbfe...
+Created exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\dwrite.exports
+------------------------------------------------
+
+Searching 29 paths for library GCLOUDVOICE.DLL...
+Library not found.
+------------------------------------------------
+
+Searching 29 paths for library GDI32.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/gdi32.dll
+Loading file:///C:/Windows/System32/gdi32.dll?MD5=f84f3ab11af1c95970d2f6d007a62332...
+Using existing exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\gdi32.exports
+------------------------------------------------
+
+Searching 29 paths for library IPHLPAPI.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/IPHLPAPI.DLL
+Loading file:///C:/Windows/System32/IPHLPAPI.DLL?MD5=70764d30a7075563aa142f4c5b4df639...
+Created exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\iphlpapi.exports
+------------------------------------------------
+
+Searching 29 paths for library KERNEL32.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/kernel32.dll
+Loading file:///C:/Windows/System32/kernel32.dll?MD5=3172a6c66f799a83f33322abb1bc0add...
+Using existing exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\kernel32.exports
+------------------------------------------------
+
+Searching 29 paths for library OLE32.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/ole32.dll
+Loading file:///C:/Windows/System32/ole32.dll?MD5=ce41a9f16d63579c1f9d78493a672e8e...
+[ole32.dll]: failed to create WEVTResource at 18017f740: Failed to resolve data length for WEVTResource
+Using existing exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\ole32.exports
+------------------------------------------------
+
+Searching 29 paths for library OLEAUT32.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/oleaut32.dll
+Loading file:///C:/Windows/System32/oleaut32.dll?MD5=822923cb0b4593d7b6996985b8db607d...
+Created exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\oleaut32.exports
+------------------------------------------------
+
+Searching 29 paths for library PSAPI.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/psapi.dll
+Loading file:///C:/Windows/System32/psapi.dll?MD5=592433c7e383070b385bdb5cc6e40ef3...
+Created exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\psapi.exports
+------------------------------------------------
+
+Searching 29 paths for library RPCRT4.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/rpcrt4.dll
+Loading file:///C:/Windows/System32/rpcrt4.dll?MD5=6f5590287a17b7e46f8360899d9ab3b8...
+Index 10 out of bounds for length 10
+Created exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\rpcrt4.exports
+------------------------------------------------
+
+Searching 29 paths for library RSTRTMGR.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/RstrtMgr.dll
+Loading file:///C:/Windows/System32/RstrtMgr.dll?MD5=05e35883b0f293d6696e498fd2ceb963...
+[RstrtMgr.dll]: failed to create WEVTResource at 1800404a8: Failed to resolve data length for WEVTResource
+Created exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\rstrtmgr.exports
+------------------------------------------------
+
+Searching 29 paths for library SHELL32.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/shell32.dll
+Loading file:///C:/Windows/System32/shell32.dll?MD5=b4b30086c4be1122120353f97c59a11b...
+Created exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\shell32.exports
+------------------------------------------------
+
+Searching 29 paths for library SHLWAPI.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/shlwapi.dll
+Loading file:///C:/Windows/System32/shlwapi.dll?MD5=253d4990fa9cd936e372bc912282b75b...
+Created exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\shlwapi.exports
+------------------------------------------------
+
+Searching 29 paths for library USER32.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/user32.dll
+Loading file:///C:/Windows/System32/user32.dll?MD5=cca1744eb781ca1e17029ca014df7919...
+[user32.dll]: failed to create WEVTResource at 1800dda70: Failed to resolve data length for WEVTResource
+Using existing exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\user32.exports
+------------------------------------------------
+
+Searching 29 paths for library WS2_32.DLL...
+Skipping library which is the wrong architecture: file:///C:/Windows/SysWOW64/ws2_32.dll
+Loading file:///C:/Windows/System32/ws2_32.dll?MD5=0032546635d9e91df6f8314b5781dfc8...
+[ws2_32.dll]: failed to create WEVTResource at 18005f4b8: Failed to resolve data length for WEVTResource
+Created exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\ws2_32.exports
+------------------------------------------------
+
+Applying C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\advapi32.exports
+Applying C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\bcrypt.exports
+Applying C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\crypt32.exports
+Applying C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\dnsapi.exports
+Applying C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\dwrite.exports
+Applying cached symbols from GDI32.DLL
+Applying C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\iphlpapi.exports
+Applying cached symbols from KERNEL32.DLL
+Applying C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\ole32.exports
+Applying C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\oleaut32.exports
+Applying C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\psapi.exports
+Applying C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\rpcrt4.exports
+Applying C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\rstrtmgr.exports
+Applying C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\shell32.exports
+Applying C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\shlwapi.exports
+Applying C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\user32.exports
+Applying C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\ws2_32.exports
+Linking the External Programs of 'RiotGamesApi.dll' to imported libraries...
+  [ADVAPI32.DLL] -> not found in project
+  [BCRYPT.DLL] -> not found in project
+  [CRYPT32.DLL] -> not found in project
+  [DNSAPI.DLL] -> not found in project
+  [DWRITE.DLL] -> not found in project
+  [GDI32.DLL] -> not found in project
+  [IPHLPAPI.DLL] -> not found in project
+  [KERNEL32.DLL] -> not found in project
+  [OLE32.DLL] -> not found in project
+  [OLEAUT32.DLL] -> not found in project
+  [PSAPI.DLL] -> not found in project
+  [RPCRT4.DLL] -> not found in project
+  [RSTRTMGR.DLL] -> not found in project
+  [SHELL32.DLL] -> not found in project
+  [SHLWAPI.DLL] -> not found in project
+  [USER32.DLL] -> not found in project
+  [WS2_32.DLL] -> not found in project
+  [DISCORD_PARTNER_SDK.DLL] -> not found in project
+  [ACLSDK.DLL] -> not found in project
+  [GCLOUDVOICE.DLL] -> not found in project
+------------------------------------------------
+
+ (AutoImporter)  
+INFO  IMPORTING: Loaded 0 additional files (HeadlessAnalyzer)  
+INFO  ANALYZING all memory and code: file:///D:/LeagueOfLegendsV2/client-private/Game/RiotGamesApi.dll (HeadlessAnalyzer)  
+INFO  Skipping PDB processing: failed to locate PDB file in configured locations (PdbUniversalAnalyzer)  
+INFO  Use a script to set the PDB file location. I.e.,
+    PdbAnalyzer.setPdbFileOption(currentProgram, new File("/path/to/pdb/file.pdb")); or
+    PdbUniversalAnalyzer.setPdbFileOption(currentProgram, new File("/path/to/pdb/file.pdb"));
+Or set the symbol server search configuration using:    PdbPlugin.saveSymbolServerServiceConfig(...);
+ This must be done using a pre-script (prior to analysis). (PdbUniversalAnalyzer)  
+INFO  Packed database cache: C:\Users\loicd\AppData\Local\ghidra\packed-db-cache (PackedDatabaseCache)  
+ERROR Invalid PNG data at 181bedcd0 (PngDataType)  
+ERROR Invalid PNG data at 181c1aa98 (PngDataType)  
+WARN  Decompiling 181191990: Unable to read bytes at ram:24ccccccc (DecompileCallback)  
+INFO  Evicting 29 filesystems from cache (FileSystemInstanceManager)  
+WARN  Decompiling 18116db20, pcode error at 18000000c: Unable to resolve constructor at 18000000c (DecompileCallback)  
+WARN  Decompiling 1811937d0: Unable to read bytes at ram:24ccccccc (DecompileCallback)  
+WARN  Decompiling 181193860: Unable to read bytes at ram:24ccccccc (DecompileCallback)  
+WARN  Decompiling 181194570: Unable to read bytes at ram:24ccccccc (DecompileCallback)  
+WARN  Decompiling 1811d17e0: Unable to read bytes at ram:24ccccccc (DecompileCallback)  
+WARN  Decompiling 1815957b0, pcode error at 181596401: Unable to resolve constructor at 181596401 (DecompileCallback)  
+WARN  Decompiling 1815957b0, pcode error at 1815963f3: Unable to resolve constructor at 1815963f3 (DecompileCallback)  
+WARN  Decompiling 1815957b0, pcode error at 181596640: Unable to resolve constructor at 181596640 (DecompileCallback)  
+WARN  Decompiling 1815957b0, pcode error at 18159661e: Unable to resolve constructor at 18159661e (DecompileCallback)  
+WARN  Decompiling 1815957b0, pcode error at 18159655e: Unable to resolve constructor at 18159655e (DecompileCallback)  
+WARN  Decompiling 1815957b0, pcode error at 181596550: Unable to resolve constructor at 181596550 (DecompileCallback)  
+WARN  Decompiling 1815957b0, pcode error at 181595953: Unable to resolve constructor at 181595953 (DecompileCallback)  
+WARN  More than 100 address segments have been created! (AddressMapDB)  
+INFO  Applied data type archive: windows_vs12_64 (ApplyDataArchiveAnalyzer)  
+INFO  Applied data type archive: windows_vs12_64 (ApplyDataArchiveAnalyzer)  
+INFO  -----------------------------------------------------
+    ASCII Strings                             10.805 secs
+    Apply Data Archives                        0.461 secs
+    Call Convention ID                         0.254 secs
+    Call-Fixup Installer                       5.463 secs
+    Create Address Tables                     29.848 secs
+    Create Address Tables - One Time          94.813 secs
+    Create Function                           17.472 secs
+    Data Reference                            46.251 secs
+    Decompiler Switch Analysis               143.457 secs
+    Demangler Microsoft                        0.166 secs
+    Disassemble                               53.835 secs
+    Disassemble Entry Points                   3.398 secs
+    Disassemble Entry Points - One Time        0.049 secs
+    Embedded Media                             0.268 secs
+    External Entry References                  0.001 secs
+    Function ID                               32.595 secs
+    Function Start Search                      0.366 secs
+    Non-Returning Functions - Discovered      21.304 secs
+    Non-Returning Functions - Known            0.011 secs
+    PDB Universal                              0.020 secs
+    Reference                                 76.669 secs
+    Scalar Operand References                 38.069 secs
+    Shared Return Calls                       11.363 secs
+    Stack                                    158.761 secs
+    Subroutine References                     18.205 secs
+    Subroutine References - One Time           0.076 secs
+    Windows x86 PE Exception Handling          1.389 secs
+    Windows x86 PE RTTI Analyzer               6.964 secs
+    Windows x86 Thread Environment Block (TEB) Analyzer     0.012 secs
+    WindowsResourceReference                   1.761 secs
+    x86 Constant Reference Analyzer          202.071 secs
+-----------------------------------------------------
+     Total Time   976 secs
+-----------------------------------------------------
+ (AutoAnalysisManager)  
+INFO  REPORT: Analysis succeeded for file: file:///D:/LeagueOfLegendsV2/client-private/Game/RiotGamesApi.dll (HeadlessAnalyzer)  
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\AnalyzeStubDll.java (HeadlessAnalyzer)  
+INFO  AnalyzeStubDll.java> Image base: 180000000 (GhidraScript)  
+INFO  AnalyzeStubDll.java> Program: RiotGamesApi.dll (GhidraScript)  
+INFO  AnalyzeStubDll.java> 
+=== Searching for network function name strings === (GhidraScript)  
+INFO  AnalyzeStubDll.java> 'send' at 1819a05ca (GhidraScript)  
+INFO  AnalyzeStubDll.java> 'send' at 1819a05e2 (GhidraScript)  
+INFO  AnalyzeStubDll.java> 'send' at 1819a0622 (GhidraScript)  
+INFO  AnalyzeStubDll.java> 'recv' at 1819b0036 (GhidraScript)  
+INFO  AnalyzeStubDll.java> 'recv' at 181a06b0d (GhidraScript)  
+INFO  AnalyzeStubDll.java> 'recv' at 181a06b45 (GhidraScript)  
+INFO  AnalyzeStubDll.java> 'GetProcAddress' at 181c61633 (GhidraScript)  
+INFO  AnalyzeStubDll.java> 'GetProcAddress' at 181f82b76 (GhidraScript)  
+INFO  AnalyzeStubDll.java> 
+=== GetProcAddress import === (GhidraScript)  
+INFO  AnalyzeStubDll.java> Symbol: GetProcAddress at EXTERNAL:00000066 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   References: 232 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181217870 at 181217870 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1801f7d50 at 1801f7d50 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18017bb70 at 18017bb70 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1818d8754 at 1818d8754 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18155faf0 at 18155faf0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18155df00 at 18155df00 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18017d2c0 at 18017d2c0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1818fd278 at 1818fd278 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1801a3d60 at 1801a3d60 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181902428 at 181902428 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1814c1d00 at 1814c1d00 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1811a11d0 at 1811a11d0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1815608b0 at 1815608b0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181560c00 at 181560c00 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_180187950 at 180187950 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1811a63f0 at 1811a63f0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18022a760 at 18022a760 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1818c9230 at 1818c9230 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1818c8f38 at 1818c8f38 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181528e50 at 181528e50 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1815286f0 at 1815286f0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18118f730 at 18118f730 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1814ceac0 at 1814ceac0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181509970 at 181509970 (GhidraScript)  
+INFO  AnalyzeStubDll.java> Symbol: LoadLibraryW at EXTERNAL:00000067 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   References: 9 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18017bb70 at 18017bb70 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1801fd570 at 1801fd570 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1814c1d00 at 1814c1d00 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181528e50 at 181528e50 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1815286f0 at 1815286f0 (GhidraScript)  
+INFO  AnalyzeStubDll.java> Symbol: LoadLibraryExA at EXTERNAL:00000072 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   References: 3 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1801fd520 at 1801fd520 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1818c9230 at 1818c9230 (GhidraScript)  
+INFO  AnalyzeStubDll.java> Symbol: LoadLibraryA at EXTERNAL:0000007f (GhidraScript)  
+INFO  AnalyzeStubDll.java>   References: 10 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181217870 at 181217870 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1811a11d0 at 1811a11d0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1811a63f0 at 1811a63f0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18118f730 at 18118f730 (GhidraScript)  
+INFO  AnalyzeStubDll.java> Symbol: LoadLibraryExW at EXTERNAL:000000da (GhidraScript)  
+INFO  AnalyzeStubDll.java>   References: 6 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1818d8754 at 1818d8754 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181902428 at 181902428 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18155f1f0 at 18155f1f0 (GhidraScript)  
+INFO  AnalyzeStubDll.java> Symbol: PTR_GetProcAddress_18195e350 at 18195e350 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   References: 231 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1818fd278 at 1818fd278 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181902428 at 181902428 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1818d8754 at 1818d8754 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1818c9230 at 1818c9230 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1818c8f38 at 1818c8f38 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1801a3d60 at 1801a3d60 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18022a760 at 18022a760 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18017bb70 at 18017bb70 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18118f730 at 18118f730 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_180187950 at 180187950 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18017d2c0 at 18017d2c0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1801f7d50 at 1801f7d50 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1814c1d00 at 1814c1d00 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1814ceac0 at 1814ceac0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181509970 at 181509970 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1815286f0 at 1815286f0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1811a11d0 at 1811a11d0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1811a63f0 at 1811a63f0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181217870 at 181217870 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181560c00 at 181560c00 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18155df00 at 18155df00 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18155faf0 at 18155faf0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181528e50 at 181528e50 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1815608b0 at 1815608b0 (GhidraScript)  
+INFO  AnalyzeStubDll.java> Symbol: PTR_LoadLibraryW_18195e358 at 18195e358 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   References: 8 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18017bb70 at 18017bb70 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1814c1d00 at 1814c1d00 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1815286f0 at 1815286f0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1801fd570 at 1801fd570 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181528e50 at 181528e50 (GhidraScript)  
+INFO  AnalyzeStubDll.java> Symbol: PTR_LoadLibraryExA_18195e3b0 at 18195e3b0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   References: 2 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1818c9230 at 1818c9230 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1801fd520 at 1801fd520 (GhidraScript)  
+INFO  AnalyzeStubDll.java> Symbol: PTR_LoadLibraryA_18195e418 at 18195e418 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   References: 9 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18118f730 at 18118f730 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1811a11d0 at 1811a11d0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1811a63f0 at 1811a63f0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181217870 at 181217870 (GhidraScript)  
+INFO  AnalyzeStubDll.java> Symbol: PTR_LoadLibraryExW_18195e6f0 at 18195e6f0 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   References: 5 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181902428 at 181902428 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1818d8754 at 1818d8754 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18155f1f0 at 18155f1f0 (GhidraScript)  
+INFO  AnalyzeStubDll.java> Symbol: s_wglGetProcAddress_181c61630 at 181c61630 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   References: 2 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_181217870 at 181217870 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_18118f730 at 18118f730 (GhidraScript)  
+INFO  AnalyzeStubDll.java> Symbol: s_LoadLibraryExW_181cf2c10 at 181cf2c10 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   References: 1 (GhidraScript)  
+INFO  AnalyzeStubDll.java>   Called by FUN_1814c1d00 at 1814c1d00 (GhidraScript)  
+INFO  AnalyzeStubDll.java> 
+=== Searching for network constants === (GhidraScript)  
+INFO  AnalyzeStubDll.java> 
+=== DONE === (GhidraScript)  
+INFO  ANALYZING changes made by post scripts: file:///D:/LeagueOfLegendsV2/client-private/Game/RiotGamesApi.dll (HeadlessAnalyzer)  
+INFO  REPORT: Post-analysis succeeded for file: file:///D:/LeagueOfLegendsV2/client-private/Game/RiotGamesApi.dll (HeadlessAnalyzer)  
+INFO  REPORT: Save succeeded for: /RiotGamesApi.dll (LoLAnalysis:/RiotGamesApi.dll) (HeadlessAnalyzer)  
+INFO  REPORT: Import succeeded (HeadlessAnalyzer)  

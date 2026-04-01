@@ -5,10 +5,13 @@ using System.Linq;
 using System.Threading;
 using LoLServer.Core.Config;
 using LoLServer.Core.Game.Entities;
+using LoLServer.Core.Game.Items;
 using LoLServer.Core.Game.Jungle;
 using LoLServer.Core.Game.Map;
+using LoLServer.Core.Game.Vision;
 using LoLServer.Core.Network;
 using LoLServer.Core.Protocol;
+using LoLServer.Core.Protocol.Packets;
 
 namespace LoLServer.Core.Game;
 
@@ -21,7 +24,7 @@ public class GameLoop
     public const float TickRate = 30.0f;
     public const float TickInterval = 1.0f / TickRate;
 
-    private readonly PacketServer _server;
+    private readonly IGameServer _server;
     private readonly GameConfig _config;
     private readonly MapManager _map;
     private readonly List<GameEntity> _entities = new();
@@ -29,6 +32,7 @@ public class GameLoop
     private readonly List<Champion> _champions = new();
 
     private JungleManager? _jungle;
+    private VisionSystem? _vision;
 
     private float _gameTime;
     private float _nextMinionSpawnTime;
@@ -48,13 +52,15 @@ public class GameLoop
     private int _blueDragons;
     private int _redDragons;
     private bool _baronAlive;
+    private readonly List<Minion> _pendingMinionSpawns = new();
 
     public float GameTime => _gameTime;
     public MapManager Map => _map;
+    public VisionSystem? Vision => _vision;
     public IReadOnlyList<GameEntity> Entities => _entities;
     public IReadOnlyList<Champion> Champions => _champions;
 
-    public GameLoop(PacketServer server, GameConfig config)
+    public GameLoop(IGameServer server, GameConfig config)
     {
         _server = server;
         _config = config;
@@ -71,6 +77,8 @@ public class GameLoop
         _entityById[entity.Id] = entity;
         if (entity is Champion champ)
             _champions.Add(champ);
+        if (entity is Minion minion)
+            _pendingMinionSpawns.Add(minion);
         return entity;
     }
 
@@ -132,6 +140,10 @@ public class GameLoop
             Log($"  {_jungle.Camps.Count} jungle camps registered");
         }
 
+        // Initialize vision system
+        _vision = new VisionSystem(this);
+        Log($"  Vision system initialized");
+
         Log($"[GAME] World initialized: {_entities.Count} entities on Map {_config.MapId}");
     }
 
@@ -156,9 +168,18 @@ public class GameLoop
             if (tickCount % 30 == 0)  // Every 1s
             {
                 SendGameTimer();
+                BroadcastChampionStats();
+
+                if (tickCount % 150 == 0) // Every 5s
+                    BroadcastScoreboard();
+
                 if (tickCount % 300 == 0) // Every 10s
                     LogGameState();
             }
+
+            // Broadcast minion spawns (newly created minions)
+            if (tickCount % 30 == 0)
+                BroadcastNewMinions();
 
             var elapsed = stopwatch.Elapsed - tickStart;
             var sleepTime = tickDuration - elapsed;
@@ -191,10 +212,20 @@ public class GameLoop
         // Update jungle
         _jungle?.Update(dt);
 
+        // Update vision
+        _vision?.Update(dt);
+
         // Update all entities
         for (int i = _entities.Count - 1; i >= 0; i--)
         {
             _entities[i].Update(dt, this);
+        }
+
+        // Process per-tick item passives for champions
+        foreach (var champ in _champions)
+        {
+            if (!champ.IsDead)
+                ItemPassiveManager.ProcessPerTick(champ, dt, this);
         }
 
         // Process deaths
@@ -218,6 +249,22 @@ public class GameLoop
                 champ.MarkedForRemoval = false;
         }
 
+        // Broadcast respawns
+        foreach (var champ in _champions)
+        {
+            if (champ.JustRespawned)
+            {
+                champ.JustRespawned = false;
+                _server.BroadcastPacket(
+                    GamePackets.NpcRespawn(champ.Id, champ.Position.X, champ.Position.Y, champ.Position.Z),
+                    Channel.ServerToClient);
+                _server.BroadcastPacket(
+                    GamePackets.SetHealth(champ.Id, champ.Health, champ.MaxHealth),
+                    Channel.ServerToClient);
+                Log($"[RESPAWN] {champ.SummonerName} respawned!");
+            }
+        }
+
         // Check win condition
         CheckWinCondition();
     }
@@ -239,6 +286,14 @@ public class GameLoop
                 ShareXpWithNearbyAllies(entity.Position, killer?.Team ?? TeamId.Blue, deathXp);
 
                 Log($"[KILL] {killer?.SummonerName ?? "?"} killed {deadChamp.SummonerName}! ({_blueKills}-{_redKills})");
+
+                // Broadcast death
+                _server.BroadcastPacket(
+                    GamePackets.NpcDie(deadChamp.Id, killer?.Id ?? 0),
+                    Channel.ServerToClient);
+                _server.BroadcastPacket(
+                    GamePackets.Announce(AnnounceEvent.ChampionKill, deadChamp.Id, killer?.Id ?? 0),
+                    Channel.ServerToClient);
                 break;
 
             case Minion minion:
@@ -262,6 +317,12 @@ public class GameLoop
                 foreach (var champ in _champions.Where(c => c.Team != turret.Team))
                     champ.Gold += turretGold / _champions.Count(c => c.Team != turret.Team);
                 Log($"[TURRET] {turret.Name} destroyed!");
+                _server.BroadcastPacket(
+                    GamePackets.NpcDie(turret.Id, killer?.Id ?? 0),
+                    Channel.ServerToClient);
+                _server.BroadcastPacket(
+                    GamePackets.Announce(AnnounceEvent.TurretDestroyed, turret.Id),
+                    Channel.ServerToClient);
                 break;
 
             case Inhibitor inhib:
@@ -402,11 +463,63 @@ public class GameLoop
 
     private void SendGameTimer()
     {
-        var packet = new byte[9];
-        packet[0] = (byte)GamePacketId.GameTimerS2C;
-        BitConverter.GetBytes(_gameTime).CopyTo(packet, 1);
-        BitConverter.GetBytes(_gameTime).CopyTo(packet, 5);
+        var packet = PacketWriter.Create(GamePacketId.GameTimerS2C)
+            .WriteFloat(_gameTime)
+            .WriteFloat(_gameTime)
+            .ToArray();
         _server.BroadcastPacket(packet, Channel.Gameplay);
+    }
+
+    /// <summary>
+    /// Broadcast HP/mana/stats for all champions to all clients (every 1s).
+    /// </summary>
+    private void BroadcastChampionStats()
+    {
+        foreach (var champ in _champions)
+        {
+            _server.BroadcastPacket(
+                GamePackets.SetHealth(champ.Id, champ.Health, champ.MaxHealth),
+                Channel.ServerToClient);
+            _server.BroadcastPacket(
+                GamePackets.GoldUpdate(champ.Id, champ.Gold),
+                Channel.ServerToClient);
+        }
+    }
+
+    /// <summary>
+    /// Full stats + scoreboard sync (every 5s).
+    /// </summary>
+    private void BroadcastScoreboard()
+    {
+        foreach (var champ in _champions)
+        {
+            _server.BroadcastPacket(
+                GamePackets.StatsUpdate(champ),
+                Channel.ServerToClient);
+            _server.BroadcastPacket(
+                GamePackets.ScoreboardUpdate(champ),
+                Channel.ServerToClient);
+        }
+    }
+
+    /// <summary>
+    /// Broadcast newly spawned minions to all clients, then clear the list.
+    /// </summary>
+    private void BroadcastNewMinions()
+    {
+        if (_pendingMinionSpawns.Count == 0) return;
+
+        foreach (var minion in _pendingMinionSpawns)
+        {
+            _server.BroadcastPacket(
+                GamePackets.CreateMinion(minion),
+                Channel.ServerToClient);
+        }
+
+        if (_pendingMinionSpawns.Count > 0)
+            Log($"[MINIONS] Broadcast {_pendingMinionSpawns.Count} new minion spawns");
+
+        _pendingMinionSpawns.Clear();
     }
 
     private void LogGameState()

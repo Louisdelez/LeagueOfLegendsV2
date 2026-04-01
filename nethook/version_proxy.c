@@ -235,8 +235,49 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
             Log("  REGISTERS: RBX=%p R12=%p R13=%p R14=%p R15=%p RDI=%p RSI=%p",
                 rbx_val, r12_val, r13_val, r14_val, r15_val, rdi_val, rsi_val);
 
-            // RBX = param_1. Read the queue and follow pointers.
+            // RBX = param_1. Read the crypto context at param_1 + 0x120.
             unsigned char *p1 = (unsigned char*)rbx_val;
+            if (p1 && !IsBadReadPtr(p1 + 0x120, 8)) {
+                // param_1 + 0x120 is the crypto map/tree pointer
+                // The crypto context is looked up from this map
+                // Let's dump the area around +0x120 to understand the structure
+                Log("  === CRYPTO CONTEXT (param_1 + 0x100 to +0x180) ===");
+                if (!IsBadReadPtr(p1 + 0x100, 0x80)) {
+                    for (int row = 0; row < 8; row++) {
+                        char hex[128] = {0};
+                        for (int j = 0; j < 16; j++)
+                            sprintf(hex + j*3, "%02X ", p1[0x100 + row*16 + j]);
+                        Log("    +0x%03X: %s", 0x100 + row*16, hex);
+                    }
+                }
+                // Follow the pointer at +0x128 (the map/tree root)
+                UINT64 mapPtr = *(UINT64*)(p1 + 0x128);
+                if (mapPtr > 0x10000 && !IsBadReadPtr((void*)mapPtr, 0x40)) {
+                    Log("  Map root at %p:", (void*)mapPtr);
+                    // A std::map node has: [left][parent][right][color][key][value]
+                    // value is what we want - the crypto context pointer
+                    // Let's dump the node
+                    char hex[256] = {0};
+                    for (int j = 0; j < 64; j++)
+                        sprintf(hex + j*3, "%02X ", ((unsigned char*)mapPtr)[j]);
+                    Log("    %s", hex);
+
+                    // Try following pointers to find the crypto context
+                    // The value pointer should lead to a BF_KEY structure
+                    for (int off = 0; off < 64; off += 8) {
+                        UINT64 val = *(UINT64*)(mapPtr + off);
+                        if (val > 0x10000 && !IsBadReadPtr((void*)val, 32)) {
+                            unsigned char *ctx = (unsigned char*)val;
+                            // Check if this looks like a BF_KEY: offset +16 should have P-box
+                            // Or check if +0 and +8 are the IV (small values)
+                            Log("    +%02X -> %p: %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X",
+                                off, (void*)val,
+                                ctx[0],ctx[1],ctx[2],ctx[3],ctx[4],ctx[5],ctx[6],ctx[7],
+                                ctx[8],ctx[9],ctx[10],ctx[11],ctx[12],ctx[13],ctx[14],ctx[15]);
+                        }
+                    }
+                }
+            }
             if (p1 && !IsBadReadPtr(p1, 0xE0)) {
                 UINT64 qbase = *(UINT64*)(p1 + 0xB8);
                 UINT64 qidx  = *(UINT64*)(p1 + 0xC0);

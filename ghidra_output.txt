@@ -1,0 +1,1068 @@
+=== HARD CONNECT FUNC: FUN_14067b280 @ 14067b280 ===
+
+longlong * FUN_14067b280(longlong param_1,longlong *param_2)
+
+{
+  longlong lVar1;
+  
+  if (*(longlong *)(param_1 + 0x78) == 0) {
+    *param_2 = 0;
+    return param_2;
+  }
+  lVar1 = *(longlong *)(*(longlong *)(param_1 + 0x78) + 0x20);
+  *param_2 = lVar1;
+  if (lVar1 != 0) {
+    LOCK();
+    *(int *)(lVar1 + 0x24) = *(int *)(lVar1 + 0x24) + 1;
+    UNLOCK();
+  }
+  return param_2;
+}
+
+
+
+=== ENCRYPTION KEY FUNC: FUN_140728560 @ 140728560 ===
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void FUN_140728560(undefined8 *param_1,undefined8 param_2,undefined8 param_3,undefined8 param_4,
+                  undefined8 param_5,undefined8 param_6,undefined8 param_7,undefined8 param_8,
+                  undefined8 param_9,undefined8 param_10,longlong param_11)
+
+{
+  longlong *plVar1;
+  uint uVar2;
+  code *pcVar3;
+  longlong lVar4;
+  undefined8 *puVar5;
+  undefined8 uVar6;
+  undefined8 *puVar7;
+  undefined8 *puVar8;
+  undefined8 uVar9;
+  undefined8 *puVar10;
+  uint uVar11;
+  ulonglong uVar12;
+  undefined8 *puVar13;
+  ulonglong uVar14;
+  undefined1 auStack_3a8 [32];
+  undefined *local_388;
+  undefined8 *local_380;
+  undefined8 *local_378;
+  undefined4 local_370;
+  undefined8 *local_368;
+  undefined1 local_360;
+  undefined8 local_358;
+  undefined8 local_350;
+  undefined8 local_348;
+  undefined8 local_340;
+  undefined8 local_338;
+  undefined8 local_330;
+  undefined8 local_328 [3];
+  char local_310;
+  undefined8 local_308;
+  undefined8 local_300;
+  char local_2f0;
+  undefined8 local_2e8;
+  undefined8 local_2e0;
+  char local_2d0;
+  undefined8 local_2c8;
+  undefined8 local_2c0;
+  undefined8 local_2b8;
+  undefined8 local_2b0;
+  char local_2a0;
+  undefined8 local_298;
+  undefined8 local_290;
+  undefined8 local_288;
+  undefined8 local_280;
+  undefined8 local_278;
+  undefined8 local_270;
+  undefined8 local_268;
+  undefined8 local_260;
+  undefined8 local_258;
+  undefined8 local_250;
+  undefined8 local_248;
+  undefined8 local_240;
+  undefined **local_238;
+  undefined8 *local_230;
+  code *local_228;
+  undefined ***local_200;
+  undefined **local_1f8;
+  undefined8 *local_1f0;
+  code *local_1e8;
+  undefined ***local_1c0;
+  undefined **local_1b8;
+  undefined8 *local_1b0;
+  code *local_1a8;
+  undefined ***local_180;
+  undefined **local_178;
+  undefined8 *local_170;
+  code *local_168;
+  undefined ***local_140;
+  undefined **local_138;
+  undefined8 *local_130;
+  code *local_128;
+  undefined ***local_100;
+  undefined **local_f8;
+  undefined8 *local_f0;
+  undefined1 *local_e8;
+  undefined ***local_c0;
+  undefined **local_b8;
+  undefined8 *local_b0;
+  undefined1 *local_a8;
+  undefined ***local_80;
+  undefined **local_78;
+  undefined8 *local_70;
+  code *local_68;
+  undefined ***local_40;
+  ulonglong local_38;
+  
+  local_38 = DAT_141d28400 ^ (ulonglong)auStack_3a8;
+  param_1[3] = param_5;
+  param_1[4] = param_6;
+  param_1[5] = param_7;
+  *param_1 = param_2;
+  param_1[1] = param_3;
+  param_1[2] = param_4;
+  param_1[6] = param_9;
+  lVar4 = FUN_1410dd1b0(0x2e0);
+  puVar13 = (undefined8 *)0x0;
+  puVar5 = puVar13;
+  if (lVar4 != 0) {
+    puVar5 = (undefined8 *)FUN_141074610(lVar4);
+  }
+  FUN_1410913f0(puVar5);
+  param_1[7] = puVar5;
+  param_1[8] = param_8;
+  local_238 = &PTR_FUN_14196cfc8;
+  local_228 = FUN_14075bc00;
+  local_200 = &local_238;
+  param_1[9] = &DAT_141968600;
+  param_1[10] = param_9;
+  param_1[0xb] = puVar5;
+  local_230 = param_1;
+  FUN_1410ec2e0(param_1 + 0xc,"lol-gsm-server/v1/gsm/game-update/IN_PROGRESS");
+  param_1[0x15] = 0;
+  if (local_200 != (undefined ***)0x0) {
+    uVar6 = (*(code *)**local_200)(local_200,param_1 + 0xe);
+    param_1[0x15] = uVar6;
+  }
+  FUN_140772090(param_1[10],param_1 + 0xc,param_1 + 9);
+  if (local_200 != (undefined ***)0x0) {
+    (*(code *)(*local_200)[4])(local_200,local_200 != &local_238);
+  }
+  local_1f8 = &PTR_FUN_14196cfc8;
+  local_1e8 = FUN_14075bb20;
+  local_1c0 = &local_1f8;
+  param_1[0x16] = &DAT_141968600;
+  param_1[0x17] = param_9;
+  param_1[0x18] = param_1[7];
+  local_1f0 = param_1;
+  FUN_1410ec2e0(param_1 + 0x19,"lol-gsm-server/v1/gsm/game-update/FAILED_TO_START");
+  param_1[0x22] = 0;
+  if (local_1c0 != (undefined ***)0x0) {
+    uVar6 = (*(code *)**local_1c0)(local_1c0,param_1 + 0x1b);
+    param_1[0x22] = uVar6;
+  }
+  FUN_140772090(param_1[0x17],param_1 + 0x19,param_1 + 0x16);
+  if (local_1c0 != (undefined ***)0x0) {
+    (*(code *)(*local_1c0)[4])(local_1c0,local_1c0 != &local_1f8);
+  }
+  local_1b8 = &PTR_FUN_14196cff8;
+  param_1[0x24] = param_9;
+  local_1a8 = FUN_14075fb80;
+  local_180 = &local_1b8;
+  param_1[0x23] = &PTR_LAB_141968610;
+  param_1[0x25] = param_1[7];
+  local_1b0 = param_1;
+  FUN_1410ec2e0(param_1 + 0x26,"parties/v1/notifications");
+  param_1[0x2f] = 0;
+  if (local_180 != (undefined ***)0x0) {
+    uVar6 = (*(code *)**local_180)(local_180,param_1 + 0x28);
+    param_1[0x2f] = uVar6;
+  }
+  FUN_140772090(param_1[0x24],param_1 + 0x26,param_1 + 0x23);
+  if (local_180 != (undefined ***)0x0) {
+    (*(code *)(*local_180)[4])(local_180,local_180 != &local_1b8);
+  }
+  local_178 = &PTR_FUN_14196d028;
+  param_1[0x31] = param_9;
+  local_168 = FUN_14075d060;
+  local_140 = &local_178;
+  param_1[0x30] = &PTR_LAB_141968620;
+  param_1[0x32] = param_1[7];
+  local_170 = param_1;
+  FUN_1410ec2e0(param_1 + 0x33,"teambuilder/v1/tbdGameDtoV1");
+  param_1[0x3c] = 0;
+  if (local_140 != (undefined ***)0x0) {
+    uVar6 = (*(code *)**local_140)(local_140,param_1 + 0x35);
+    param_1[0x3c] = uVar6;
+  }
+  FUN_140772090(param_1[0x31],param_1 + 0x33,param_1 + 0x30);
+  if (local_140 != (undefined ***)0x0) {
+    (*(code *)(*local_140)[4])(local_140,local_140 != &local_178);
+  }
+  local_138 = &PTR_FUN_14196d058;
+  param_1[0x3e] = param_9;
+  local_128 = FUN_14075cdb0;
+  local_100 = &local_138;
+  param_1[0x3d] = &PTR_FUN_141968630;
+  param_1[0x3f] = param_1[7];
+  local_130 = param_1;
+  FUN_1410ec2e0(param_1 + 0x40,"teambuilder/v1/removedFromServiceV1");
+  param_1[0x49] = 0;
+  if (local_100 != (undefined ***)0x0) {
+    uVar6 = (*(code *)**local_100)(local_100,param_1 + 0x42);
+    param_1[0x49] = uVar6;
+  }
+  FUN_140772090(param_1[0x3e],param_1 + 0x40,param_1 + 0x3d);
+  if (local_100 != (undefined ***)0x0) {
+    (*(code *)(*local_100)[4])(local_100,local_100 != &local_138);
+  }
+  local_f8 = &PTR_FUN_14196d088;
+  local_e8 = &LAB_140757430;
+  local_c0 = &local_f8;
+  param_1[0x4a] = &PTR_FUN_141968640;
+  param_1[0x4b] = param_10;
+  param_1[0x4c] = param_1[7];
+  local_f0 = param_1;
+  FUN_1410ec2e0(param_1 + 0x4d,"parties.disabled_queues");
+  param_1[0x56] = 0;
+  if (local_c0 != (undefined ***)0x0) {
+    uVar6 = (*(code *)**local_c0)(local_c0,param_1 + 0x4f);
+    param_1[0x56] = uVar6;
+  }
+  FUN_140771ec0(param_1[0x4b],param_1 + 0x4d,param_1 + 0x4a);
+  if (local_c0 != (undefined ***)0x0) {
+    (*(code *)(*local_c0)[4])(local_c0,local_c0 != &local_f8);
+  }
+  local_b8 = &PTR_FUN_14196d0b8;
+  param_1[0x58] = param_10;
+  local_a8 = &LAB_14075f3f0;
+  local_80 = &local_b8;
+  param_1[0x57] = &PTR_LAB_141968650;
+  param_1[0x59] = param_1[7];
+  local_b0 = param_1;
+  FUN_1410ec2e0(param_1 + 0x5a,"tft_npe");
+  param_1[99] = 0;
+  if (local_80 != (undefined ***)0x0) {
+    uVar6 = (*(code *)**local_80)(local_80,param_1 + 0x5c);
+    param_1[99] = uVar6;
+  }
+  FUN_140771ec0(param_1[0x58],param_1 + 0x5a,param_1 + 0x57);
+  if (local_80 != (undefined ***)0x0) {
+    (*(code *)(*local_80)[4])(local_80,local_80 != &local_b8);
+  }
+  plVar1 = param_1 + 100;
+  local_78 = &PTR_FUN_14196d0e8;
+  local_68 = FUN_14075b310;
+  local_40 = &local_78;
+  *plVar1 = param_11;
+  param_1[0x6c] = 0;
+  local_70 = param_1;
+  uVar6 = FUN_140779b00(&local_78,param_1 + 0x65);
+  param_1[0x6c] = uVar6;
+  lVar4 = *plVar1;
+  uVar2 = *(uint *)(lVar4 + 0xe8);
+  uVar11 = *(uint *)(lVar4 + 0xec) & 0x7fffffff;
+  uVar14 = (ulonglong)(uVar2 + 1);
+  if (uVar11 < uVar14) {
+    uVar12 = (ulonglong)uVar11 + (ulonglong)(uVar11 >> 1);
+    if (uVar14 <= uVar12) {
+      uVar14 = uVar12;
+    }
+    puVar7 = (undefined8 *)FUN_1410dd1b0(uVar14 * 8);
+    puVar10 = *(undefined8 **)(lVar4 + 0xe0);
+    puVar8 = puVar10 + *(uint *)(lVar4 + 0xe8);
+    puVar5 = puVar7;
+    if (puVar10 < puVar8) {
+      do {
+        uVar6 = *puVar10;
+        puVar10 = puVar10 + 1;
+        *puVar5 = uVar6;
+        puVar5 = puVar5 + 1;
+      } while (puVar10 < puVar8);
+      puVar10 = *(undefined8 **)(lVar4 + 0xe0);
+    }
+    if (-1 < *(int *)(lVar4 + 0xec)) {
+      thunk_FUN_1410e1240(puVar10);
+    }
+    *(undefined8 **)(lVar4 + 0xe0) = puVar7;
+    *(uint *)(lVar4 + 0xe8) = uVar2;
+    *(int *)(lVar4 + 0xec) = (int)uVar14;
+  }
+  *(longlong **)(*(longlong *)(lVar4 + 0xe0) + (ulonglong)uVar2 * 8) = plVar1;
+  *(int *)(lVar4 + 0xe8) = *(int *)(lVar4 + 0xe8) + 1;
+  if (*(longlong *)(lVar4 + 200) != 0) {
+    if ((longlong *)param_1[0x6c] == (longlong *)0x0) {
+      FUN_1418543e4();
+      pcVar3 = (code *)swi(3);
+      (*pcVar3)();
+      return;
+    }
+    (**(code **)(*(longlong *)param_1[0x6c] + 0x10))();
+  }
+  if (local_40 != (undefined ***)0x0) {
+    (*(code *)(*local_40)[4])(local_40,local_40 != &local_78);
+  }
+  FUN_1405b8fd0(param_1 + 0x6d);
+  FUN_1407282f0(param_1 + 0x77);
+  param_1[0xd5] = 0xffffffffffffffff;
+  param_1[0xd6] = 0;
+  param_1[0xd7] = PTR_DAT_1419ecda8;
+  param_1[0xd8] = 0;
+  param_1[0xd9] = 0;
+  *(undefined4 *)(param_1 + 0xda) = 0;
+  param_1[0xdb] = 0;
+  param_1[0xdc] = 0;
+  param_1[0xdd] = 0;
+  param_1[0xde] = 0;
+  param_1[0xdf] = 0;
+  param_1[0xe0] = 0;
+  param_1[0xe1] = PTR_DAT_1419ecda8;
+  param_1[0xe2] = 0;
+  param_1[0xe3] = PTR_DAT_1419ecda8;
+  param_1[0xe4] = 0;
+  param_1[0xe5] = PTR_DAT_1419ecda8;
+  param_1[0xe6] = 0;
+  param_1[0xe7] = PTR_DAT_1419ecda8;
+  param_1[0xe8] = 0;
+  param_1[0xe9] = PTR_DAT_1419ecda8;
+  param_1[0xea] = 0;
+  param_1[0xeb] = 0;
+  param_1[0xec] = 0;
+  param_1[0xed] = 0;
+  param_1[0xee] = 0;
+  param_1[0xef] = 0;
+  param_1[0xf0] = 0;
+  param_1[0xf1] = 0;
+  param_1[0xf2] = 0;
+  param_1[0xf3] = 0;
+  *(undefined1 *)(param_1 + 0xf4) = 0;
+  *(undefined4 *)(param_1 + 0xf5) = 0;
+  param_1[0xf6] = 0;
+  param_1[0xf7] = 0;
+  lVar4 = FUN_1410dd1b0(0xa0);
+  plVar1 = param_1 + 0xf8;
+  *(longlong *)lVar4 = lVar4;
+  *(longlong *)(lVar4 + 8) = lVar4;
+  param_1[0xf6] = lVar4;
+  *plVar1 = 0;
+  param_1[0xf9] = 0;
+  param_1[0xfa] = 0;
+  param_1[0xfb] = 7;
+  param_1[0xfc] = 8;
+  *(undefined4 *)(param_1 + 0xf5) = 0x3f800000;
+  uVar6 = param_1[0xf6];
+  puVar5 = (undefined8 *)FUN_1410dd1b0(0x80);
+  if (param_1[0xfa] - *plVar1 >> 3 != 0) {
+    FUN_14022aaf0(plVar1);
+  }
+  puVar8 = puVar5 + 0x10;
+  *plVar1 = (longlong)puVar5;
+  param_1[0xf9] = puVar8;
+  param_1[0xfa] = puVar8;
+  for (; puVar5 != puVar8; puVar5 = puVar5 + 1) {
+    *puVar5 = uVar6;
+  }
+  param_1[0xfd] = 0;
+  *(undefined1 *)(param_1 + 0xfe) = 0;
+  param_1[0xff] = 0;
+  param_1[0x100] = PTR_DAT_1419ecda8;
+  param_1[0x101] = 0;
+  *(undefined2 *)(param_1 + 0x102) = 0;
+  param_1[0x103] = 0;
+  param_1[0x10b] = 0;
+  param_1[0x10c] = 0;
+  param_1[0x10d] = 0;
+  param_1[0x10e] = 0;
+  param_1[0x10f] = 0;
+  param_1[0x110] = 0;
+  param_1[0x111] = 0;
+  param_1[0x112] = 0;
+  param_1[0x113] = 0;
+  *(undefined2 *)(param_1 + 0x114) = 0x100;
+  *(undefined1 *)((longlong)param_1 + 0x8a2) = 0;
+  FUN_1401e9320(param_1 + 0x115);
+  param_1[0x11d] = 0;
+  param_1[0x11e] = 0;
+  lVar4 = FUN_1410dd1b0(0x28);
+  *(longlong *)lVar4 = lVar4;
+  *(longlong *)(lVar4 + 8) = lVar4;
+  *(longlong *)(lVar4 + 0x10) = lVar4;
+  *(undefined2 *)(lVar4 + 0x18) = 0x101;
+  param_1[0x11d] = lVar4;
+  param_1[0x11f] = 0;
+  param_1[0x120] = 0;
+  lVar4 = FUN_1410dd1b0(0x28);
+  *(longlong *)lVar4 = lVar4;
+  *(longlong *)(lVar4 + 8) = lVar4;
+  *(longlong *)(lVar4 + 0x10) = lVar4;
+  *(undefined2 *)(lVar4 + 0x18) = 0x101;
+  param_1[0x11f] = lVar4;
+  param_1[0x121] = 0;
+  param_1[0x122] = 0;
+  lVar4 = FUN_1410dd1b0(0x28);
+  *(longlong *)lVar4 = lVar4;
+  *(longlong *)(lVar4 + 8) = lVar4;
+  *(longlong *)(lVar4 + 0x10) = lVar4;
+  *(undefined2 *)(lVar4 + 0x18) = 0x101;
+  param_1[0x121] = lVar4;
+  param_1[0x123] = 0;
+  param_1[0x124] = 0;
+  lVar4 = FUN_1410dd1b0(0x28);
+  *(longlong *)lVar4 = lVar4;
+  *(longlong *)(lVar4 + 8) = lVar4;
+  *(longlong *)(lVar4 + 0x10) = lVar4;
+  *(undefined2 *)(lVar4 + 0x18) = 0x101;
+  param_1[0x123] = lVar4;
+  param_1[0x125] = 0;
+  param_1[0x126] = 0;
+  lVar4 = FUN_1410dd1b0(0x28);
+  *(longlong *)lVar4 = lVar4;
+  *(longlong *)(lVar4 + 8) = lVar4;
+  *(longlong *)(lVar4 + 0x10) = lVar4;
+  *(undefined2 *)(lVar4 + 0x18) = 0x101;
+  param_1[0x125] = lVar4;
+  param_1[0x127] = 0;
+  param_1[0x128] = 0;
+  param_1[0x129] = 0;
+  param_1[0x12a] = 0;
+  param_1[299] = 0;
+  param_1[300] = 0;
+  param_1[0x12d] = 0;
+  param_1[0x12e] = 0;
+  param_1[0x12f] = 0;
+  param_1[0x130] = 0;
+  param_1[0x131] = 0;
+  param_1[0x132] = 0;
+  param_1[0x133] = 0;
+  param_1[0x134] = 0;
+  param_1[0x135] = 0;
+  param_1[0x136] = 0;
+  param_1[0x137] = 0;
+  param_1[0x138] = 0;
+  param_1[0x139] = 0;
+  param_1[0x13a] = 0;
+  param_1[0x13b] = 0;
+  param_1[0x13c] = 0;
+  param_1[0x13d] = 0;
+  param_1[0x13e] = 0;
+  FUN_140898950(param_1[7]);
+  uVar6 = param_1[7];
+  local_388 = (undefined *)FUN_14070cc80();
+  local_380 = (undefined8 *)((ulonglong)local_380 & 0xffffffffffffff00);
+  FUN_14109e870(uVar6,local_328,0x98,"GameStartPayload");
+  local_288 = 0;
+  local_280 = 0;
+  if (local_310 == '\0') {
+    local_2c8 = 8;
+    local_2c0 = 0;
+    puVar5 = (undefined8 *)FUN_1410dd1b0(8);
+    local_368 = puVar13;
+    if (puVar5 != (undefined8 *)0x0) {
+      *puVar5 = &PTR_FUN_14196a688;
+      local_368 = puVar5;
+    }
+    local_388 = (undefined *)FUN_14070d8e0();
+    local_360 = 0;
+    local_378 = &local_288;
+    local_370 = 0;
+    local_380 = &local_2c8;
+    FUN_14107ba00(local_328,"gameId",&DAT_1418f31df,0);
+  }
+  local_278 = 0;
+  local_270 = 0;
+  if (local_310 == '\0') {
+    local_2c8 = 0xc;
+    local_2c0 = 0;
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14191fbd8;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_1401d5170();
+    local_360 = 0;
+    local_378 = &local_278;
+    local_370 = 0;
+    local_380 = &local_2c8;
+    local_368 = puVar5;
+    FUN_14107ba00(local_328,"serverIp",&DAT_1418f31df,8);
+  }
+  local_380 = &local_268;
+  local_268 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  local_260 = 0;
+  uVar6 = FUN_14070c1b0(local_328,"serverPort",0x18,&DAT_1418f31df);
+  local_380 = &local_258;
+  local_258 = 0;
+  local_250 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  uVar6 = FUN_14070c0e0(uVar6,"encryptionKey",0x20,&DAT_1418f31df);
+  local_380 = &local_248;
+  local_248 = 0;
+  local_240 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  uVar6 = FUN_14070c1b0(uVar6,"summonerId",0x30,&DAT_1418f31df);
+  local_380 = &local_2b8;
+  local_2b8 = 0;
+  local_2b0 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  uVar6 = FUN_14070c0e0(uVar6,"gameVersion",0x38,&DAT_1418f31df);
+  local_380 = &local_298;
+  local_298 = 0;
+  local_290 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  lVar4 = FUN_14070c0e0(uVar6,"gameMode",0x48,&DAT_1418f31df);
+  local_308 = 0;
+  local_300 = 0;
+  if (*(char *)(lVar4 + 0x18) == '\0') {
+    local_2c8 = 1;
+    local_2c0 = 0;
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14194dc10;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_1401e0160();
+    local_360 = 0;
+    local_378 = &local_308;
+    local_370 = 0;
+    local_380 = &local_2c8;
+    local_368 = puVar5;
+    FUN_14107ba00(lVar4,"observer",&DAT_1418f31df,0x58);
+  }
+  local_380 = &local_2e8;
+  local_2e8 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  local_2e0 = 0;
+  uVar6 = FUN_14070c0e0(lVar4,"observerEncryptionKey",0x60,&DAT_1418f31df);
+  local_380 = &local_338;
+  local_338 = 0;
+  local_330 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  uVar6 = FUN_14070c0e0(uVar6,"observerServerIp",0x70,&DAT_1418f31df);
+  local_380 = &local_358;
+  local_358 = 0;
+  local_350 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  uVar6 = FUN_14070c1b0(uVar6,"observerServerPort",0x80,&DAT_1418f31df);
+  local_380 = &local_348;
+  local_348 = 0;
+  local_340 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  FUN_14070c0e0(uVar6,"packetCopMetadata",0x88,&DAT_1418f31df);
+  AK::StreamMgr::GetDefaultSettings((AkStreamMgrSettings *)local_328);
+  uVar6 = param_1[7];
+  local_388 = (undefined *)FUN_14070cd10();
+  local_380 = (undefined8 *)((ulonglong)local_380 & 0xffffffffffffff00);
+  FUN_14109e870(uVar6,local_328,200,"GameStateUpdatePayload");
+  local_348 = 0;
+  local_340 = 0;
+  if (local_310 == '\0') {
+    local_358 = 8;
+    local_350 = 0;
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14196a688;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_14070d8e0();
+    local_360 = 0;
+    local_378 = &local_348;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(local_328,&DAT_14191c638,&DAT_1418f31df,0);
+  }
+  local_380 = &local_338;
+  local_338 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  local_330 = 0;
+  uVar6 = FUN_14070c0e0(local_328,"gameState",8,&DAT_1418f31df);
+  local_380 = &local_2e8;
+  local_2e8 = 0;
+  local_2e0 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  puVar5 = (undefined8 *)FUN_14070c0e0(uVar6,"errorMessage",0x18,&DAT_1418f31df);
+  local_308 = 0;
+  local_300 = 0;
+  if (*(char *)(puVar5 + 3) == '\0') {
+    uVar6 = *puVar5;
+    local_358 = 0x11;
+    uVar9 = FUN_14070cc80();
+    local_350 = FUN_14108dd90(uVar9,uVar6);
+    puVar10 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar8 = puVar13;
+    if (puVar10 != (undefined8 *)0x0) {
+      *puVar10 = &PTR_FUN_14196a720;
+      puVar8 = puVar10;
+    }
+    local_388 = (undefined *)FUN_14070c770();
+    local_360 = 1;
+    local_378 = &local_308;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar8;
+    FUN_14107ba00(puVar5,"playerCredentials",&DAT_1418f31df,0x28);
+  }
+  AK::StreamMgr::GetDefaultSettings((AkStreamMgrSettings *)local_328);
+  uVar6 = param_1[7];
+  local_388 = (undefined *)FUN_14070d340();
+  local_380 = (undefined8 *)((ulonglong)local_380 & 0xffffffffffffff00);
+  FUN_14109e870(uVar6,&local_2e8,0x318,"PartyNotificationPayload");
+  local_348 = 0;
+  local_340 = 0;
+  if (local_2d0 == '\0') {
+    local_358 = 0x11;
+    local_350 = FUN_1407537b0(local_2e8);
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14196a738;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_14070c800();
+    local_360 = 1;
+    local_378 = &local_348;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(&local_2e8,"player",&DAT_1418f31df,0);
+  }
+  uVar6 = local_2e8;
+  local_338 = 0;
+  local_330 = 0;
+  if (local_2d0 == '\0') {
+    local_358 = 0x11;
+    uVar9 = FUN_14070d2b0();
+    local_350 = FUN_14108dd90(uVar9,uVar6);
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14196a750;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_14070c890();
+    local_360 = 1;
+    local_378 = &local_338;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(&local_2e8,"queueRestriction",&DAT_1418f31df,0x2f8);
+  }
+  AK::StreamMgr::GetDefaultSettings((AkStreamMgrSettings *)&local_2e8);
+  uVar6 = param_1[7];
+  local_388 = (undefined *)FUN_14070cf50();
+  local_380 = (undefined8 *)((ulonglong)local_380 & 0xffffffffffffff00);
+  FUN_14109e870(uVar6,local_328,0x28,"MatchmakingBackwardsTransitionInfo");
+  local_348 = 0;
+  local_340 = 0;
+  if (local_310 == '\0') {
+    local_358 = 0xc;
+    local_350 = 0;
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14191fbd8;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_1401d5170();
+    local_360 = 0;
+    local_378 = &local_348;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(local_328,"backwardsTransitionReason",&DAT_1418f31df,0);
+  }
+  local_338 = 0;
+  local_330 = 0;
+  if (local_310 == '\0') {
+    local_358 = 0x80000000f;
+    local_350 = 0;
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14196a768;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_14070cb60();
+    local_360 = 0;
+    local_378 = &local_338;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(local_328,"initiatorSummonerIds",&DAT_1418f31df,0x10);
+  }
+  AK::StreamMgr::GetDefaultSettings((AkStreamMgrSettings *)local_328);
+  uVar6 = param_1[7];
+  if ((*(int *)(*(longlong *)((longlong)ThreadLocalStoragePointer + (ulonglong)_tls_index * 8) +
+               0x140) < DAT_141de6078) && (FUN_14184ee74(&DAT_141de6078), DAT_141de6078 == -1)) {
+    _DAT_141de6058 = 0xd9b014a9;
+    _DAT_141de6068 = 0;
+    _DAT_141de6060 = &DAT_141de6068;
+    _DAT_141de6070 = 0;
+    FUN_14022b4a0(&DAT_141de6068,"#%08X",0xd9b014a9);
+    _Init_thread_footer(&DAT_141de6078);
+  }
+  local_380 = (undefined8 *)((ulonglong)local_380 & 0xffffffffffffff00);
+  local_388 = &DAT_141de6058;
+  FUN_14109e870(uVar6,local_328,0xa0,"InProgressGamePayload");
+  local_348 = 0;
+  local_340 = 0;
+  if (local_310 == '\0') {
+    local_358 = 1;
+    local_350 = 0;
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14194dc10;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_1401e0160();
+    local_360 = 0;
+    local_378 = &local_348;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(local_328,"isGameInProgress",&DAT_1418f31df,0);
+  }
+  uVar6 = local_328[0];
+  local_338 = 0;
+  local_330 = 0;
+  if (local_310 == '\0') {
+    local_358 = 0x11;
+    uVar9 = FUN_14070cc80();
+    local_350 = FUN_14108dd90(uVar9,uVar6);
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14191fb90;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_14070cc80();
+    local_360 = 0;
+    local_378 = &local_338;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(local_328,"gameStart",&DAT_1418f31df,8);
+  }
+  AK::StreamMgr::GetDefaultSettings((AkStreamMgrSettings *)local_328);
+  uVar6 = param_1[7];
+  local_388 = (undefined *)FUN_14070d3d0();
+  local_380 = (undefined8 *)((ulonglong)local_380 & 0xffffffffffffff00);
+  FUN_14109e870(uVar6,&local_308,0xc,"PayloadAfkCheckState");
+  local_348 = 0;
+  local_340 = 0;
+  if (local_2f0 == '\0') {
+    local_358 = 7;
+    local_350 = 0;
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14191fb60;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_1401df740();
+    local_360 = 0;
+    local_378 = &local_348;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(&local_308,"maxAfkMillis",&DAT_1418f31df,0);
+  }
+  local_338 = 0;
+  local_330 = 0;
+  if (local_2f0 == '\0') {
+    local_358 = 6;
+    local_350 = 0;
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14191fbc0;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_1401df6b0();
+    local_360 = 0;
+    local_378 = &local_338;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(&local_308,"remainingAfkMillis",&DAT_1418f31df,4);
+  }
+  local_2e8 = 0;
+  local_2e0 = 0;
+  if (local_2f0 == '\0') {
+    local_358 = 1;
+    local_350 = 0;
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14194dc10;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_1401e0160();
+    local_360 = 0;
+    local_378 = &local_2e8;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(&local_308,"afkReady",&DAT_1418f31df,8);
+  }
+  AK::StreamMgr::GetDefaultSettings((AkStreamMgrSettings *)&local_308);
+  uVar6 = param_1[7];
+  local_388 = (undefined *)FUN_14070d460();
+  local_380 = (undefined8 *)((ulonglong)local_380 & 0xffffffffffffff00);
+  FUN_14109e870(uVar6,local_328,0x20,"PayloadMatchmakingState");
+  local_380 = &local_348;
+  local_348 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  local_340 = 0;
+  uVar6 = FUN_14070c1b0(local_328,"estimatedMatchmakingTimeMillis",0,&DAT_1418f31df);
+  local_380 = &local_358;
+  local_358 = 0;
+  local_350 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  FUN_14070c1b0(uVar6,"timeInMatchmakingMillis",8,&DAT_1418f31df);
+  AK::StreamMgr::GetDefaultSettings((AkStreamMgrSettings *)local_328);
+  uVar6 = param_1[7];
+  local_388 = (undefined *)FUN_14070cfe0();
+  local_380 = (undefined8 *)((ulonglong)local_380 & 0xffffffffffffff00);
+  FUN_14109e870(uVar6,&local_2b8,0x58,"MatchmakingPayload");
+  local_348 = 0;
+  local_340 = 0;
+  if (local_2a0 == '\0') {
+    local_358 = 6;
+    local_350 = 0;
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14191fbc0;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_1401df6b0();
+    local_360 = 0;
+    local_378 = &local_348;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(&local_2b8,"counter",&DAT_1418f31df,0);
+  }
+  local_338 = 0;
+  local_330 = 0;
+  if (local_2a0 == '\0') {
+    local_358 = 0xc;
+    local_350 = 0;
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14191fbd8;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_1401d5170();
+    local_360 = 0;
+    local_378 = &local_338;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(&local_2b8,"phaseName",&DAT_1418f31df,8);
+  }
+  local_2e8 = 0;
+  local_2e0 = 0;
+  if (local_2a0 == '\0') {
+    local_358 = 8;
+    local_350 = 0;
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14196a688;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_14070d8e0();
+    local_360 = 0;
+    local_378 = &local_2e8;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(&local_2b8,"queueId",&DAT_1418f31df,0x18);
+  }
+  uVar6 = local_2b8;
+  local_308 = 0;
+  local_300 = 0;
+  if (local_2a0 == '\0') {
+    local_358 = 0x11;
+    uVar9 = FUN_14070d460();
+    local_350 = FUN_14108dd90(uVar9,uVar6);
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14196a780;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_14070c9b0();
+    local_360 = 1;
+    local_378 = &local_308;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(&local_2b8,"matchmakingState",&DAT_1418f31df,0x20);
+  }
+  uVar6 = local_2b8;
+  local_298 = 0;
+  local_290 = 0;
+  if (local_2a0 == '\0') {
+    local_358 = 0x11;
+    uVar9 = FUN_14070d3d0();
+    local_350 = FUN_14108dd90(uVar9,uVar6);
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14196a798;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_14070c920();
+    local_360 = 1;
+    local_378 = &local_298;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(&local_2b8,"afkCheckState",&DAT_1418f31df,0x48);
+  }
+  AK::StreamMgr::GetDefaultSettings((AkStreamMgrSettings *)&local_2b8);
+  uVar6 = param_1[7];
+  local_388 = (undefined *)FUN_14070d070();
+  local_380 = (undefined8 *)((ulonglong)local_380 & 0xffffffffffffff00);
+  FUN_14109e870(uVar6,local_328,0x38,"MatchmakingRemovedPayload");
+  local_348 = 0;
+  local_340 = 0;
+  if (local_310 == '\0') {
+    local_358 = 0xc;
+    local_350 = 0;
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14191fbd8;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_1401d5170();
+    local_360 = 0;
+    local_378 = &local_348;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(local_328,"reason",&DAT_1418f31df,0);
+  }
+  local_338 = 0;
+  local_330 = 0;
+  if (local_310 == '\0') {
+    local_358 = 0x11;
+    uVar6 = FUN_14070cf50();
+    local_350 = FUN_14108dd90(uVar6,local_328[0]);
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14191fb90;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_14070cf50();
+    local_360 = 0;
+    local_378 = &local_338;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(local_328,"backwardsTransitionInfo",&DAT_1418f31df,0x10);
+  }
+  AK::StreamMgr::GetDefaultSettings((AkStreamMgrSettings *)local_328);
+  uVar6 = param_1[7];
+  local_388 = (undefined *)FUN_14070d100();
+  local_380 = (undefined8 *)((ulonglong)local_380 & 0xffffffffffffff00);
+  FUN_14109e870(uVar6,&local_308,0x30,"MatchmakingResponseDto");
+  local_348 = 0;
+  local_340 = 0;
+  if (local_2f0 == '\0') {
+    local_358 = 7;
+    local_350 = 0;
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14191fb60;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_1401df740();
+    local_360 = 0;
+    local_378 = &local_348;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(&local_308,"httpStatus",&DAT_1418f31df,0);
+  }
+  local_338 = 0;
+  local_330 = 0;
+  if (local_2f0 == '\0') {
+    local_358 = 0xc;
+    local_350 = 0;
+    puVar8 = (undefined8 *)FUN_1410dd1b0(8);
+    puVar5 = puVar13;
+    if (puVar8 != (undefined8 *)0x0) {
+      *puVar8 = &PTR_FUN_14191fbd8;
+      puVar5 = puVar8;
+    }
+    local_388 = (undefined *)FUN_1401d5170();
+    local_360 = 0;
+    local_378 = &local_338;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar5;
+    FUN_14107ba00(&local_308,"errorCode",&DAT_1418f31df,8);
+  }
+  uVar6 = local_308;
+  local_2e8 = 0;
+  local_2e0 = 0;
+  if (local_2f0 == '\0') {
+    local_358 = 0x11;
+    uVar9 = FUN_14070d2b0();
+    local_350 = FUN_14108dd90(uVar9,uVar6);
+    puVar5 = (undefined8 *)FUN_1410dd1b0(8);
+    if (puVar5 != (undefined8 *)0x0) {
+      *puVar5 = &PTR_FUN_14191fb90;
+      puVar13 = puVar5;
+    }
+    local_388 = (undefined *)FUN_14070d2b0();
+    local_360 = 0;
+    local_378 = &local_2e8;
+    local_370 = 0;
+    local_380 = &local_358;
+    local_368 = puVar13;
+    FUN_14107ba00(&local_308,"payload",&DAT_1418f31df,0x18);
+  }
+  AK::StreamMgr::GetDefaultSettings((AkStreamMgrSettings *)&local_308);
+  uVar6 = param_1[7];
+  local_388 = (undefined *)FUN_14070d220();
+  local_380 = (undefined8 *)((ulonglong)local_380 & 0xffffffffffffff00);
+  FUN_14109e870(uVar6,local_328,3,"NPEConfigPayload");
+  local_380 = &local_348;
+  local_348 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  local_340 = 0;
+  uVar6 = FUN_14070c280(local_328,"enabled",0,&DAT_1418f31df);
+  local_380 = &local_358;
+  local_358 = 0;
+  local_350 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  uVar6 = FUN_14070c280(uVar6,"shouldShowNPEQueue",1,&DAT_1418f31df);
+  local_380 = &local_338;
+  local_338 = 0;
+  local_330 = 0;
+  local_388 = (undefined *)((ulonglong)local_388 & 0xffffffff00000000);
+  FUN_14070c280(uVar6,"queueBypass",2,&DAT_1418f31df);
+  AK::StreamMgr::GetDefaultSettings((AkStreamMgrSettings *)local_328);
+  FUN_14184f1f0(local_38 ^ (ulonglong)auStack_3a8);
+  return;
+}
+
+
+
+=== SENDTO CALLERS ===

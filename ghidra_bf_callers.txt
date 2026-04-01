@@ -1,0 +1,593 @@
+openjdk version "21.0.10" 2026-01-20 LTS
+OpenJDK Runtime Environment Temurin-21.0.10+7 (build 21.0.10+7-LTS)
+OpenJDK 64-Bit Server VM Temurin-21.0.10+7 (build 21.0.10+7-LTS, mixed mode)
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (707 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (1790 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_project\LoLAnalysis (HeadlessProject)  
+INFO  REPORT: Processing project file: /LoLPrivate.exe (HeadlessAnalyzer)  
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\FindBFCallers.java (HeadlessAnalyzer)  
+INFO  FindBFCallers.java> Image base: 140000000 (GhidraScript)  
+INFO  FindBFCallers.java> 
+========================================== (GhidraScript)  
+INFO  FindBFCallers.java> Finding callers of BF_set_key_v1 at 1410ec460 (GhidraScript)  
+INFO  FindBFCallers.java> ========================================== (GhidraScript)  
+INFO  FindBFCallers.java>   References: 6 (GhidraScript)  
+INFO  FindBFCallers.java> 
+  CALLER: FUN_14058b8d0 at 14058b8d0 (GhidraScript)  
+INFO  FindBFCallers.java>   Call at: 14058ba75 (offset +0x1a5) (GhidraScript)  
+INFO  FindBFCallers.java>   --- Decompiled FUN_14058b8d0 (96 lines) --- (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   void FUN_14058b8d0(longlong param_1,undefined8 param_2,undefined8 *param_3,undefined8 *param_4, (GhidraScript)  
+INFO  FindBFCallers.java>                     undefined8 *param_5) (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   { (GhidraScript)  
+INFO  FindBFCallers.java>     undefined4 uVar1; (GhidraScript)  
+INFO  FindBFCallers.java>     uint uVar2; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 *puVar3; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uVar4; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 *puVar5; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong lVar6; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong *plVar7; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong uVar8; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 auStack_c8 [32]; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_a8; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 *local_a0; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 *local_98; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_88; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_80; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_78; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_70; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uStack_68; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_60; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uStack_58; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_50; (GhidraScript)  
+INFO  FindBFCallers.java>      (GhidraScript)  
+INFO  FindBFCallers.java>     local_50 = DAT_141d28400 ^ (ulonglong)auStack_c8; (GhidraScript)  
+INFO  FindBFCallers.java>     local_88 = param_2; (GhidraScript)  
+INFO  FindBFCallers.java>     puVar3 = (undefined8 *)FUN_14056e310(param_1 + 0x150,&local_88); (GhidraScript)  
+INFO  FindBFCallers.java>     local_80 = CONCAT44(local_80._4_4_,0x20); (GhidraScript)  
+INFO  FindBFCallers.java>     puVar3[6] = local_88; (GhidraScript)  
+INFO  FindBFCallers.java>     uVar4 = param_5[1]; (GhidraScript)  
+INFO  FindBFCallers.java>     *puVar3 = *param_5; (GhidraScript)  
+INFO  FindBFCallers.java>     puVar3[1] = uVar4; (GhidraScript)  
+INFO  FindBFCallers.java>     puVar3[2] = param_5[2]; (GhidraScript)  
+INFO  FindBFCallers.java>     uVar4 = param_5[1]; (GhidraScript)  
+INFO  FindBFCallers.java>     puVar3[3] = *param_5; (GhidraScript)  
+INFO  FindBFCallers.java>     puVar3[4] = uVar4; (GhidraScript)  
+INFO  FindBFCallers.java>     puVar3[5] = param_5[2]; (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = *(undefined4 *)(param_3 + 2); (GhidraScript)  
+INFO  FindBFCallers.java>     local_78 = local_88; (GhidraScript)  
+INFO  FindBFCallers.java>     local_70 = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     uStack_68 = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     local_60 = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     uStack_58 = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     puVar5 = param_3; (GhidraScript)  
+INFO  FindBFCallers.java>     if (0xf < (ulonglong)param_3[3]) { (GhidraScript)  
+INFO  FindBFCallers.java>       puVar5 = (undefined8 *)*param_3; (GhidraScript)  
+INFO  FindBFCallers.java>     } (GhidraScript)  
+INFO  FindBFCallers.java>     uVar4 = FUN_1416847d0(); (GhidraScript)  
+INFO  FindBFCallers.java>     local_98 = &local_80; (GhidraScript)  
+INFO  FindBFCallers.java>     local_a0 = &local_70; (GhidraScript)  
+INFO  FindBFCallers.java>     local_a8 = 8; (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_141684820(uVar4,puVar5,uVar1,&local_78); (GhidraScript)  
+INFO  FindBFCallers.java>     puVar5 = (undefined8 *)((longlong)puVar3 + 0x3c); (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined4 *)(puVar3 + 7) = (undefined4)local_70; (GhidraScript)  
+INFO  FindBFCallers.java>     uVar2 = *(uint *)(param_4 + 1); (GhidraScript)  
+INFO  FindBFCallers.java>     if (uVar2 == 0) { (GhidraScript)  
+INFO  FindBFCallers.java>       *puVar5 = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     } (GhidraScript)  
+INFO  FindBFCallers.java>     else { (GhidraScript)  
+INFO  FindBFCallers.java>       uVar8 = 8; (GhidraScript)  
+INFO  FindBFCallers.java>       if (uVar2 < 8) { (GhidraScript)  
+INFO  FindBFCallers.java>         uVar8 = (ulonglong)uVar2; (GhidraScript)  
+INFO  FindBFCallers.java>       } (GhidraScript)  
+INFO  FindBFCallers.java>       FUN_1418b4300(puVar5,*param_4,uVar8); (GhidraScript)  
+INFO  FindBFCallers.java>       FUN_1418b49a0(uVar8 + (longlong)puVar5,0,8 - uVar8); (GhidraScript)  
+INFO  FindBFCallers.java>     } (GhidraScript)  
+INFO  FindBFCallers.java>     uVar4 = local_88; (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined1 *)((longlong)puVar3 + 0x44) = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     puVar5 = (undefined8 *)FUN_140266d00(param_1 + 0x160,puVar3 + 7); (GhidraScript)  
+INFO  FindBFCallers.java>     *puVar5 = uVar4; (GhidraScript)  
+INFO  FindBFCallers.java>     puVar5 = (undefined8 *)FUN_1401e8d80(&local_70,param_3); (GhidraScript)  
+INFO  FindBFCallers.java>     local_78 = local_88; (GhidraScript)  
+INFO  FindBFCallers.java>     puVar3 = (undefined8 *)FUN_14056db30(param_1 + 0x128,&local_78); (GhidraScript)  
+INFO  FindBFCallers.java>     thunk_FUN_1410e1240(*puVar3,0x1058); (GhidraScript)  
+INFO  FindBFCallers.java>     lVar6 = FUN_1410dd1b0(0x1058); (GhidraScript)  
+INFO  FindBFCallers.java>     if (lVar6 == 0) { (GhidraScript)  
+INFO  FindBFCallers.java>       lVar6 = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     } (GhidraScript)  
+INFO  FindBFCallers.java>     else { (GhidraScript)  
+INFO  FindBFCallers.java>       local_80 = 0; (GhidraScript)  
+INFO  FindBFCallers.java>       puVar3 = puVar5; (GhidraScript)  
+INFO  FindBFCallers.java>       if (0xf < (ulonglong)puVar5[3]) { (GhidraScript)  
+INFO  FindBFCallers.java>         puVar3 = (undefined8 *)*puVar5; (GhidraScript)  
+INFO  FindBFCallers.java>       } (GhidraScript)  
+INFO  FindBFCallers.java>       FUN_1410ec460(lVar6,puVar3,puVar5[2],&local_80); (GhidraScript)  
+INFO  FindBFCallers.java>     } (GhidraScript)  
+INFO  FindBFCallers.java>     plVar7 = (longlong *)FUN_14056db30(param_1 + 0x128,&local_78); (GhidraScript)  
+INFO  FindBFCallers.java>     *plVar7 = lVar6; (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_140229c40(puVar5); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_140229c40(param_3); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14184f1f0(local_50 ^ (ulonglong)auStack_c8); (GhidraScript)  
+INFO  FindBFCallers.java>     return; (GhidraScript)  
+INFO  FindBFCallers.java>   } (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   Callers of FUN_14058b8d0 (3): (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_140571f80 at 140571f80 (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14058b770 at 14058b770 (GhidraScript)  
+INFO  FindBFCallers.java> 
+  CALLER: FUN_140601920 at 140601920 (GhidraScript)  
+INFO  FindBFCallers.java>   Call at: 140601a1f (offset +0xff) (GhidraScript)  
+INFO  FindBFCallers.java>   --- Decompiled FUN_140601920 (80 lines) --- (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   /* WARNING: Function: __chkstk replaced with injection: alloca_probe */ (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   void FUN_140601920(longlong param_1,char *param_2) (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   { (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 auStackY_1208 [32]; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_11d8; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 *local_11d0 [2]; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_11c0; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_11b8 [4]; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 *local_1198; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined4 local_1190; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined4 local_118c; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 local_1188 [272]; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 local_1078 [4192]; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_18; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uStack_10; (GhidraScript)  
+INFO  FindBFCallers.java>      (GhidraScript)  
+INFO  FindBFCallers.java>     uStack_10 = 0x14060193d; (GhidraScript)  
+INFO  FindBFCallers.java>     local_18 = DAT_141d28400 ^ (ulonglong)auStackY_1208; (GhidraScript)  
+INFO  FindBFCallers.java>     local_11b8[0] = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     local_11b8[1] = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     local_11b8[2] = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     local_11b8[3] = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     strlen(param_2); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1401e0ab0(local_11b8,param_2); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1410f18a0(local_11d0,local_11b8); (GhidraScript)  
+INFO  FindBFCallers.java>     if (0xf < (ulonglong)local_11b8[3]) { (GhidraScript)  
+INFO  FindBFCallers.java>       if (0xfff < local_11b8[3] + 1U) { (GhidraScript)  
+INFO  FindBFCallers.java>         if (0x1f < (local_11b8[0] - *(longlong *)(local_11b8[0] + -8)) - 8U) { (GhidraScript)  
+INFO  FindBFCallers.java>                       /* WARNING: Subroutine does not return */ (GhidraScript)  
+INFO  FindBFCallers.java>           _invoke_watson((wchar_t *)0x0,(wchar_t *)0x0,(wchar_t *)0x0,0,0); (GhidraScript)  
+INFO  FindBFCallers.java>         } (GhidraScript)  
+INFO  FindBFCallers.java>       } (GhidraScript)  
+INFO  FindBFCallers.java>       thunk_FUN_1410e1240(); (GhidraScript)  
+INFO  FindBFCallers.java>     } (GhidraScript)  
+INFO  FindBFCallers.java>     if (*(int *)(param_1 + 8) == 0) { (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x80) = *local_11d0[0]; (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x81) = local_11d0[0][1]; (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x82) = local_11d0[0][2]; (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x83) = local_11d0[0][3]; (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x84) = local_11d0[0][4]; (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x85) = local_11d0[0][5]; (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x86) = local_11d0[0][6]; (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x87) = local_11d0[0][7]; (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x88) = local_11d0[0][8]; (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x89) = local_11d0[0][9]; (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x8a) = local_11d0[0][10]; (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x8b) = local_11d0[0][0xb]; (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x8c) = local_11d0[0][0xc]; (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x8d) = local_11d0[0][0xd]; (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x8e) = local_11d0[0][0xe]; (GhidraScript)  
+INFO  FindBFCallers.java>       *(undefined1 *)(param_1 + 0x8f) = local_11d0[0][0xf]; (GhidraScript)  
+INFO  FindBFCallers.java>     } (GhidraScript)  
+INFO  FindBFCallers.java>     else { (GhidraScript)  
+INFO  FindBFCallers.java>       local_1198 = local_1188; (GhidraScript)  
+INFO  FindBFCallers.java>       local_1190 = 0; (GhidraScript)  
+INFO  FindBFCallers.java>       local_118c = 0x100; (GhidraScript)  
+INFO  FindBFCallers.java>       local_1188[0] = 0; (GhidraScript)  
+INFO  FindBFCallers.java>       FUN_1410f5860(&local_1198,&DAT_141905ab4,*(undefined8 *)(param_1 + 0x68)); (GhidraScript)  
+INFO  FindBFCallers.java>       local_11d8 = 0; (GhidraScript)  
+INFO  FindBFCallers.java>       FUN_1410ec460(local_1078,local_1198,local_1190,&local_11d8); (GhidraScript)  
+INFO  FindBFCallers.java>       FUN_1410f2ce0(local_1078,local_11d0[0]); (GhidraScript)  
+INFO  FindBFCallers.java>       FUN_1410ede60(&local_1198); (GhidraScript)  
+INFO  FindBFCallers.java>     } (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined1 *)(param_1 + 0x90) = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     if (local_11d0[0] != (undefined1 *)0x0) { (GhidraScript)  
+INFO  FindBFCallers.java>       if (0xfff < (ulonglong)(local_11c0 - (longlong)local_11d0[0])) { (GhidraScript)  
+INFO  FindBFCallers.java>         if ((undefined1 *)0x1f < local_11d0[0] + (-8 - *(longlong *)(local_11d0[0] + -8))) { (GhidraScript)  
+INFO  FindBFCallers.java>                       /* WARNING: Subroutine does not return */ (GhidraScript)  
+INFO  FindBFCallers.java>           _invoke_watson((wchar_t *)0x0,(wchar_t *)0x0,(wchar_t *)0x0,0,0); (GhidraScript)  
+INFO  FindBFCallers.java>         } (GhidraScript)  
+INFO  FindBFCallers.java>       } (GhidraScript)  
+INFO  FindBFCallers.java>       thunk_FUN_1410e1240(); (GhidraScript)  
+INFO  FindBFCallers.java>     } (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14184f1f0(local_18 ^ (ulonglong)auStackY_1208); (GhidraScript)  
+INFO  FindBFCallers.java>     return; (GhidraScript)  
+INFO  FindBFCallers.java>   } (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   Callers of FUN_140601920 (3): (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1405f9d00 at 1405f9d00 (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14065d0f0 at 14065d0f0 (GhidraScript)  
+INFO  FindBFCallers.java> 
+  CALLER: FUN_1406e5fd0 at 1406e5fd0 (GhidraScript)  
+INFO  FindBFCallers.java>   Call at: 1406e6682 (offset +0x6b2) (GhidraScript)  
+INFO  FindBFCallers.java>   --- Decompiled FUN_1406e5fd0 (528 lines) --- (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   /* WARNING: Removing unreachable block (ram,0x0001406e6395) */ (GhidraScript)  
+INFO  FindBFCallers.java>   /* WARNING: Removing unreachable block (ram,0x0001406e63c8) */ (GhidraScript)  
+INFO  FindBFCallers.java>   /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */ (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   void FUN_1406e5fd0(longlong param_1,undefined8 param_2) (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   { (GhidraScript)  
+INFO  FindBFCallers.java>     code *pcVar1; (GhidraScript)  
+INFO  FindBFCallers.java>     bool bVar2; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 auVar3 [16]; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 auVar4 [16]; (GhidraScript)  
+INFO  FindBFCallers.java>     char cVar5; (GhidraScript)  
+INFO  FindBFCallers.java>     int iVar6; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined4 uVar7; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong uVar8; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong lVar9; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong uVar10; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong lVar11; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uVar12; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined4 *puVar13; (GhidraScript)  
+INFO  FindBFCallers.java>     ushort uVar14; (GhidraScript)  
+INFO  FindBFCallers.java>     int *_Buf2; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 *puVar15; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong lVar16; (GhidraScript)  
+INFO  FindBFCallers.java>     int *piVar17; (GhidraScript)  
+INFO  FindBFCallers.java>     int *piVar18; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined4 *puVar19; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong uVar20; (GhidraScript)  
+INFO  FindBFCallers.java>     char *pcVar21; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong lVar22; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 *puVar23; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong lVar24; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 auStackY_798 [32]; (GhidraScript)  
+INFO  FindBFCallers.java>     short local_768 [2]; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined2 local_764 [2]; (GhidraScript)  
+INFO  FindBFCallers.java>     int local_760 [2]; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_758; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_750; (GhidraScript)  
+INFO  FindBFCallers.java>     uint local_748; (GhidraScript)  
+INFO  FindBFCallers.java>     int local_744; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_740; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_738; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined4 local_730; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_728; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uStack_720; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined4 local_718; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 local_714; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_710; (GhidraScript)  
+INFO  FindBFCallers.java>     uint local_708; (GhidraScript)  
+INFO  FindBFCallers.java>     int local_704; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 local_700; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_6f8; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_6f0; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined2 local_6e8; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_6e6; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_6de; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_6d6; (GhidraScript)  
+INFO  FindBFCallers.java>     int *local_6c8; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_6c0; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_6b8; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_6b0; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_6a8; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 local_6a0 [16]; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_690; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_688; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined *local_680; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_678; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_670; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_668; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_660; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_658; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uStack_650; (GhidraScript)  
+INFO  FindBFCallers.java>     short local_648; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_646 [5]; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined4 local_618; (GhidraScript)  
+INFO  FindBFCallers.java>     short local_614; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 local_610 [16]; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_600; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong uStack_5f8; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 local_5f0; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined7 uStack_5ef; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_5e0; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong uStack_5d8; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_5c8; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong uStack_5c0; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_5b8; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_5b0; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_5a8; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uStack_5a0; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_598; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uStack_590; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_588; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uStack_580; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined4 local_578; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_570; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_568; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_560; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 *local_548; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined4 local_540; (GhidraScript)  
+INFO  FindBFCallers.java>   ... (428 more lines) (GhidraScript)  
+INFO  FindBFCallers.java>   Callers of FUN_1406e5fd0 (3): (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1406fcd00 at 1406fcd00 (GhidraScript)  
+INFO  FindBFCallers.java> 
+  CALLER: FUN_1406c7d10 at 1406c7d10 (GhidraScript)  
+INFO  FindBFCallers.java>   Call at: 1406c80a9 (offset +0x399) (GhidraScript)  
+INFO  FindBFCallers.java>   --- Decompiled FUN_1406c7d10 (245 lines) --- (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   /* WARNING: Removing unreachable block (ram,0x0001406c7faa) */ (GhidraScript)  
+INFO  FindBFCallers.java>   /* WARNING: Removing unreachable block (ram,0x0001406c7fc5) */ (GhidraScript)  
+INFO  FindBFCallers.java>   /* WARNING: Removing unreachable block (ram,0x0001406c7fd1) */ (GhidraScript)  
+INFO  FindBFCallers.java>   /* WARNING: Removing unreachable block (ram,0x0001406c7fd5) */ (GhidraScript)  
+INFO  FindBFCallers.java>   /* WARNING: Removing unreachable block (ram,0x0001406c800d) */ (GhidraScript)  
+INFO  FindBFCallers.java>   /* WARNING: Removing unreachable block (ram,0x0001406c8021) */ (GhidraScript)  
+INFO  FindBFCallers.java>   /* WARNING: Removing unreachable block (ram,0x0001406c803a) */ (GhidraScript)  
+INFO  FindBFCallers.java>   /* WARNING: Removing unreachable block (ram,0x0001406c803f) */ (GhidraScript)  
+INFO  FindBFCallers.java>   /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */ (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   void FUN_1406c7d10(longlong param_1,undefined8 *param_2,undefined8 param_3,char *param_4, (GhidraScript)  
+INFO  FindBFCallers.java>                     undefined8 param_5,undefined8 param_6) (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   { (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 *puVar1; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uVar2; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong uVar3; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uVar4; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong lVar5; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined4 uVar6; (GhidraScript)  
+INFO  FindBFCallers.java>     char *pcVar7; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong lVar8; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 *puVar9; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 *puVar10; (GhidraScript)  
+INFO  FindBFCallers.java>     float fVar11; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 auStackY_1e8 [32]; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 local_1b0 [24]; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_198; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uStack_190; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_188; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong uStack_180; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_178; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uStack_170; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_168; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong uStack_160; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_158; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uStack_150; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_148; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong uStack_140; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 local_138; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_130; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_128; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong lStack_120; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined1 local_118; (GhidraScript)  
+INFO  FindBFCallers.java>     char *local_110; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uStack_108; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_100; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_f8; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_f0; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_e8; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong lStack_e0; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined4 local_d8; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_d0; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_c8; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uStack_c0; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined2 local_b8; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_b0; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uStack_a8; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_a0; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_98; (GhidraScript)  
+INFO  FindBFCallers.java>     longlong local_88; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uStack_80; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 local_78; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong uStack_70; (GhidraScript)  
+INFO  FindBFCallers.java>     ulonglong local_68; (GhidraScript)  
+INFO  FindBFCallers.java>      (GhidraScript)  
+INFO  FindBFCallers.java>     local_68 = DAT_141d28400 ^ (ulonglong)auStackY_1e8; (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1401e8d80(param_1,param_3); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar6 = DAT_14190dfa0; (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined8 *)(param_1 + 0x20) = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined8 *)(param_1 + 0x28) = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined8 *)(param_1 + 0x30) = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined8 *)(param_1 + 0x38) = 0xf; (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined1 *)(param_1 + 0x20) = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined8 *)(param_1 + 0x40) = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined8 *)(param_1 + 0x48) = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined8 *)(param_1 + 0x50) = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     fVar11 = (float)FUN_14109af10("Replay","MinLag",uVar6); (GhidraScript)  
+INFO  FindBFCallers.java>     *(int *)(param_1 + 0x58) = (int)(fVar11 * DAT_1418f85a4); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar6 = FUN_14109aea0("Replay","MinBackfillDelay",200); (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined4 *)(param_1 + 0x5c) = uVar6; (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined8 *)(param_1 + 0x70) = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined8 *)(param_1 + 0x78) = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined **)(param_1 + 0x80) = PTR_DAT_1419ecda8; (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined8 *)(param_1 + 0x88) = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     *(undefined4 *)(param_1 + 0x90) = 5000; (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1410ec1c0(param_1 + 0x98,param_5); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1410ec1c0(param_1 + 0xa8,param_6); (GhidraScript)  
+INFO  FindBFCallers.java>     if (0xf < *(ulonglong *)(param_4 + 0x18)) { (GhidraScript)  
+INFO  FindBFCallers.java>       param_4 = *(char **)param_4; (GhidraScript)  
+INFO  FindBFCallers.java>     } (GhidraScript)  
+INFO  FindBFCallers.java>     local_88 = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     uStack_80 = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     local_78 = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     uStack_70 = 0; (GhidraScript)  
+INFO  FindBFCallers.java>     strlen(param_4); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1401e0ab0(&local_88,param_4); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1410f18a0(local_1b0,&local_88); (GhidraScript)  
+INFO  FindBFCallers.java>     if (0xf < uStack_70) { (GhidraScript)  
+INFO  FindBFCallers.java>   ... (145 more lines) (GhidraScript)  
+INFO  FindBFCallers.java>   Callers of FUN_1406c7d10 (5): (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1406c7740 at 1406c7740 (GhidraScript)  
+INFO  FindBFCallers.java> 
+========================================== (GhidraScript)  
+INFO  FindBFCallers.java> Finding callers of BF_set_key_v2_openssl at 14174f140 (GhidraScript)  
+INFO  FindBFCallers.java> ========================================== (GhidraScript)  
+INFO  FindBFCallers.java>   References: 2 (GhidraScript)  
+INFO  FindBFCallers.java> 
+  CALLER: FUN_141725310 at 141725310 (GhidraScript)  
+INFO  FindBFCallers.java>   Call at: 141725345 (offset +0x35) (GhidraScript)  
+INFO  FindBFCallers.java>   --- Decompiled FUN_141725310 (15 lines) --- (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   /* WARNING: Function: __chkstk replaced with injection: alloca_probe */ (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   undefined8 FUN_141725310(undefined8 param_1,undefined8 param_2) (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   { (GhidraScript)  
+INFO  FindBFCallers.java>     undefined4 uVar1; (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uVar2; (GhidraScript)  
+INFO  FindBFCallers.java>      (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_141456c50(); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar2 = FUN_14041cb20(param_1); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14174f140(uVar2,uVar1,param_2); (GhidraScript)  
+INFO  FindBFCallers.java>     return 1; (GhidraScript)  
+INFO  FindBFCallers.java>   } (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   Callers of FUN_141725310 (5): (GhidraScript)  
+INFO  FindBFCallers.java> 
+========================================== (GhidraScript)  
+INFO  FindBFCallers.java> Finding callers of EVP_bf_xxx at 141725300 (GhidraScript)  
+INFO  FindBFCallers.java> ========================================== (GhidraScript)  
+INFO  FindBFCallers.java>   References: 1 (GhidraScript)  
+INFO  FindBFCallers.java> 
+  CALLER: FUN_1416e3ce0 at 1416e3ce0 (GhidraScript)  
+INFO  FindBFCallers.java>   Call at: 1416e3d6f (offset +0x8f) (GhidraScript)  
+INFO  FindBFCallers.java>   --- Decompiled FUN_1416e3ce0 (341 lines) --- (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   /* WARNING: Function: __chkstk replaced with injection: alloca_probe */ (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   void FUN_1416e3ce0(void) (GhidraScript)  
+INFO  FindBFCallers.java>    (GhidraScript)  
+INFO  FindBFCallers.java>   { (GhidraScript)  
+INFO  FindBFCallers.java>     undefined8 uVar1; (GhidraScript)  
+INFO  FindBFCallers.java>      (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416bd9a0(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416bd990(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416bd9b0(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416be660(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416be610(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416be600(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416be620(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416bd9d0(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416be670(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416be630(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_141725300(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870(&DAT_141ab2540,0x8002,"DESX-CBC"); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870(&DAT_141ab2548,0x8002,"DESX-CBC"); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416bd980(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870(&DAT_141ab2550,0x8002,"DES-CBC"); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870(&DAT_141ab2554,0x8002,"DES-CBC"); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416be650(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416be5f0(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870(&DAT_141ab2558,0x8002,"DES-EDE3-CBC"); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870(&DAT_141ab2560,0x8002,"DES-EDE3-CBC"); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416bd9c0(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416be5d0(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870("DES-EDE-ECB",0x8002,"DES-EDE"); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870("des-ede-ecb",0x8002,"DES-EDE"); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416be5e0(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870("DES-EDE3-ECB",0x8002,"DES-EDE3"); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870("des-ede3-ecb",0x8002,"DES-EDE3"); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416be640(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870("des3-wrap",0x8002,"id-smime-alg-CMS3DESwrap"); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416be980(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416be990(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416bf120(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416bf5e0(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416bf5d0(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416bf5f0(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416bf5c0(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870(&DAT_141a77a44,0x8002,"IDEA-CBC"); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870(&DAT_141ab25b4,0x8002,"IDEA-CBC"); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416c6390(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416c6380(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416c63a0(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416c6370(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870(&DAT_141a77a4c,0x8002,"SEED-CBC"); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870(&DAT_14191c3a0,0x8002,"SEED-CBC"); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_141726180(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_141726150(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_141726160(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_141726190(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_141726170(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870(&DAT_141ab25bc,0x8002,"SM4-CBC"); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_1416bc870(&DAT_141ab25c0,0x8002,"SM4-CBC"); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416bfd10(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416bfd00(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416bfd20(); (GhidraScript)  
+INFO  FindBFCallers.java>     FUN_14169f950(uVar1); (GhidraScript)  
+INFO  FindBFCallers.java>     uVar1 = FUN_1416bfcf0(); (GhidraScript)  
+INFO  FindBFCallers.java>   ... (241 more lines) (GhidraScript)  
+INFO  FindBFCallers.java>   Callers of FUN_1416e3ce0 (2): (GhidraScript)  
+INFO  FindBFCallers.java> 
+=== DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /LoLPrivate.exe (HeadlessAnalyzer)  
