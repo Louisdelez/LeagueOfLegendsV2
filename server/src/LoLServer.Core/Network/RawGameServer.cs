@@ -171,6 +171,32 @@ public class RawGameServer : IGameServer, IDisposable
             EnsureClientInfo(peer);
         }
 
+        // MINIMAL PLAINTEXT: 7 bytes after token = 0 CFB blocks = NO encryption!
+        // Format: [4B token][2B peerID=0][4B nonce][1B flags=0x03] = 11 bytes total
+        {
+            uint nonce = 0xB5053BE0; // CRC with local_res10=1, peerID=0, no payload
+            var minimal = new byte[11];
+            WriteBE32(minimal, 0, peer.ConnectToken); // token (4B, skipped by client)
+            WriteLE16(minimal, 4, 0); // peerID = 0
+            WriteBE32(minimal, 6, nonce); // CRC nonce
+            minimal[10] = 0x03; // flags = VERIFY_CONNECT
+            Log($"  [MINIMAL-VC] 11B plaintext, nonce=0x{nonce:X8}");
+            Send(minimal, peer);
+
+            // Also try with nonce in LE
+            var minimalLE = (byte[])minimal.Clone();
+            WriteLE32(minimalLE, 6, nonce);
+            Log($"  [MINIMAL-VC-LE] 11B nonce_LE");
+            Send(minimalLE, peer);
+
+            // Try with local_res10 = 0 (nonce = 0xB2F3D8E6)
+            uint nonce0 = 0xB2F3D8E6;
+            var min0 = (byte[])minimal.Clone();
+            WriteBE32(min0, 6, nonce0);
+            Log($"  [MINIMAL-VC-LR0] 11B nonce=0x{nonce0:X8} (local_res10=0)");
+            Send(min0, peer);
+        }
+
         // CORRECT FORMAT: Double CFB with computed CRC nonce
         // Format: [2B peerID LE][4B CRC_nonce BE][1B flags][36B VERIFY_CONNECT body BE]
         // Then prepend 4B token, double CFB encrypt, send
