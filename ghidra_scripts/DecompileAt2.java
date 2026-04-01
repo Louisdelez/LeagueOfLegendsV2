@@ -27,7 +27,7 @@ public class DecompileAt2 extends GhidraScript {
                 ghidra.app.decompiler.DecompileResults r = d.decompileFunction(f, 120, monitor);
                 if (r.decompileCompleted()) {
                     String[] lines = r.getDecompiledFunction().getC().split("\n");
-                    for (int i = 0; i < Math.min(lines.length, 200); i++) println(lines[i]);
+                    for (int i = 0; i < Math.min(lines.length, 500); i++) println(lines[i]);
                 }
                 d.dispose();
 

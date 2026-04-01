@@ -235,15 +235,54 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
             Log("  REGISTERS: RBX=%p R12=%p R13=%p R14=%p R15=%p RDI=%p RSI=%p",
                 rbx_val, r12_val, r13_val, r14_val, r15_val, rdi_val, rsi_val);
 
-            // RBX = param_1. Dump its structure directly.
+            // RBX = param_1. Read the queue and follow pointers.
             unsigned char *p1 = (unsigned char*)rbx_val;
-            if (p1 && !IsBadReadPtr(p1, 0x100)) {
-                Log("  param_1 dump (256 bytes at RBX):");
-                for (int row = 0; row < 16; row++) {
-                    char hex[128] = {0};
-                    for (int j = 0; j < 16; j++)
-                        sprintf(hex + j*3, "%02X ", p1[row*16 + j]);
-                    Log("    +0x%02X: %s", row*16, hex);
+            if (p1 && !IsBadReadPtr(p1, 0xE0)) {
+                UINT64 qbase = *(UINT64*)(p1 + 0xB8);
+                UINT64 qidx  = *(UINT64*)(p1 + 0xC0);
+                UINT64 qmask = *(UINT64*)(p1 + 0xC8);
+                UINT64 qcount = *(UINT64*)(p1 + 0xD0);
+                Log("  QUEUE: base=%p idx=%llu mask=%llu count=%llu", (void*)qbase, qidx, qmask, qcount);
+
+                // The last dequeued entry is at index (qidx-1) & mask
+                // But mask might be 0 (wrong offset). Try reading queue entries directly.
+                // The queue base points to an array of pointers.
+                if (qbase > 0x10000 && !IsBadReadPtr((void*)qbase, 64)) {
+                    // Read entry [0] in detail (the last dequeued packet)
+                    UINT64 entry0 = *(UINT64*)qbase;
+                    if (entry0 > 0x10000 && !IsBadReadPtr((void*)entry0, 0x300)) {
+                        Log("  QUEUE ENTRY [0] at %p (full dump, 768 bytes):", (void*)entry0);
+                        unsigned char *ep = (unsigned char*)entry0;
+                        for (int row = 0; row < 48; row++) {
+                            char hex[128] = {0};
+                            for (int j = 0; j < 16; j++)
+                                sprintf(hex + j*3, "%02X ", ep[row*16 + j]);
+                            Log("    +0x%03X: %s", row*16, hex);
+                        }
+                        // Save to file
+                        char fn[MAX_PATH];
+                        snprintf(fn, MAX_PATH, "%s\\QUEUE_ENTRY_%p.bin", logDir, (void*)entry0);
+                        FILE *f = fopen(fn, "wb");
+                        if (f) { fwrite(ep, 1, 0x300, f); fclose(f); }
+                    }
+                }
+
+                // Also try: the entry the send loop just read
+                // From Ghidra: puVar2 = *(ptr*)(qbase + ((qidx-1) & qmask) * 8)
+                // If mask=0, try mask=7 (power of 2 - 1 for 8 entries)
+                for (UINT64 testMask = 0; testMask <= 15; testMask++) {
+                    UINT64 entryIdx = (qidx - 1) & testMask;
+                    if (!IsBadReadPtr((void*)(qbase + entryIdx * 8), 8)) {
+                        UINT64 entryPtr = *(UINT64*)(qbase + entryIdx * 8);
+                        if (entryPtr > 0x10000 && !IsBadReadPtr((void*)entryPtr, 32)) {
+                            Log("  entry(mask=%llu, idx=%llu): %p first8=%02X%02X%02X%02X%02X%02X%02X%02X",
+                                testMask, entryIdx, (void*)entryPtr,
+                                ((unsigned char*)entryPtr)[0], ((unsigned char*)entryPtr)[1],
+                                ((unsigned char*)entryPtr)[2], ((unsigned char*)entryPtr)[3],
+                                ((unsigned char*)entryPtr)[4], ((unsigned char*)entryPtr)[5],
+                                ((unsigned char*)entryPtr)[6], ((unsigned char*)entryPtr)[7]);
+                        }
+                    }
                 }
             }
 
