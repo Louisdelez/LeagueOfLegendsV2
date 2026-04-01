@@ -171,13 +171,12 @@ public class RawGameServer : IGameServer, IDisposable
             EnsureClientInfo(peer);
         }
 
-        // Send VERIFY_CONNECT with SINGLE CFB (confirmed by decrypt analysis)
-        // The client uses SINGLE CFB from byte 12 (after 8B LNPBlob + 4B token)
-        // For server->client, format is just [single CFB encrypted ENet data]
-        // The ENet header: [4B sessionID=0][2B peerID|flags][2B sentTime][commands...]
+        // Send VERIFY_CONNECT: try WITH token prefix (like client's format)
+        // Client sends: [LNPBlob][4B token EDE36B43][single CFB data]
+        // Server should send: [4B token][single CFB data] (no LNPBlob)
         SendVerifyConnect(peer);
 
-        // Also echo for comparison
+        // Also echo for handshake progression
         if (data.Length > 8)
         {
             var echo = new byte[data.Length - 8];
@@ -257,7 +256,7 @@ public class RawGameServer : IGameServer, IDisposable
         plaintext[p] = flags; p += 1;
         Array.Copy(body, 0, plaintext, p, body.Length);
 
-        // --- ALSO send standard ENet VERIFY_CONNECT with SINGLE CFB ---
+        // --- Send ENet VERIFY_CONNECT with SINGLE CFB + token prefix ---
         // Analysis shows client uses SINGLE CFB, NOT double!
         // Standard ENet: [4B sessID][2B peerID|flags][2B sentTime][cmd...][body...]
         {
@@ -272,8 +271,36 @@ public class RawGameServer : IGameServer, IDisposable
             Array.Copy(body, 0, enetPlain, ep, body.Length);
 
             var singleEnc = CfbEncrypt(enetPlain);
-            Log($"  [VC-SINGLE] ENet single CFB ({singleEnc.Length}B): enc={Hex(singleEnc, 20)}");
+
+            // V1: Just single CFB (no prefix)
+            Log($"  [VC-S1] Single CFB no prefix ({singleEnc.Length}B)");
             Send(singleEnc, peer);
+
+            // V2: Token prefix + single CFB
+            var withToken = new byte[4 + singleEnc.Length];
+            WriteBE32(withToken, 0, peer.ConnectToken); // EDE36B43
+            Array.Copy(singleEnc, 0, withToken, 4, singleEnc.Length);
+            Log($"  [VC-S2] Token + single CFB ({withToken.Length}B)");
+            Send(withToken, peer);
+
+            // V3: Token prefix + single CFB (LE token)
+            var withTokenLE = new byte[4 + singleEnc.Length];
+            WriteLE32(withTokenLE, 0, peer.ConnectToken);
+            Array.Copy(singleEnc, 0, withTokenLE, 4, singleEnc.Length);
+            Log($"  [VC-S3] Token(LE) + single CFB ({withTokenLE.Length}B)");
+            Send(withTokenLE, peer);
+
+            // V4: Double CFB with ENet format (no CRC nonce)
+            var dblEnc = DoubleCfbEncrypt(enetPlain);
+            Log($"  [VC-D1] Double CFB ENet ({dblEnc.Length}B)");
+            Send(dblEnc, peer);
+
+            // V5: Token + double CFB ENet
+            var dblWithToken = new byte[4 + dblEnc.Length];
+            WriteBE32(dblWithToken, 0, peer.ConnectToken);
+            Array.Copy(dblEnc, 0, dblWithToken, 4, dblEnc.Length);
+            Log($"  [VC-D2] Token + double CFB ENet ({dblWithToken.Length}B)");
+            Send(dblWithToken, peer);
         }
 
         // Also send the double CFB version (original)
