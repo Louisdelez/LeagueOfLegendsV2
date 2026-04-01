@@ -38,7 +38,7 @@ public static class QuickDecrypt
                 var pkt = File.ReadAllBytes(testFile);
                 // Extract encrypted data: bytes 12-518 (skip LNPBlob+token)
                 // Try different encrypted region sizes (uVar16 from FUN_14058ef90)
-                foreach (int tryLen in new[] { 40, 48, 43, 39, 504, 507 })
+                foreach (int tryLen in new[] { 505, 503, 501, 500, 499, 504, 507, 40, 48 })
                 {
                     int useLen = Math.Min(tryLen, pkt.Length - 12);
                     var tryEnc = new byte[useLen];

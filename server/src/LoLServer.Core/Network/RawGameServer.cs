@@ -245,11 +245,22 @@ public class RawGameServer : IGameServer, IDisposable
             Send(enc, peer);
         }
 
-        // Echo for handshake progression
+        // SIDE-CHANNEL: Send echo with ONE byte flipped
+        // If the client accepts (sends different packet), the flipped byte doesn't matter.
+        // If rejected (client retransmits 519B), the byte IS validated.
         if (data.Length > 8)
         {
             var echo = new byte[data.Length - 8];
             Array.Copy(data, 8, echo, 0, echo.Length);
+
+            // Flip byte at position = packetCount (test one byte per packet)
+            int flipPos = peer.PacketCount - 1; // 0-based
+            if (flipPos >= 0 && flipPos < echo.Length)
+            {
+                echo[flipPos] ^= 0xFF; // flip all bits of this byte
+                Log($"  [FLIP] Flipped byte {flipPos} of echo (was 0x{(byte)(echo[flipPos] ^ 0xFF):X2})");
+            }
+
             Send(echo, peer);
         }
 
