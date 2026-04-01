@@ -456,6 +456,107 @@ public class RawGameServer : IGameServer, IDisposable
             peer.OutgoingPeerID, 996, 32768, 32, 0, 0, 32, 2, 2,
             appendConnectId: true, useLittleEndian: false, skipEncrypt: false);
 
+        // === CRC32 CHECKSUM VARIANTS ===
+        // ENet can prepend a 4-byte CRC32 before the header. If the client has checksum enabled,
+        // it silently drops packets without valid CRC.
+        {
+            var basePlainCrc = new byte[52]; // 4B CRC + 48B packet
+            int o = 4; // leave room for CRC
+            WriteBE32(basePlainCrc, o, _sessionId); o += 4;
+            WriteBE16(basePlainCrc, o, (ushort)(peer.OutgoingPeerID | 0x8000)); o += 2;
+            WriteBE16(basePlainCrc, o, sentTime); o += 2;
+            basePlainCrc[o] = 0x83; o++;
+            basePlainCrc[o] = 0xFF; o++;
+            WriteBE16(basePlainCrc, o, 1); o += 2;
+            WriteBE16(basePlainCrc, o, peer.OutgoingPeerID); o += 2;
+            WriteBE16(basePlainCrc, o, 996); o += 2;
+            WriteBE32(basePlainCrc, o, 32768); o += 4;
+            WriteBE32(basePlainCrc, o, 32); o += 4;
+            WriteBE32(basePlainCrc, o, 0); o += 4;
+            WriteBE32(basePlainCrc, o, 0); o += 4;
+            WriteBE32(basePlainCrc, o, 32); o += 4;
+            WriteBE32(basePlainCrc, o, 2); o += 4;
+            WriteBE32(basePlainCrc, o, 2); o += 4;
+
+            // Compute CRC32 over the packet (with CRC field = 0)
+            uint crc = Crc32(basePlainCrc);
+            WriteBE32(basePlainCrc, 0, crc);
+
+            // V-CRC1: Single CFB with CRC32
+            var encCrc = CfbEncrypt(basePlainCrc);
+            variantNum++;
+            Log($"  [V{variantNum:D2}] CRC32 + single CFB | {encCrc.Length}B crc=0x{crc:X8}");
+            Send(encCrc, peer);
+
+            // V-CRC2: CRC32 in LE
+            WriteLE32(basePlainCrc, 0, crc);
+            encCrc = CfbEncrypt(basePlainCrc);
+            variantNum++;
+            Log($"  [V{variantNum:D2}] CRC32_LE + single CFB | {encCrc.Length}B");
+            Send(encCrc, peer);
+
+            // V-CRC3: Double CFB with CRC32 BE
+            WriteBE32(basePlainCrc, 0, crc);
+            encCrc = DoubleCfbEncrypt(basePlainCrc);
+            variantNum++;
+            Log($"  [V{variantNum:D2}] CRC32 + double CFB | {encCrc.Length}B");
+            Send(encCrc, peer);
+        }
+
+        // === DOUBLE CFB VARIANTS ===
+        // Maybe the client decrypts with double CFB, not single!
+        {
+            // Build baseline plaintext VERIFY_CONNECT
+            var basePlain = new byte[48];
+            int o = 0;
+            WriteBE32(basePlain, o, _sessionId); o += 4;
+            WriteBE16(basePlain, o, (ushort)(peer.OutgoingPeerID | 0x8000)); o += 2;
+            WriteBE16(basePlain, o, sentTime); o += 2;
+            basePlain[o] = 0x83; o++;
+            basePlain[o] = 0xFF; o++;
+            WriteBE16(basePlain, o, 1); o += 2;
+            WriteBE16(basePlain, o, peer.OutgoingPeerID); o += 2;
+            WriteBE16(basePlain, o, 996); o += 2;
+            WriteBE32(basePlain, o, 32768); o += 4;
+            WriteBE32(basePlain, o, 32); o += 4;
+            WriteBE32(basePlain, o, 0); o += 4;
+            WriteBE32(basePlain, o, 0); o += 4;
+            WriteBE32(basePlain, o, 32); o += 4;
+            WriteBE32(basePlain, o, 2); o += 4;
+            WriteBE32(basePlain, o, 2); o += 4;
+
+            // V31: Double CFB encrypted baseline
+            var dblEnc = DoubleCfbEncrypt(basePlain);
+            variantNum++;
+            Log($"  [V{variantNum:D2}] DOUBLE CFB baseline | {dblEnc.Length}B");
+            Send(dblEnc, peer);
+
+            // V32: Double CFB with connectID (52B)
+            var plainWithConn = new byte[52];
+            Array.Copy(basePlain, plainWithConn, 48);
+            WriteBE32(plainWithConn, 48, peer.ConnectToken);
+            dblEnc = DoubleCfbEncrypt(plainWithConn);
+            variantNum++;
+            Log($"  [V{variantNum:D2}] DOUBLE CFB + connID | {dblEnc.Length}B");
+            Send(dblEnc, peer);
+
+            // V33: Double CFB with sessID=connToken
+            var plainToken = (byte[])basePlain.Clone();
+            WriteBE32(plainToken, 0, peer.ConnectToken);
+            dblEnc = DoubleCfbEncrypt(plainToken);
+            variantNum++;
+            Log($"  [V{variantNum:D2}] DOUBLE CFB sessID=token | {dblEnc.Length}B");
+            Send(dblEnc, peer);
+
+            // V34: Double CFB with sessID=0
+            var plainZero = (byte[])basePlain.Clone();
+            WriteBE32(plainZero, 0, 0);
+            dblEnc = DoubleCfbEncrypt(plainZero);
+            variantNum++;
+            Log($"  [V{variantNum:D2}] DOUBLE CFB sessID=0 | {dblEnc.Length}B");
+            Send(dblEnc, peer);
+        }
+
         // === NEW: Hybrid format - plaintext sessionID prefix + encrypted ENet ===
         // The Riot server response starts with sessionID in clear (b2cc6caa),
         // followed by encrypted data. Maybe the client checks the first 4 bytes.
@@ -584,6 +685,22 @@ public class RawGameServer : IGameServer, IDisposable
     }
 
     /// <summary>
+    /// Double CFB encrypt: CFB encrypt → reverse → CFB encrypt (both IV=0).
+    /// This matches the game's FUN_14058ef90 encryption pattern.
+    /// </summary>
+    private byte[] DoubleCfbEncrypt(byte[] plaintext)
+    {
+        // Pass 1: CFB encrypt
+        var result = CfbEncrypt(plaintext);
+        // Reverse processed blocks
+        int processed = (result.Length / 8) * 8;
+        Array.Reverse(result, 0, processed);
+        // Pass 2: CFB encrypt
+        result = CfbEncrypt(result);
+        return result;
+    }
+
+    /// <summary>
     /// Decrypt with Blowfish CFB using fresh IV=zeros (per-packet).
     /// </summary>
     private byte[] CfbDecrypt(byte[] ciphertext)
@@ -629,6 +746,19 @@ public class RawGameServer : IGameServer, IDisposable
     private static void WriteLE16(byte[] buf, int off, ushort val) { buf[off] = (byte)val; buf[off + 1] = (byte)(val >> 8); }
     private static void WriteLE32(byte[] buf, int off, uint val) { buf[off] = (byte)val; buf[off + 1] = (byte)(val >> 8); buf[off + 2] = (byte)(val >> 16); buf[off + 3] = (byte)(val >> 24); }
     private static string Hex(byte[] d, int max = 32) => BitConverter.ToString(d, 0, Math.Min(max, d.Length));
+
+    /// <summary>ENet-compatible CRC32 (standard CRC32 / ISO 3309)</summary>
+    private static uint Crc32(byte[] data)
+    {
+        uint crc = 0xFFFFFFFF;
+        foreach (byte b in data)
+        {
+            crc ^= b;
+            for (int i = 0; i < 8; i++)
+                crc = (crc >> 1) ^ (0xEDB88320 & ~((crc & 1) - 1));
+        }
+        return ~crc;
+    }
 
     private ClientInfo EnsureClientInfo(PeerInfo peer)
     {
