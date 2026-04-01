@@ -257,6 +257,11 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                         if (left > 0x10000 && !IsBadReadPtr((void*)left, 0x50)) {
                             // Node layout: left(8) parent(8) right(8) color(4) pad(4) key(8) value(8)
                             // Try different offsets for the value
+                            // Dump the TREE KEY at node+0x20 (8 bytes) - critical for recv crypto lookup
+                            if (!IsBadReadPtr((void*)(left + 0x20), 8)) {
+                                UINT64 treeKey = *(UINT64*)(left + 0x20);
+                                Log("  TREE_KEY at node+0x20 = 0x%016llX (%lld)", treeKey, treeKey);
+                            }
                             for (int voff = 0x20; voff <= 0x40; voff += 8) {
                                 UINT64 val = *(UINT64*)(left + voff);
                                 if (val > 0x10000 && !IsBadReadPtr((void*)val, 0x20)) {
