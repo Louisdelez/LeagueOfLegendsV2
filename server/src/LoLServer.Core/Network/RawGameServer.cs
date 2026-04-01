@@ -577,20 +577,20 @@ public class RawGameServer : IGameServer, IDisposable
     /// </summary>
     private byte[] CfbEncrypt(byte[] plaintext)
     {
-        var result = new byte[plaintext.Length];
+        var result = (byte[])plaintext.Clone(); // start with copy (trailing bytes stay as-is!)
         var feedback = new byte[8]; // IV = zeros
+        int fullBlocks = plaintext.Length / 8; // ONLY full blocks! (game: param_3 >> 3)
 
-        for (int i = 0; i < plaintext.Length; i += 8)
+        for (int block = 0; block < fullBlocks; block++)
         {
+            int i = block * 8;
             var keystream = _cipher.EncryptBlock(feedback);
-            int blockLen = Math.Min(8, plaintext.Length - i);
-            for (int j = 0; j < blockLen; j++)
+            for (int j = 0; j < 8; j++)
                 result[i + j] = (byte)(plaintext[i + j] ^ keystream[j]);
 
-            // CFB feedback: ciphertext becomes next IV
-            Array.Copy(result, i, feedback, 0, blockLen);
-            if (blockLen < 8) Array.Clear(feedback, blockLen, 8 - blockLen);
+            Array.Copy(result, i, feedback, 0, 8);
         }
+        // Remaining bytes (plaintext.Length % 8) are NOT encrypted! (matches game behavior)
 
         return result;
     }
@@ -615,23 +615,19 @@ public class RawGameServer : IGameServer, IDisposable
     /// </summary>
     private byte[] CfbDecrypt(byte[] ciphertext)
     {
-        var result = new byte[ciphertext.Length];
+        var result = (byte[])ciphertext.Clone(); // trailing bytes stay as-is
         var feedback = new byte[8]; // IV = zeros
+        int fullBlocks = ciphertext.Length / 8; // ONLY full blocks!
 
-        for (int i = 0; i < ciphertext.Length; i += 8)
+        for (int block = 0; block < fullBlocks; block++)
         {
+            int i = block * 8;
             var keystream = _cipher.EncryptBlock(feedback);
-            int blockLen = Math.Min(8, ciphertext.Length - i);
-
-            // Save ciphertext for feedback BEFORE XOR
-            var nextFeedback = new byte[8];
-            Array.Copy(ciphertext, i, nextFeedback, 0, blockLen);
-
-            for (int j = 0; j < blockLen; j++)
+            Array.Copy(ciphertext, i, feedback, 0, 8); // feedback = input BEFORE XOR
+            for (int j = 0; j < 8; j++)
                 result[i + j] = (byte)(ciphertext[i + j] ^ keystream[j]);
-
-            feedback = nextFeedback;
         }
+        // Remaining bytes NOT decrypted (matches game behavior)
 
         return result;
     }
