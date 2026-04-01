@@ -171,6 +171,54 @@ public class RawGameServer : IGameServer, IDisposable
             EnsureClientInfo(peer);
         }
 
+        // CORRECT FORMAT: Double CFB with computed CRC nonce
+        // Format: [2B peerID LE][4B CRC_nonce BE][1B flags][36B VERIFY_CONNECT body BE]
+        // Then prepend 4B token, double CFB encrypt, send
+        {
+            byte[] verifyBody = {
+                0x00, 0x01,  // outPeerID = 1
+                0x03, 0xE4,  // MTU = 996
+                0x00, 0x00, 0x80, 0x00,  // windowSize = 32768
+                0x00, 0x00, 0x00, 0x20,  // channelCount = 32
+                0x00, 0x00, 0x00, 0x00,  // inBW
+                0x00, 0x00, 0x00, 0x00,  // outBW
+                0x00, 0x00, 0x00, 0x20,  // throttleInt
+                0x00, 0x00, 0x00, 0x02,  // throttleAcc
+                0x00, 0x00, 0x00, 0x02,  // throttleDec
+            };
+
+            // Compute CRC nonce: peerID=0, local_res10=1, no timestamp, payload=verifyBody
+            byte peerLo = 0, peerHi = 0;
+            uint crc = ((uint)peerLo | 0xFFFFFF00u) ^ 0xB1F740B4u;
+            crc = CrcByte(crc, peerHi);
+            byte[] lr = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+            foreach (var b in lr) crc = CrcByte(crc, b);
+            for (int i = 0; i < 8; i++) crc = CrcByte(crc, 0); // timestamp
+            foreach (var b in verifyBody) crc = CrcByte(crc, b);
+            uint nonce = ~crc;
+
+            // Build plaintext
+            var pt = new byte[2 + 4 + 1 + verifyBody.Length]; // 39 bytes
+            WriteLE16(pt, 0, 0); // peerID = 0
+            WriteBE32(pt, 2, nonce); // CRC nonce
+            pt[6] = 0x03; // flags = VERIFY_CONNECT (cmd type 3)
+            Array.Copy(verifyBody, 0, pt, 7, verifyBody.Length);
+
+            // Double CFB encrypt
+            var enc = DoubleCfbEncrypt(pt);
+
+            // Send with 4B token prefix (skipped by client)
+            var pkt = new byte[4 + enc.Length];
+            WriteBE32(pkt, 0, peer.ConnectToken);
+            Array.Copy(enc, 0, pkt, 4, enc.Length);
+            Log($"  [CORRECT-VC] nonce=0x{nonce:X8} peerID=0 flags=0x03 ({pkt.Length}B)");
+            Send(pkt, peer);
+
+            // Also without token prefix
+            Log($"  [CORRECT-VC-NP] no prefix ({enc.Length}B)");
+            Send(enc, peer);
+        }
+
         // Echo for handshake progression
         if (data.Length > 8)
         {
@@ -179,7 +227,7 @@ public class RawGameServer : IGameServer, IDisposable
             Send(echo, peer);
         }
 
-        // TEST: Various encryption variants
+        // Other test variants (kept for comparison)
         // Hypothesis: crypto might be disabled for recv (*param_3 == '\0')
         // Format: [4B padding (skipped by client)][plaintext ENet data]
         {
