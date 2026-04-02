@@ -654,6 +654,21 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
             memcpy(lastSendBuf, buf, len);
             lastSendLen = len;
         }
+        // Log 36B packets (potential KeyCheck from client)
+        if (len == 36) {
+            static int kc36count = 0;
+            kc36count++;
+            if (kc36count <= 5) {
+                Log("  CLIENT KC 36B #%d raw: %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X",
+                    kc36count,
+                    (BYTE)buf[12], (BYTE)buf[13], (BYTE)buf[14], (BYTE)buf[15],
+                    (BYTE)buf[16], (BYTE)buf[17], (BYTE)buf[18], (BYTE)buf[19],
+                    (BYTE)buf[20], (BYTE)buf[21], (BYTE)buf[22], (BYTE)buf[23],
+                    (BYTE)buf[24], (BYTE)buf[25], (BYTE)buf[26], (BYTE)buf[27],
+                    (BYTE)buf[28], (BYTE)buf[29], (BYTE)buf[30], (BYTE)buf[31],
+                    (BYTE)buf[32], (BYTE)buf[33], (BYTE)buf[34], (BYTE)buf[35]);
+            }
+        }
         // Capture RBX register - should be param_1 (connection struct)
         if (len == 519 && pktCount <= 3) {
             register void* rbx_val asm("rbx");
@@ -1092,7 +1107,8 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                 static int kcSent = 0;
                 eCount++;
 
-                if (eCount <= 25 || kcSent >= 10) {
+                static int rawKcDone = 0;
+                if (eCount <= 25 || (kcSent >= 10 && rawKcDone >= 10)) {
                     // Echo mode: return client's own data
                     int echoLen = lastSendLen - 8;
                     if (echoLen > 0 && echoLen <= len) {
@@ -1101,8 +1117,9 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                         if (eCount <= 30)
                             Log("  ECHO #%d: %dB", eCount, r);
                     }
-                } else {
-                    // KeyCheck injection using client's own crypto functions
+                } else if (kcSent < 10) {
+                    // KeyCheck injection - try RAW (no CRC encryption, just game data)
+                    // The client's 36B shows opcode 0x64 at byte 12 = plaintext!
                     HMODULE gameBase = GetModuleHandleA(NULL);
                     typedef void (*bf_cfb_enc_t)(void* ctx, BYTE* data, USHORT len, int mode);
                     typedef int (*crc_fn_t)(BYTE *param);
@@ -1187,6 +1204,45 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                             checkRev[0],checkRev[1],checkRev[2],checkRev[3],checkRev[4],checkRev[5],checkRev[6],checkRev[7]);
                     } else {
                         // Fallback to echo
+                        int echoLen = lastSendLen - 8;
+                        if (echoLen > 0 && echoLen <= len) {
+                            memcpy(buf, lastSendBuf + 8, echoLen);
+                            r = echoLen;
+                        }
+                    }
+                } else {
+                    // Phase 3: try RAW KeyCheck (no CRC layer, no encryption)
+                    rawKcDone++;
+                    if (rawKcDone <= 10) {
+                        BYTE rawKc[28]; // 4B preamble + 24B KeyCheck
+                        memset(rawKc, 0, 28);
+                        // Preamble (4B zeros or token)
+                        // KeyCheck: opcode=0x64 LE, playerNo=0, pad, checkId
+                        rawKc[4] = 0x64; rawKc[5] = 0x00; rawKc[6] = 0x00; rawKc[7] = 0x00;
+                        rawKc[8] = 0x00; // playerNo
+                        // checkId at offset 12 (8 bytes) - use fwd BF encrypt
+                        HMODULE gb = GetModuleHandleA(NULL);
+                        typedef void (*bfe_t)(void*, BYTE*);
+                        bfe_t BfE = (bfe_t)((BYTE*)gb + 0x10F3D90);
+                        void *bfc = NULL;
+                        if (connStructAddr) {
+                            BYTE *cb = (BYTE*)connStructAddr + 0x120;
+                            if (cb[0] && !IsBadReadPtr(*(void**)(cb+8), 8)) {
+                                BYTE *rn = (BYTE*)(*(void**)(*(void**)(cb+8)));
+                                if (!IsBadReadPtr(rn, 0x30) && *(UINT64*)(rn+0x20)==1)
+                                    bfc = *(void**)(rn+0x28);
+                            }
+                        }
+                        if (bfc) {
+                            BYTE ck[8] = {0};
+                            BfE(bfc, ck);
+                            memcpy(rawKc + 12, ck, 8);
+                        }
+                        memcpy(buf, rawKc, 28);
+                        r = 28;
+                        Log("  RAW-KC #%d: 28B", rawKcDone);
+                    } else {
+                        // Back to echo
                         int echoLen = lastSendLen - 8;
                         if (echoLen > 0 && echoLen <= len) {
                             memcpy(buf, lastSendBuf + 8, echoLen);
