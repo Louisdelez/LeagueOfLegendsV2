@@ -1,6 +1,21 @@
 # LoL client files (too large for git)
 client/
+client-private/
 League_of_Legends_Backup.zip
+
+# Ghidra project (too large)
+ghidra_project/
+ghidra/
+jdk17/
+jdk21/
+mingw64/
+
+# Large archives
+*.zip
+
+# Temp files
+reg_result.txt
+patch_result.txt
 
 # .NET build artifacts
 server/src/*/bin/
