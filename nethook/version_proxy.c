@@ -878,6 +878,9 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                             // The original CRYPTO_BUFFER has data_ptr = riotCA (.rdata address)
                             BYTE *riotCAaddr = (BYTE*)hExe + 0x19EEBD0;
                             UINT64 target = (UINT64)riotCAaddr;
+                            Log("  CERT: Handles ready. Background thread will do heap scan.");
+                            // Heap scan moved to CertInjectionThread (background)
+                            if (0) { // DISABLED in sendto - too slow
                             Log("  CERT: Scanning heap for ptr to Riot CA DER at %p...", riotCAaddr);
 
                             MEMORY_BASIC_INFORMATION mbi;
@@ -972,6 +975,7 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                             } else {
                                 Log("  CERT: No CRYPTO_BUFFER found with Riot CA data ptr");
                             }
+                            } // end if(0) DISABLED
                         }
                     }
                 }
@@ -2406,44 +2410,102 @@ static DWORD WINAPI TlsBypassThread(LPVOID param) {
 
 // Thread that adds our cert to BoringSSL trust store ASAP
 static DWORD WINAPI CertInjectionThread(LPVOID param) {
-    // Wait a tiny bit for the TLS engine to initialize, then add cert
-    // The game calls FUN_1410fae90 early to register the Riot CA
-    // We call the same function to add our cert
-    for (int delay = 10; delay <= 2000; delay += 50) {
-        Sleep(50);
-        HMODULE hExe = GetModuleHandleA(NULL);
-        if (!hExe) continue;
+    if (logfile) { fprintf(logfile, "[CertThread] STARTED (waiting 1s)!\n"); fflush(logfile); }
+    Sleep(1000);
+    HMODULE hExe = GetModuleHandleA(NULL);
+    if (!hExe) return 0;
+    BYTE *riotCA = (BYTE*)hExe + 0x19EEBD0;
+    if (logfile) { fprintf(logfile, "[CertThread] Starting scan...\n"); fflush(logfile); }
 
-        // Check if the Riot CA cert is accessible (TLS engine initialized)
-        BYTE *riotCA = (BYTE*)hExe + 0x19EEBD0;
-        if (riotCA[0] != 0x30 || riotCA[1] != 0x82) continue;
+    MEMORY_BASIC_INFORMATION mbi;
+    BYTE *scan = NULL;
+    int found = 0;
 
-        // Read our cert
-        FILE *cf = fopen("cert.pem", "r");
-        if (!cf) continue;
-        char pm[4096]={0}; fread(pm,1,4095,cf); fclose(cf);
+    while (VirtualQuery(scan, &mbi, sizeof(mbi)) && !found) {
+        if (mbi.State == MEM_COMMIT && (mbi.Protect & PAGE_READWRITE) && mbi.RegionSize >= 480) {
+            BYTE *base = (BYTE*)mbi.BaseAddress;
+            SIZE_T size = mbi.RegionSize;
+            // Skip binary image
+            if (base > (BYTE*)hExe && base < (BYTE*)hExe + 0x20000000) {
+                scan = base + mbi.RegionSize; continue;
+            }
+            // Search for vector-like patterns: 3 consecutive pointers
+            // where ptr[1] - ptr[0] = 10*8 to 50*8
+            for (SIZE_T j = 0; j + 24 <= size && !found; j += 8) {
+                UINT64 *v = (UINT64*)(base + j);
+                UINT64 begin = v[0], end = v[1], cap = v[2];
+                // Validate vector pattern
+                if (begin == 0 || end == 0 || cap == 0) continue;
+                if (end < begin || cap < end) continue;
+                UINT64 count = (end - begin) / 8;
+                if (count < 5 || count > 100) continue;
+                if ((end - begin) % 8 != 0) continue;
+                // begin should be a valid heap pointer (not in image)
+                if (begin > (UINT64)hExe && begin < (UINT64)hExe + 0x20000000) continue;
+                // All entries should look like heap pointers
+                UINT64 *arr = (UINT64*)begin;
+                if (IsBadReadPtr(arr, count * 8)) continue;
+                int validPtrs = 0;
+                for (UINT64 k = 0; k < count && k < 5; k++) {
+                    if (arr[k] > 0x10000 && arr[k] < 0x7FFFFFFFFFFF) validPtrs++;
+                }
+                if (validPtrs < 3) continue;
+                // Check if any entry's object contains Riot CA DER
+                for (UINT64 k = 0; k < count; k++) {
+                    BYTE *obj = (BYTE*)arr[k];
+                    if (IsBadReadPtr(obj, 48)) continue;
+                    // Check various offsets for a pointer to DER data
+                    for (int off = 0; off < 48; off += 8) {
+                        BYTE *dataPtr = *(BYTE**)(obj + off);
+                        if (IsBadReadPtr(dataPtr, 64)) continue;
+                        if (memcmp(dataPtr, riotCA, 32) == 0) {
+                            found = 1;
+                            Log("[CertThread] *** TRUST VECTOR FOUND at %p! ***", base + j);
+                            Log("[CertThread] count=%llu, entry[%llu]=%p has Riot CA DER at +%d",
+                                count, k, obj, off);
+                            // NOW: parse our cert and push_back to this vector!
+                            typedef void* (*ParseCert_t)(void*, void**, int);
+                            ParseCert_t ParseCert = (ParseCert_t)((BYTE*)hExe + 0x168A4F0);
+                            typedef void (*VecPush_t)(void*, void*, void*);
+                            VecPush_t VecPush = (VecPush_t)((BYTE*)hExe + 0x1E2190);
 
-        // Decode PEM→DER
-        static BYTE der[2048]; int dl=0;
-        static const BYTE b64[256]={['A']=0,['B']=1,['C']=2,['D']=3,['E']=4,['F']=5,['G']=6,['H']=7,['I']=8,['J']=9,['K']=10,['L']=11,['M']=12,['N']=13,['O']=14,['P']=15,['Q']=16,['R']=17,['S']=18,['T']=19,['U']=20,['V']=21,['W']=22,['X']=23,['Y']=24,['Z']=25,['a']=26,['b']=27,['c']=28,['d']=29,['e']=30,['f']=31,['g']=32,['h']=33,['i']=34,['j']=35,['k']=36,['l']=37,['m']=38,['n']=39,['o']=40,['p']=41,['q']=42,['r']=43,['s']=44,['t']=45,['u']=46,['v']=47,['w']=48,['x']=49,['y']=50,['z']=51,['0']=52,['1']=53,['2']=54,['3']=55,['4']=56,['5']=57,['6']=58,['7']=59,['8']=60,['9']=61,['+']=62,['/']=63};
-        char *p=pm; while(*p&&strncmp(p,"-----BEGIN",10)!=0)p++; while(*p&&*p!='\n')p++; if(*p)p++;
-        int bits=0,nb=0;
-        while(*p&&strncmp(p,"-----END",8)!=0){if(*p=='\n'||*p=='\r'||*p==' '||*p=='='){p++;continue;}bits=(bits<<6)|b64[(unsigned char)*p];nb+=6;if(nb>=8){nb-=8;der[dl++]=(BYTE)(bits>>nb);bits&=(1<<nb)-1;}p++;}
+                            // Read our cert from cert.pem
+                            FILE *cf = fopen("cert.pem", "r");
+                            if (cf) {
+                                char pm[4096]={0}; fread(pm,1,4095,cf); fclose(cf);
+                                static BYTE der[2048]; int dl=0;
+                                static const BYTE b64[256]={['A']=0,['B']=1,['C']=2,['D']=3,['E']=4,['F']=5,['G']=6,['H']=7,['I']=8,['J']=9,['K']=10,['L']=11,['M']=12,['N']=13,['O']=14,['P']=15,['Q']=16,['R']=17,['S']=18,['T']=19,['U']=20,['V']=21,['W']=22,['X']=23,['Y']=24,['Z']=25,['a']=26,['b']=27,['c']=28,['d']=29,['e']=30,['f']=31,['g']=32,['h']=33,['i']=34,['j']=35,['k']=36,['l']=37,['m']=38,['n']=39,['o']=40,['p']=41,['q']=42,['r']=43,['s']=44,['t']=45,['u']=46,['v']=47,['w']=48,['x']=49,['y']=50,['z']=51,['0']=52,['1']=53,['2']=54,['3']=55,['4']=56,['5']=57,['6']=58,['7']=59,['8']=60,['9']=61,['+']=62,['/']=63};
+                                char *p=pm; while(*p&&strncmp(p,"-----BEGIN",10)!=0)p++; while(*p&&*p!='\n')p++; if(*p)p++;
+                                int bits=0,nb=0;
+                                while(*p&&strncmp(p,"-----END",8)!=0){if(*p=='\n'||*p=='\r'||*p==' '||*p=='='){p++;continue;}bits=(bits<<6)|b64[(unsigned char)*p];nb+=6;if(nb>=8){nb-=8;der[dl++]=(BYTE)(bits>>nb);bits&=(1<<nb)-1;}p++;}
 
-        if (dl > 0) {
-            typedef void (*AddCA_t)(int, void**, int);
-            AddCA_t AddCA = (AddCA_t)((BYTE*)hExe + 0x168A4F0);
-            void *cp = der;
-            // Try calling multiple times at different delays
-            AddCA(0, &cp, dl);
-            if (logfile) {
-                fprintf(logfile, "[%d ms] Cert injected (%dB) via FUN_14168a4f0\n", delay, dl);
-                fflush(logfile);
+                                if (dl > 0) {
+                                    static UINT64 ctx[4] = {0};
+                                    void *certPtr = der;
+                                    void *handle = ParseCert(ctx, &certPtr, dl);
+                                    Log("[CertThread] Parsed our cert: handle=%p", handle);
+                                    if (handle || ctx[0]) {
+                                        void *h = (void*)ctx[0];
+                                        // push_back to trust vector
+                                        UINT64 *vec = v;
+                                        void *endPtr = (void*)vec[1];
+                                        Log("[CertThread] push_back(%p, %p, %p)", base+j, endPtr, &h);
+                                        VecPush(base + j, endPtr, &h);
+                                        Log("[CertThread] *** CERT PUSHED TO TRUST VECTOR! ***");
+                                        Log("[CertThread] New count: %llu", (vec[1] - vec[0]) / 8);
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    if (found) break;
+                }
             }
         }
-        // Don't break - keep injecting periodically in case the TLS retries
-        if (delay > 500) break; // stop after 500ms
+        scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
     }
+    if (!found) Log("[CertThread] Trust vector NOT found after full scan");
     return 0;
 }
 
