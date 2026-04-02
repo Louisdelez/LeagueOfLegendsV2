@@ -160,10 +160,49 @@ Sans ces args → "Failed to extract information from command line string" → e
 9. Loading screen
 10. Gameplay (165 champions, 138 items déjà codés)
 
-### Statistiques
-- ~50 scripts Ghidra écrits et exécutés
-- ~15 variantes du hook DLL compilées et testées
+---
+
+## Jour 3 — 2 Avril 2026
+
+### Phase 1 : Tentatives CRC bypass (TOUTES échouées)
+- CE kernel patch : VulnerableDriverBlocklist désactivé, reboot OK, mais Vanguard kernel bloque les écritures même via CE
+- NtProtectVirtualMemory direct syscall (0x50 lu depuis ntdll sur disque) : STATUS 0xC000004E (Vanguard intercepte au kernel)
+- NtWriteVirtualMemory direct syscall : STATUS_PARTIAL_COPY
+- Hardware breakpoints : stub.dll intercepte GetThreadContext/SetThreadContext
+- Verdict : **AUCUNE méthode ring-3 ne peut patcher le CRC check**
+
+### Phase 2 : PERCÉE — Echo-all via recvfrom hook
+- Idée : au lieu de patcher le CRC, contourner en renvoyant les propres données du client
+- Le hook version_proxy.c capture chaque sendto et le retourne via recvfrom (strip 8B LNPBlob header)
+- Résultat : **handshake complet !** 519B→119B→64B→34B→27B→19B
+- Le client atteint l'état **CONNECTED** et maintient avec des pings 19B/27B
+
+### Phase 3 : Tracing du pipeline complet
+- Installé Ghidra 11.3.2 complet + Java JDK 21 + MSYS2/MinGW
+- Trouvé le VRAI host struct par scan de la stack (matching *(ptr+0x38)==socket)
+- plVar15 = *(host+0x20) — l'objet handler NON-NULL !
+- vtable[0x28] = RVA 0x573160 (FUN_140573160) — le handler CRC confirmé
+- **Pipeline tracé de bout en bout** :
+  1. recvfrom → FUN_140588f70 (CRC/decrypt)
+  2. → FUN_140573160 (vtable handler, enqueue)
+  3. → FUN_140589a90 (producer: ring buffer)
+  4. → FUN_1405883d0 (consumer: dequeue loop)
+  5. → dispatch: CALL [RAX+0x10] via *(plVar15+0x128)
+
+### Phase 4 : KeyCheck injection (ne marche pas encore)
+- P[0]=0xBBCD2876 confirmé (match client)
+- CRC nonce computation confirmée via FUN_140577f10 du client
+- Queue slot montre cmd=6 (SEND_RELIABLE) à l'offset correct +0x1B
+- KeyCheck injecté (encrypted + raw) : le client ne réagit pas
+- Direct dispatch call → crash (vtable dans .text, opcodes lus comme pointeur)
+- **Bloqueur** : le consumer dispatch CALL [RAX+0x10] nécessite le bon function pointer runtime
+
+### Statistiques mises à jour
+- ~70 scripts Ghidra écrits et exécutés
+- ~20 variantes du hook DLL compilées et testées
 - ~40 combinaisons IV/mode crypto testées
-- 8+ méthodes de bypass CRC tentées
+- 12+ méthodes de bypass CRC tentées (TOUTES échouées, contourné par echo)
 - 67 MB de trafic réel capturé
-- Double CFB + CRC nonce reverse-engineered depuis le binaire
+- Double CFB + CRC nonce + pipeline complet reverse-engineered
+- Client CONNECTED via echo-all ✓
+- Consumer dispatch identifié mais pas encore appelable ✗
