@@ -1128,15 +1128,23 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                     void *h168 = *(void**)((BYTE*)plVar15 + 0x168);
                     Log("  CONSUMER: +0x128=%p +0x168=%p", h128, h168);
                     // +0x128 is the handler for local_60 != 2 (our packets)
-                    // It's called as: (**(vtable+0x10))(handler, ...)
-                    // Read the vtable of +0x128
+                    // The consumer calls: (**(code**)(*plVar3 + 0x10))(plVar3, ...)
+                    // where plVar3 = *(plVar15 + 0x128)
+                    // So we need to read *(h128) = vtable, then *(vtable+0x10) = dispatch fn
                     if (h128 && !IsBadReadPtr(h128, 8)) {
                         void *vt = *(void**)h128;
-                        if (vt && !IsBadReadPtr(vt, 0x18)) {
-                            void *fn10 = *(void**)((BYTE*)vt + 0x10);
-                            Log("  CONSUMER DISPATCH: vtable=%p fn+0x10=%p (RVA 0x%llX)",
-                                vt, fn10, (UINT64)fn10 - (UINT64)gb);
+                        Log("    +0x128 obj vtable = %p", vt);
+                        if (vt && !IsBadReadPtr((BYTE*)vt + 0x18, 8)) {
+                            for (int vi = 0; vi < 4; vi++) {
+                                void *fn = *(void**)((BYTE*)vt + vi * 8);
+                                Log("      vt[%d]+0x%02X = %p (RVA 0x%llX)", vi, vi*8, fn, (UINT64)fn - (UINT64)gb);
+                            }
                         }
+                    }
+                    // Also check +0x168 handler
+                    if (h168 && h168 != h128 && !IsBadReadPtr(h168, 8)) {
+                        void *vt2 = *(void**)h168;
+                        Log("    +0x168 obj vtable = %p", vt2);
                     }
                 }
             }
@@ -1250,8 +1258,64 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                             r = echoLen;
                         }
                     }
+                } else if (rawKcDone < 10) {
+                    // Phase 3: Call consumer dispatch DIRECTLY (bypass CRC/encryption)
+                    // The consumer calls: (**(code**)(*plVar3 + 0x10))(plVar3, &data, &flag1, &flag2, &flag3, &flag4)
+                    // plVar3 = *(plVar15 + 0x128)
+                    rawKcDone++;
+                    if (recvHostStruct) {
+                        BYTE *host = (BYTE*)recvHostStruct;
+                        void *plVar15 = *(void**)(host + 0x20);
+                        if (plVar15 && !IsBadReadPtr((BYTE*)plVar15 + 0x128, 8)) {
+                            void *plVar3 = *(void**)((BYTE*)plVar15 + 0x128);
+                            if (plVar3 && !IsBadReadPtr(plVar3, 8)) {
+                                void *vt = *(void**)plVar3;
+                                if (vt && !IsBadReadPtr((BYTE*)vt + 0x10, 8)) {
+                                    typedef void (*dispatch_fn_t)(void*, void*, void*, void*, void*, void*);
+                                    dispatch_fn_t dispatchFn = *(dispatch_fn_t*)((BYTE*)vt + 0x10);
+
+                                    // Build KeyCheck as game data
+                                    BYTE kcData[16] = {0};
+                                    kcData[0] = 0x64; // opcode 100 LE
+                                    // checkId at offset 8
+                                    HMODULE gb3 = GetModuleHandleA(NULL);
+                                    typedef void (*bfe_t)(void*, BYTE*);
+                                    bfe_t BfE = (bfe_t)((BYTE*)gb3 + 0x10F3D90);
+                                    void *bfc = NULL;
+                                    BYTE *cb = (BYTE*)((BYTE*)recvHostStruct + 0x120 + 8);
+                                    if (!IsBadReadPtr(cb, 8) && *(void**)cb) {
+                                        BYTE *rn = (BYTE*)(*(void**)(*(void**)cb));
+                                        if (!IsBadReadPtr(rn, 0x30) && *(UINT64*)(rn+0x20)==1)
+                                            bfc = *(void**)(rn+0x28);
+                                    }
+                                    if (bfc) {
+                                        BYTE ck[8] = {0};
+                                        BfE(bfc, ck);
+                                        memcpy(kcData + 8, ck, 8);
+                                    }
+
+                                    // Call dispatch directly
+                                    UINT64 packetData = (UINT64)kcData;
+                                    BYTE flag1 = 0; // local_res20 = (local_60 == 0) = false (our slot[0]=1)
+                                    BYTE flag2 = 0; // local_res18 = local_50
+                                    BYTE flag3 = 0; // local_res10 = uStack_4f
+                                    BYTE flag4 = 0; // local_res8 = local_4e
+
+                                    Log("  DIRECT-KC #%d: calling dispatch at %p with KC data", rawKcDone, dispatchFn);
+                                    dispatchFn(plVar3, &packetData, &flag1, &flag2, &flag3, &flag4);
+                                    Log("  DIRECT-KC #%d: returned OK", rawKcDone);
+                                }
+                            }
+                        }
+                    }
+                    // Also echo for this iteration
+                    int echoLen = lastSendLen - 8;
+                    if (echoLen > 0 && echoLen <= len) {
+                        memcpy(buf, lastSendBuf + 8, echoLen);
+                        r = echoLen;
+                    }
                 } else {
-                    // Phase 3: try RAW KeyCheck (no CRC layer, no encryption)
+                    // Phase 4: back to echo after direct KC
                     rawKcDone++;
                     if (rawKcDone <= 10) {
                         BYTE rawKc[28]; // 4B preamble + 24B KeyCheck

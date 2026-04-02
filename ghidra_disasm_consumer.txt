@@ -1,0 +1,149 @@
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra_full/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (705 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (1721 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_proj2 (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_proj2 (HeadlessProject)  
+INFO  REPORT: Processing project file: /League of Legends.exe (HeadlessAnalyzer)  
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                         ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                           ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                                          ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                                                            ^
+skipping D:\LeagueOfLegendsV2\ghidra_scripts\ReadSBox.java
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\DisasmConsumer.java (HeadlessAnalyzer)  
+INFO  DisasmConsumer.java> === Disasm FUN_1405883d0 (consumer) === (GhidraScript)  
+INFO  DisasmConsumer.java>   140588406: CALL 0x141854ac8 (GhidraScript)  
+INFO  DisasmConsumer.java>   14058842e: CMP qword ptr [RDI + 0xa0],R15 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588481: CALL 0x14056cb30 (GhidraScript)  
+INFO  DisasmConsumer.java>   1405884a6: CALL 0x140569af0 (GhidraScript)  
+INFO  DisasmConsumer.java>   1405884ab: SUB qword ptr [RDI + 0xa0],0x1 (GhidraScript)  
+INFO  DisasmConsumer.java>   1405884d1: CALL 0x141854ad0 (GhidraScript)  
+INFO  DisasmConsumer.java>   1405884dd: CALL 0x1418555d0 (GhidraScript)  
+INFO  DisasmConsumer.java>   1405884ee: CMP qword ptr [RDI + 0x168],R15 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588524: MOV RCX,qword ptr [RDI + 0x168] (GhidraScript)  
+INFO  DisasmConsumer.java>   140588579: CALL qword ptr [RAX + 0x10] (GhidraScript)  
+INFO  DisasmConsumer.java>   14058858b: MOV RCX,qword ptr [RDI + 0x128] (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885db: CALL qword ptr [RAX + 0x10] (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885e1: CALL 0x141854ac8 (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885f2: CALL 0x141854ad0 (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885fb: CALL 0x140569af0 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588612: CALL 0x140595570 (GhidraScript)  
+INFO  DisasmConsumer.java>   14058861d: CALL 0x141854e80 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588630: CALL 0x141854e80 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588636: CALL 0x1418543e4 (GhidraScript)  
+INFO  DisasmConsumer.java> 
+=== Full disasm around dispatch === (GhidraScript)  
+INFO  DisasmConsumer.java>   140588552: JZ 0x140588636 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588558: MOV RAX,qword ptr [RCX] (GhidraScript)  
+INFO  DisasmConsumer.java>   14058855b: LEA RDX,[RBP + 0x40] (GhidraScript)  
+INFO  DisasmConsumer.java>   14058855f: MOV qword ptr [RSP + 0x28],RDX (GhidraScript)  
+INFO  DisasmConsumer.java>   140588564: LEA R9,[RBP + 0x50] (GhidraScript)  
+INFO  DisasmConsumer.java>   140588568: LEA RDX,[RBP + 0x48] (GhidraScript)  
+INFO  DisasmConsumer.java>   14058856c: MOV qword ptr [RSP + 0x20],RDX (GhidraScript)  
+INFO  DisasmConsumer.java>   140588571: LEA R8,[RBP + 0x38] (GhidraScript)  
+INFO  DisasmConsumer.java>   140588575: LEA RDX,[RBP + -0x38] (GhidraScript)  
+INFO  DisasmConsumer.java>   140588579: CALL qword ptr [RAX + 0x10] (GhidraScript)  
+INFO  DisasmConsumer.java>   14058857c: ADD RBX,0x38 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588580: LEA RAX,[RBX + -0x28] (GhidraScript)  
+INFO  DisasmConsumer.java>   140588584: CMP RAX,RSI (GhidraScript)  
+INFO  DisasmConsumer.java>   140588587: JNZ 0x140588520 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588589: JMP 0x1405885de (GhidraScript)  
+INFO  DisasmConsumer.java>   14058858b: MOV RCX,qword ptr [RDI + 0x128] (GhidraScript)  
+INFO  DisasmConsumer.java>   140588592: TEST RCX,RCX (GhidraScript)  
+INFO  DisasmConsumer.java>   140588595: JZ 0x1405885de (GhidraScript)  
+INFO  DisasmConsumer.java>   140588597: MOVZX EAX,byte ptr [RBP + -0x1e] (GhidraScript)  
+INFO  DisasmConsumer.java>   14058859b: LEA R9,[RBP + 0x48] (GhidraScript)  
+INFO  DisasmConsumer.java>   14058859f: MOV byte ptr [RBP + 0x38],AL (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885a2: LEA R8,[RBP + 0x50] (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885a6: MOVZX EAX,byte ptr [RBP + -0x1f] (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885aa: TEST EDX,EDX (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885ac: MOV byte ptr [RBP + 0x40],AL (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885af: LEA RDX,[RBP + 0x38] (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885b3: MOVZX EAX,byte ptr [RBP + -0x20] (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885b7: SETZ byte ptr [RBP + 0x50] (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885bb: MOV qword ptr [RSP + 0x28],RDX (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885c0: LEA RDX,[RBP + 0x40] (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885c4: MOV byte ptr [RBP + 0x48],AL (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885c7: MOV RAX,qword ptr [RBP + -0x28] (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885cb: MOV qword ptr [RBP + -0x38],RAX (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885cf: MOV RAX,qword ptr [RCX] (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885d2: MOV qword ptr [RSP + 0x20],RDX (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885d7: LEA RDX,[RBP + -0x38] (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885db: CALL qword ptr [RAX + 0x10] (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885de: MOV RCX,R14 (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885e1: CALL 0x141854ac8 (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885e6: TEST EAX,EAX (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885e8: JNZ 0x140588618 (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885ea: JMP 0x140588420 (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885ef: MOV RCX,R14 (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885f2: CALL 0x141854ad0 (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885f7: LEA RCX,[RBP + -0x18] (GhidraScript)  
+INFO  DisasmConsumer.java>   1405885fb: CALL 0x140569af0 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588600: ADD RSP,0x68 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588604: POP R15 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588606: POP R14 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588608: POP RDI (GhidraScript)  
+INFO  DisasmConsumer.java>   140588609: POP RSI (GhidraScript)  
+INFO  DisasmConsumer.java>   14058860a: POP RBX (GhidraScript)  
+INFO  DisasmConsumer.java>   14058860b: POP RBP (GhidraScript)  
+INFO  DisasmConsumer.java>   14058860c: RET (GhidraScript)  
+INFO  DisasmConsumer.java>   14058860d: MOV ECX,0x1 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588612: CALL 0x140595570 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588617: INT3 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588618: MOV ECX,0x5 (GhidraScript)  
+INFO  DisasmConsumer.java>   14058861d: CALL 0x141854e80 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588622: INT3 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588623: MOV ECX,0x6 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588628: MOV dword ptr [R14 + 0x4c],0x7ffffffe (GhidraScript)  
+INFO  DisasmConsumer.java>   140588630: CALL 0x141854e80 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588635: INT3 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588636: CALL 0x1418543e4 (GhidraScript)  
+INFO  DisasmConsumer.java>   14058863b: INT3 (GhidraScript)  
+INFO  DisasmConsumer.java>   14058863c: INT3 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588640: PUSH RSI (GhidraScript)  
+INFO  DisasmConsumer.java>   140588642: SUB RSP,0x40 (GhidraScript)  
+INFO  DisasmConsumer.java>   140588646: CMP dword ptr [RCX + 0xe8],0x0 (GhidraScript)  
+INFO  DisasmConsumer.java>   14058864d: MOV RSI,RCX (GhidraScript)  
+INFO  DisasmConsumer.java> === DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /League of Legends.exe (HeadlessAnalyzer)  
