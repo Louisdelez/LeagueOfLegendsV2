@@ -88,8 +88,111 @@ static void Log(const char *fmt, ...);
 static void MakeTrampoline(void *target, BYTE *tramp);
 static void PatchJmp(void *target, void *dest);
 static DWORD WINAPI TlsBypassThread(LPVOID param);
+static DWORD GetSyscallNumber(const char *funcName);
+typedef LONG (NTAPI *NtProtectVirtualMemory_t)(HANDLE, PVOID*, PSIZE_T, ULONG, PULONG);
+static NtProtectVirtualMemory_t MakeSyscallStub(DWORD sysnum);
 
-// TlsBypassThread defined later (after all types are declared)
+// Patch the embedded Riot CA cert with our FakeLCU cert
+static void PatchRiotCA(void) {
+    HMODULE hExe = GetModuleHandleA(NULL);
+    if (!hExe) return;
+
+    // Riot CA cert "LoL Game Engineering Certificate Authority" at RVA 0x19EEBD0 (1060 bytes DER)
+    // Also the rclient cert at RVA 0x19EE230 (1241 bytes)
+    BYTE *riotCA = (BYTE*)hExe + 0x19EEBD0;
+    int riotCASize = 1060;
+
+    // Verify it's still the Riot CA (check first few bytes of DER)
+    if (riotCA[0] != 0x30 || riotCA[1] != 0x82) {
+        Log("PatchRiotCA: bytes at RVA 0x19EEBD0 = %02X %02X (expected 30 82), skipping",
+            riotCA[0], riotCA[1]);
+        return;
+    }
+
+    // Read our FakeLCU cert from cert.pem
+    FILE *f = fopen("cert.pem", "r");
+    if (!f) f = fopen("D:\\LeagueOfLegendsV2\\fakeLcu.crt", "r");
+    if (!f) { Log("PatchRiotCA: can't open cert file"); return; }
+
+    char pem[4096] = {0};
+    fread(pem, 1, sizeof(pem)-1, f);
+    fclose(f);
+
+    // Decode PEM to DER (skip BEGIN/END lines, base64 decode)
+    BYTE der[2048];
+    int derLen = 0;
+    {
+        // Simple base64 decode
+        static const BYTE b64[] = {
+            ['A']=0,['B']=1,['C']=2,['D']=3,['E']=4,['F']=5,['G']=6,['H']=7,
+            ['I']=8,['J']=9,['K']=10,['L']=11,['M']=12,['N']=13,['O']=14,['P']=15,
+            ['Q']=16,['R']=17,['S']=18,['T']=19,['U']=20,['V']=21,['W']=22,['X']=23,
+            ['Y']=24,['Z']=25,['a']=26,['b']=27,['c']=28,['d']=29,['e']=30,['f']=31,
+            ['g']=32,['h']=33,['i']=34,['j']=35,['k']=36,['l']=37,['m']=38,['n']=39,
+            ['o']=40,['p']=41,['q']=42,['r']=43,['s']=44,['t']=45,['u']=46,['v']=47,
+            ['w']=48,['x']=49,['y']=50,['z']=51,['0']=52,['1']=53,['2']=54,['3']=55,
+            ['4']=56,['5']=57,['6']=58,['7']=59,['8']=60,['9']=61,['+']=62,['/']=63
+        };
+        char *p = pem;
+        while (*p && strncmp(p, "-----BEGIN", 10) != 0) p++;
+        while (*p && *p != '\n') p++; // skip BEGIN line
+        p++;
+        int bits = 0, nbits = 0;
+        while (*p && strncmp(p, "-----END", 8) != 0) {
+            if (*p == '\n' || *p == '\r' || *p == ' ') { p++; continue; }
+            if (*p == '=') { p++; continue; }
+            bits = (bits << 6) | b64[(unsigned char)*p];
+            nbits += 6;
+            if (nbits >= 8) {
+                nbits -= 8;
+                der[derLen++] = (BYTE)(bits >> nbits);
+                bits &= (1 << nbits) - 1;
+            }
+            p++;
+        }
+    }
+
+    Log("PatchRiotCA: our cert DER=%dB, Riot CA=%dB", derLen, riotCASize);
+
+    if (derLen > riotCASize) {
+        Log("PatchRiotCA: our cert is LARGER than Riot CA, can't patch");
+        return;
+    }
+
+    // Patch in memory: replace Riot CA with our cert, zero-pad remainder
+    // Use direct syscall to bypass stub.dll guard pages
+    DWORD sysnum = GetSyscallNumber("NtProtectVirtualMemory");
+    DWORD oldProt = 0;
+    int patched = 0;
+    if (sysnum != 0) {
+        NtProtectVirtualMemory_t NtProt = MakeSyscallStub(sysnum);
+        if (NtProt) {
+            void *baseAddr = (void*)riotCA;
+            SIZE_T regionSize = riotCASize;
+            LONG status = NtProt((HANDLE)-1, &baseAddr, &regionSize, PAGE_READWRITE, &oldProt);
+            Log("PatchRiotCA: NtProtect status=0x%08X oldProt=0x%X", status, oldProt);
+            if (status == 0) {
+                patched = 1;
+            }
+            VirtualFree((void*)NtProt, 0, MEM_RELEASE);
+        }
+    }
+    if (!patched && VirtualProtect(riotCA, riotCASize, PAGE_READWRITE, &oldProt)) {
+        patched = 1;
+    }
+    if (patched) {
+        memcpy(riotCA, der, derLen);
+        memset(riotCA + derLen, 0, riotCASize - derLen);
+        // Fix the DER length field to match original size
+        // Actually, keep original cert structure but just replace the content
+        // The zero padding will make the cert invalid, but the TLS lib should
+        // use the size from the DER header, not the allocated size
+        VirtualProtect(riotCA, riotCASize, oldProt, &oldProt);
+        Log("*** PatchRiotCA: REPLACED Riot CA with our cert! ***");
+    } else {
+        Log("PatchRiotCA: VirtualProtect failed (err=%lu)", GetLastError());
+    }
+}
 
 // Schannel TLS bypass: hook InitializeSecurityContextW
 typedef LONG (WINAPI *InitSecCtxW_fn)(void*, void*, void*, ULONG, ULONG, ULONG, void*, ULONG, void*, void*, ULONG*, void*);
@@ -1896,6 +1999,9 @@ static void InstallNetHooks(void) {
             Log("secur32.dll / sspicli.dll not loaded");
         }
     }
+
+    // Patch embedded Riot CA cert with our FakeLCU cert
+    PatchRiotCA();
 
     // Start background thread to hook Schannel when secur32.dll loads
     Log("Starting TLS bypass thread...");
