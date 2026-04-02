@@ -225,38 +225,63 @@ static UINT32 ComputeCrcNonce(const BYTE *decrypted, int len) {
         for (int i = 7; i < len; i++) crc = LolCrcByte(crc, decrypted[i]);
     }
     UINT32 nonce = ~crc;
-    // htonl was working (PING didn't crash with it earlier)
+    // Try both: write htonl variant. If CRC check fails, packet is silently dropped.
+    // We need to figure out which one passes. Add logging to detect.
     return htonl(nonce);
 }
 
-// Fix CRC nonce in an encrypted server packet
-// Returns 1 if fixed, 0 if packet too small or BF not ready
+// Fix CRC nonce in an encrypted server packet using the GAME'S OWN CRC function
+// This guarantees the nonce matches exactly what the client expects.
 static int crcFixupLogCount = 0;
 static int FixCrcNonce(BYTE *buf, int len) {
     if (!hookBfReady || len < 8) return 0;
-    // Make a working copy
+
+    HMODULE hExe = GetModuleHandleA(NULL);
+    if (!hExe) return 0;
+
+    // Decrypt
     BYTE *work = (BYTE*)_alloca(len);
     memcpy(work, buf, len);
-    // Double CFB decrypt
     HookDoubleCFB_Decrypt(work, len);
-    // Log decrypted header for debugging
+
+    // Log
     if (crcFixupLogCount < 5) {
         crcFixupLogCount++;
-        UINT32 oldNonce = *(UINT32*)(work + 2);
-        Log("CRC_DBG #%d: dec[0:8]=%02X%02X %02X%02X%02X%02X %02X%02X peer=%02X%02X flags=%02X old_nonce=0x%08X",
-            crcFixupLogCount, work[0],work[1], work[2],work[3],work[4],work[5], work[6],work[7],
-            work[0],work[1], work[6], oldNonce);
+        Log("CRC_DBG #%d: dec peer=%02X%02X flags=%02X len=%d",
+            crcFixupLogCount, work[0], work[1], work[6], len);
     }
-    // Compute correct CRC nonce
-    UINT32 nonce = ComputeCrcNonce(work, len);
+
+    // Build the CRC struct that FUN_140577f10 expects
+    // Layout: param[0..7]=local_c8, param[8..9]=peerID, *(param+0x18)=local_b0
+    //         *(param+0x48)=payload_ptr, *(param+0x52)=payload_len
+    BYTE crcStruct[0x60];
+    memset(crcStruct, 0, sizeof(crcStruct));
+    // param[0..7] = local_c8 = *(conn+0x138) = 1 as uint64 LE
+    *(UINT64*)(crcStruct + 0x00) = 1;
+    // param[8..9] = peerID from packet
+    crcStruct[0x08] = work[0]; // peerLo
+    crcStruct[0x09] = work[1]; // peerHi
+    // *(param+0x18) = local_b0 = 0xFFFFFFFFFFFFFFFF
+    *(UINT64*)(crcStruct + 0x18) = 0xFFFFFFFFFFFFFFFF;
+    // Payload = bytes after 7-byte header
+    int payloadLen = (len > 7) ? (len - 7) : 0;
+    *(UINT64*)(crcStruct + 0x48) = (UINT64)(work + 7); // pointer to payload
+    *(UINT16*)(crcStruct + 0x52) = (UINT16)payloadLen;
+
+    // Call FUN_140577f10 — returns the CRC nonce via (*DAT_1418dfd10)(~crc)
+    typedef int (__fastcall *crc_fn_t)(BYTE*);
+    crc_fn_t CrcFn = (crc_fn_t)((BYTE*)hExe + 0x577F10);
+    int nonce = CrcFn(crcStruct);
+
     if (crcFixupLogCount <= 5) {
-        Log("CRC_DBG: new_nonce=0x%08X (htonl applied)", nonce);
+        Log("CRC_DBG: game_nonce=0x%08X", (UINT32)nonce);
     }
-    // Patch nonce at bytes [2..5]
-    memcpy(work + 2, &nonce, 4);
-    // Double CFB re-encrypt
+
+    // Patch nonce into decrypted packet at bytes [2..5]
+    *(int*)(work + 2) = nonce;
+
+    // Re-encrypt
     HookDoubleCFB_Encrypt(work, len);
-    // Copy back
     memcpy(buf, work, len);
     return 1;
 }
@@ -1564,6 +1589,12 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
             }
             // After handshake: check for CAFE magic (CRC-format packet from server)
             else if (handshakeDone) {
+                static int postHsLog = 0;
+                if (postHsLog < 30) {
+                    postHsLog++;
+                    Log("POST_HS #%d: recv %dB first2=%02X%02X", postHsLog, r,
+                        r >= 1 ? (BYTE)buf[0] : 0, r >= 2 ? (BYTE)buf[1] : 0);
+                }
                 if (r >= 4 && (BYTE)buf[0] == 0xCA && (BYTE)buf[1] == 0xFE) {
                     // Server CRC-format packet: strip 2B magic, CRC-fix the rest
                     int encLen = r - 2;

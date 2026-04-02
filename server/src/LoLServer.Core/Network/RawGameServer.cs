@@ -257,21 +257,40 @@ public class RawGameServer : IGameServer, IDisposable
             // ===== SEND RELIABLE KeyCheck =====
             // ENet SEND_RELIABLE body after CRC flags byte:
             //   [1B channelID][2B reliableSeqNo BE][2B dataLen BE][data...]
-            // KeyCheck data: [4B opcode=0x64 LE][1B playerNo][3B pad][4B checkId]
+            // KeyCheck: opcode=0x00, then playerNo, padding, clientID, checksum
+            // Total data = 12 bytes: [1B opcode][1B playerNo][6B pad][4B clientID]
             var reliableBody = new byte[1 + 2 + 2 + 12]; // channel(1) + seq(2) + len(2) + KeyCheck(12)
             reliableBody[0] = 0x00; // channel 0
             WriteBE16(reliableBody, 1, peer.ReliableSeqNo++); // seqNo
             WriteBE16(reliableBody, 3, 12); // dataLen = 12
 
             // KeyCheck payload at offset 5
-            WriteLE32(reliableBody, 5, 0x64); // opcode 100 = KeyCheck
-            reliableBody[9] = 0x00; // playerNo = 0
-            // bytes 10-16: zeros (padding + checkId=0)
+            reliableBody[5] = 0x00; // opcode 0x00 = KeyCheck
+            reliableBody[6] = 0x00; // playerNo = 0
+            // bytes 7-12: padding (zeros)
+            // bytes 13-16: clientID (LE) = 1
+            WriteLE32(reliableBody, 13, 1);
 
-            // DISABLED: SEND_RELIABLE causes crash. Testing with PING only.
-            // SendCrcPacket(peer, 0x06, reliableBody); // 0x06 = SEND_RELIABLE
-            SendCrcPacket(peer, 0x05, new byte[0]); // Just PING for now
-            Log($"  [PING-TEST] sent PING only (KeyCheck disabled)");
+            SendCrcPacket(peer, 0x06, reliableBody); // 0x06 = SEND_RELIABLE
+            Log($"  [KEYCHECK] sent via CAFE, {reliableBody.Length}B body");
+
+            // After KeyCheck, send SynchVersion to trigger loading screen
+            // SynchVersionS2C (opcode 0x1B): tells client server version is OK
+            {
+                // Minimal SynchVersion: [1B opcode=0x1B][1B isVersionOk=1][4B mapId=11]
+                // + version string + more data. Keep it minimal for now.
+                var synchBody = new byte[1 + 2 + 2 + 32]; // channel + seq + len + data
+                synchBody[0] = 0x00; // channel 0
+                WriteBE16(synchBody, 1, peer.ReliableSeqNo++);
+                WriteBE16(synchBody, 3, 28); // dataLen
+                synchBody[5] = 0x1B; // opcode SynchVersionS2C
+                synchBody[6] = 0x01; // isVersionOk = true
+                // mapId at offset 7 (LE)
+                WriteLE32(synchBody, 7, 11); // mapId = 11 (Summoner's Rift)
+                // Rest = zeros (player list, version string, etc.)
+                SendCrcPacket(peer, 0x06, synchBody);
+                Log($"  [SYNCH] sent SynchVersionS2C");
+            }
         }
     }
 
