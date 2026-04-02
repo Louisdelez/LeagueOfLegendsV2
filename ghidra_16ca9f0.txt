@@ -1,0 +1,139 @@
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra_full/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (675 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (1661 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_proj2 (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_proj2 (HeadlessProject)  
+INFO  REPORT: Processing project file: /League of Legends.exe (HeadlessAnalyzer)  
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                         ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                           ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                                          ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                                                            ^
+skipping D:\LeagueOfLegendsV2\ghidra_scripts\ReadSBox.java
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\Decomp16ca9f0.java (HeadlessAnalyzer)  
+INFO  Decomp16ca9f0.java> === FUN_1416ca9f0 at 1416ca9f0 size=2462 === (GhidraScript)  
+INFO  Decomp16ca9f0.java> Lines: 403 (GhidraScript)  
+INFO  Decomp16ca9f0.java>  (GhidraScript)  
+INFO  Decomp16ca9f0.java> /* WARNING: Function: __chkstk replaced with injection: alloca_probe */ (GhidraScript)  
+INFO  Decomp16ca9f0.java>  (GhidraScript)  
+INFO  Decomp16ca9f0.java> undefined8 (GhidraScript)  
+INFO  Decomp16ca9f0.java> FUN_1416ca9f0(longlong *param_1,int *param_2,int param_3,undefined1 *param_4,int param_5, (GhidraScript)  
+INFO  Decomp16ca9f0.java>              uint param_6,char param_7,char *param_8,int param_9) (GhidraScript)  
+INFO  Decomp16ca9f0.java>  (GhidraScript)  
+INFO  Decomp16ca9f0.java> { (GhidraScript)  
+INFO  Decomp16ca9f0.java>   byte bVar1; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   uint uVar2; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   int iVar3; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   undefined8 uVar4; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   byte *pbVar5; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   char cVar6; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   longlong lVar7; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   uint *puVar8; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   int iVar9; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   undefined4 uVar10; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   uint uVar11; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   code *pcVar12; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   int iVar13; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   char *pcVar14; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   bool bVar15; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   uint local_res8 [2]; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   int *local_res10; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   uint local_res20 [2]; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   ulonglong in_stack_ffffffffffffff78; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   ulonglong in_stack_ffffffffffffff80; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   uint in_stack_ffffffffffffff88; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   int local_68; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   int local_64; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   char *local_60; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   code *local_58; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   char *local_50; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   longlong local_48; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   char *local_40; (GhidraScript)  
+INFO  Decomp16ca9f0.java>    (GhidraScript)  
+INFO  Decomp16ca9f0.java>   local_40 = (char *)0x1416caa12; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   local_48 = *(longlong *)(param_4 + 0x18); (GhidraScript)  
+INFO  Decomp16ca9f0.java>   if (param_1 == (longlong *)0x0) { (GhidraScript)  
+INFO  Decomp16ca9f0.java>     return 0; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   } (GhidraScript)  
+INFO  Decomp16ca9f0.java>   iVar9 = 0; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   if ((local_48 == 0) || (local_58 = *(code **)(local_48 + 0x18), local_58 == (code *)0x0)) { (GhidraScript)  
+INFO  Decomp16ca9f0.java>     local_58 = (code *)0x0; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   } (GhidraScript)  
+INFO  Decomp16ca9f0.java>   pcVar12 = local_58; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   param_9 = param_9 + 1; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   local_res10 = param_2; (GhidraScript)  
+INFO  Decomp16ca9f0.java>   if (param_9 < 0x1f) { (GhidraScript)  
+INFO  Decomp16ca9f0.java>     uVar2 = 0; (GhidraScript)  
+INFO  Decomp16ca9f0.java>     switch(*param_4) { (GhidraScript)  
+INFO  Decomp16ca9f0.java>     case 0: (GhidraScript)  
+INFO  Decomp16ca9f0.java>       if (*(longlong *)(param_4 + 8) == 0) { (GhidraScript)  
+INFO  Decomp16ca9f0.java>         uVar4 = FUN_1416c9f90(param_1,param_2,param_3,param_4,param_5,param_6,param_7,param_8); (GhidraScript)  
+INFO  Decomp16ca9f0.java>         return uVar4; (GhidraScript)  
+INFO  Decomp16ca9f0.java>       } (GhidraScript)  
+INFO  Decomp16ca9f0.java>       if ((param_5 == -1) && (param_7 == '\0')) { (GhidraScript)  
+INFO  Decomp16ca9f0.java>         uVar4 = FUN_1416cb3b0(param_1,param_2,param_3,*(longlong *)(param_4 + 8), (GhidraScript)  
+INFO  Decomp16ca9f0.java>                               in_stack_ffffffffffffff78 & 0xffffffffffffff00,param_8,param_9); (GhidraScript)  
+INFO  Decomp16ca9f0.java>         return uVar4; (GhidraScript)  
+INFO  Decomp16ca9f0.java>       } (GhidraScript)  
+INFO  Decomp16ca9f0.java>       uVar4 = 0xaf; (GhidraScript)  
+INFO  Decomp16ca9f0.java>       uVar10 = 0xaa; (GhidraScript)  
+INFO  Decomp16ca9f0.java>       break; (GhidraScript)  
+INFO  Decomp16ca9f0.java>     case 1: (GhidraScript)  
+INFO  Decomp16ca9f0.java>     case 6: (GhidraScript)  
+INFO  Decomp16ca9f0.java>       local_50 = *(char **)param_2; (GhidraScript)  
+INFO  Decomp16ca9f0.java>       local_64 = 0x10; (GhidraScript)  
+INFO  Decomp16ca9f0.java>       if (param_5 != -1) { (GhidraScript)  
+INFO  Decomp16ca9f0.java>         uVar2 = param_6; (GhidraScript)  
+INFO  Decomp16ca9f0.java>         local_64 = param_5; (GhidraScript)  
+INFO  Decomp16ca9f0.java>       } (GhidraScript)  
+INFO  Decomp16ca9f0.java>       local_60 = (char *)CONCAT44(local_60._4_4_,uVar2); (GhidraScript)  
+INFO  Decomp16ca9f0.java>       local_40 = local_50; (GhidraScript)  
+INFO  Decomp16ca9f0.java>       if ((param_8 == (char *)0x0) || (*param_8 == '\0')) { (GhidraScript)  
+INFO  Decomp16ca9f0.java>         uVar2 = FUN_1416a7c50(&local_50,local_res8,&local_68,local_res20,param_3); (GhidraScript)  
+INFO  Decomp16ca9f0.java>         if (param_8 != (char *)0x0) { (GhidraScript)  
+INFO  Decomp16ca9f0.java>           *(uint *)(param_8 + 4) = uVar2; (GhidraScript)  
+INFO  Decomp16ca9f0.java>           iVar3 = (int)local_50 - (int)local_40; (GhidraScript)  
+INFO  Decomp16ca9f0.java> 
+=== DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /League of Legends.exe (HeadlessAnalyzer)  

@@ -55,8 +55,18 @@ public class FakeLCU
 
     public void Start()
     {
-        // Generate a self-signed certificate for TLS
-        _cert = GenerateSelfSignedCert();
+        // Try to load existing PFX (signed by our CA), fallback to self-signed
+        var customPfx = Path.Combine(SharedDir, "server_tls.pfx");
+        if (File.Exists(customPfx))
+        {
+            _cert = new X509Certificate2(customPfx, "", X509KeyStorageFlags.Exportable);
+            System.Console.WriteLine($"[LCU] Using custom cert from {customPfx} (CN={_cert.Subject})");
+        }
+        else
+        {
+            _cert = GenerateSelfSignedCert();
+            System.Console.WriteLine("[LCU] Using self-signed cert (no server_tls.pfx found)");
+        }
 
         // Export the certificate to PEM and install into the trusted root store
         ExportAndTrustCert(_cert);
