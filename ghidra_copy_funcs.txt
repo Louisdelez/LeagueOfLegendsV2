@@ -1,0 +1,212 @@
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra_full/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (702 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (1665 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_proj2 (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_proj2 (HeadlessProject)  
+INFO  REPORT: Processing project file: /League of Legends.exe (HeadlessAnalyzer)  
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                         ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                           ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                                          ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                                                            ^
+skipping D:\LeagueOfLegendsV2\ghidra_scripts\ReadSBox.java
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\DecompCopy.java (HeadlessAnalyzer)  
+INFO  DecompCopy.java> === CopyFromCRC FUN_14056d410 at 14056d410 size=231 === (GhidraScript)  
+INFO  DecompCopy.java>  (GhidraScript)  
+INFO  DecompCopy.java> undefined8 * FUN_14056d410(undefined8 *param_1,undefined8 *param_2) (GhidraScript)  
+INFO  DecompCopy.java>  (GhidraScript)  
+INFO  DecompCopy.java> { (GhidraScript)  
+INFO  DecompCopy.java>   int iVar1; (GhidraScript)  
+INFO  DecompCopy.java>   undefined4 uVar2; (GhidraScript)  
+INFO  DecompCopy.java>   undefined4 uVar3; (GhidraScript)  
+INFO  DecompCopy.java>   undefined4 uVar4; (GhidraScript)  
+INFO  DecompCopy.java>   undefined8 uVar5; (GhidraScript)  
+INFO  DecompCopy.java>   int *piVar6; (GhidraScript)  
+INFO  DecompCopy.java>    (GhidraScript)  
+INFO  DecompCopy.java>   *param_1 = *param_2; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)(param_1 + 1) = *(undefined2 *)(param_2 + 1); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)((longlong)param_1 + 10) = *(undefined1 *)((longlong)param_2 + 10); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)((longlong)param_1 + 0xb) = *(undefined1 *)((longlong)param_2 + 0xb); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined4 *)((longlong)param_1 + 0xc) = *(undefined4 *)((longlong)param_2 + 0xc); (GhidraScript)  
+INFO  DecompCopy.java>   uVar2 = *(undefined4 *)((longlong)param_2 + 0x14); (GhidraScript)  
+INFO  DecompCopy.java>   uVar3 = *(undefined4 *)(param_2 + 3); (GhidraScript)  
+INFO  DecompCopy.java>   uVar4 = *(undefined4 *)((longlong)param_2 + 0x1c); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined4 *)(param_1 + 2) = *(undefined4 *)(param_2 + 2); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined4 *)((longlong)param_1 + 0x14) = uVar2; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined4 *)(param_1 + 3) = uVar3; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined4 *)((longlong)param_1 + 0x1c) = uVar4; (GhidraScript)  
+INFO  DecompCopy.java>   FUN_140454000(param_1 + 4,param_2 + 4); (GhidraScript)  
+INFO  DecompCopy.java>   param_1[6] = param_2[6]; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)(param_1 + 7) = *(undefined1 *)(param_2 + 7); (GhidraScript)  
+INFO  DecompCopy.java>   param_1[8] = param_2[8]; (GhidraScript)  
+INFO  DecompCopy.java>   if (param_1[9] != 0) { (GhidraScript)  
+INFO  DecompCopy.java>     piVar6 = (int *)(param_1[9] + -4); (GhidraScript)  
+INFO  DecompCopy.java>     LOCK(); (GhidraScript)  
+INFO  DecompCopy.java>     iVar1 = *piVar6; (GhidraScript)  
+INFO  DecompCopy.java>     *piVar6 = *piVar6 + -1; (GhidraScript)  
+INFO  DecompCopy.java>     UNLOCK(); (GhidraScript)  
+INFO  DecompCopy.java>     if (iVar1 == 1) { (GhidraScript)  
+INFO  DecompCopy.java>       thunk_FUN_1410e1240(); (GhidraScript)  
+INFO  DecompCopy.java>     } (GhidraScript)  
+INFO  DecompCopy.java>   } (GhidraScript)  
+INFO  DecompCopy.java>   param_1[9] = param_2[9]; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)(param_1 + 10) = *(undefined2 *)(param_2 + 10); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)((longlong)param_1 + 0x52) = *(undefined2 *)((longlong)param_2 + 0x52); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)((longlong)param_1 + 0x54) = *(undefined2 *)((longlong)param_2 + 0x54); (GhidraScript)  
+INFO  DecompCopy.java>   param_2[9] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined4 *)(param_2 + 10) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)((longlong)param_2 + 0x54) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   uVar5 = param_2[0xc]; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0xb] = param_2[0xb]; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0xc] = uVar5; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0xd] = param_2[0xd]; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)(param_1 + 0xe) = *(undefined1 *)(param_2 + 0xe); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)((longlong)param_1 + 0x71) = *(undefined1 *)((longlong)param_2 + 0x71); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)((longlong)param_1 + 0x72) = *(undefined1 *)((longlong)param_2 + 0x72); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)((longlong)param_1 + 0x73) = *(undefined1 *)((longlong)param_2 + 0x73); (GhidraScript)  
+INFO  DecompCopy.java>   return param_1; (GhidraScript)  
+INFO  DecompCopy.java> } (GhidraScript)  
+INFO  DecompCopy.java>  (GhidraScript)  
+INFO  DecompCopy.java> === CopyToSlot FUN_140566610 at 140566610 size=376 === (GhidraScript)  
+INFO  DecompCopy.java>  (GhidraScript)  
+INFO  DecompCopy.java> undefined8 * FUN_140566610(undefined8 *param_1,undefined8 *param_2) (GhidraScript)  
+INFO  DecompCopy.java>  (GhidraScript)  
+INFO  DecompCopy.java> { (GhidraScript)  
+INFO  DecompCopy.java>   undefined8 uVar1; (GhidraScript)  
+INFO  DecompCopy.java>    (GhidraScript)  
+INFO  DecompCopy.java>   *param_1 = *param_2; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)(param_1 + 1) = *(undefined1 *)(param_2 + 1); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)((longlong)param_1 + 9) = *(undefined1 *)((longlong)param_2 + 9); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)((longlong)param_1 + 10) = *(undefined1 *)((longlong)param_2 + 10); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)((longlong)param_1 + 0xb) = *(undefined1 *)((longlong)param_2 + 0xb); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined4 *)((longlong)param_1 + 0xc) = *(undefined4 *)((longlong)param_2 + 0xc); (GhidraScript)  
+INFO  DecompCopy.java>   FUN_140567270(param_1 + 2,param_2 + 2); (GhidraScript)  
+INFO  DecompCopy.java>   uVar1 = param_2[0x12]; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x11] = param_2[0x11]; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x12] = uVar1; (GhidraScript)  
+INFO  DecompCopy.java>   uVar1 = param_2[0x14]; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x13] = param_2[0x13]; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x14] = uVar1; (GhidraScript)  
+INFO  DecompCopy.java>   uVar1 = param_2[0x16]; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x15] = param_2[0x15]; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x16] = uVar1; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x17] = param_2[0x17]; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)(param_1 + 0x18) = *(undefined2 *)(param_2 + 0x18); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)((longlong)param_1 + 0xc2) = *(undefined1 *)((longlong)param_2 + 0xc2); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)((longlong)param_1 + 0xc3) = *(undefined1 *)((longlong)param_2 + 0xc3); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)((longlong)param_1 + 0xc4) = *(undefined2 *)((longlong)param_2 + 0xc4); (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x19] = param_2[0x19]; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)(param_1 + 0x1a) = *(undefined1 *)(param_2 + 0x1a); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)((longlong)param_1 + 0xd1) = *(undefined1 *)((longlong)param_2 + 0xd1); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)((longlong)param_1 + 0xd2) = *(undefined1 *)((longlong)param_2 + 0xd2); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined4 *)((longlong)param_1 + 0xd4) = *(undefined4 *)((longlong)param_2 + 0xd4); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined4 *)(param_1 + 0x1b) = *(undefined4 *)(param_2 + 0x1b); (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x1c] = param_2[0x1c]; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)(param_1 + 0x1d) = *(undefined2 *)(param_2 + 0x1d); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)((longlong)param_1 + 0xea) = *(undefined2 *)((longlong)param_2 + 0xea); (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)((longlong)param_1 + 0xec) = *(undefined2 *)((longlong)param_2 + 0xec); (GhidraScript)  
+INFO  DecompCopy.java>   param_2[0x1c] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined4 *)(param_2 + 0x1d) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)((longlong)param_2 + 0xec) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   uVar1 = param_2[0x1f]; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x1e] = param_2[0x1e]; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x1f] = uVar1; (GhidraScript)  
+INFO  DecompCopy.java>   uVar1 = param_2[0x21]; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x20] = param_2[0x20]; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x21] = uVar1; (GhidraScript)  
+INFO  DecompCopy.java>   return param_1; (GhidraScript)  
+INFO  DecompCopy.java> } (GhidraScript)  
+INFO  DecompCopy.java>  (GhidraScript)  
+INFO  DecompCopy.java> === InitSlot FUN_140566790 at 140566790 size=239 === (GhidraScript)  
+INFO  DecompCopy.java>  (GhidraScript)  
+INFO  DecompCopy.java> undefined8 * FUN_140566790(undefined8 *param_1) (GhidraScript)  
+INFO  DecompCopy.java>  (GhidraScript)  
+INFO  DecompCopy.java> { (GhidraScript)  
+INFO  DecompCopy.java>   *param_1 = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[1] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[2] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[3] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)(param_1 + 4) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[5] = 0xffffffffffffffff; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[6] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[7] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[8] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)(param_1 + 9) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[10] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0xb] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined4 *)(param_1 + 0xc) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)((longlong)param_1 + 100) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)(param_1 + 0xf) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined8 *)((longlong)param_1 + 0x7c) = 1; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0xd] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0xe] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x11] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)(param_1 + 0x12) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)((longlong)param_1 + 0x92) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x13] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x14] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x15] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)(param_1 + 0x16) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x17] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)(param_1 + 0x18) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined4 *)((longlong)param_1 + 0xc2) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x19] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)(param_1 + 0x1a) = 0xff00; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)((longlong)param_1 + 0xd2) = 1; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined8 *)((longlong)param_1 + 0xd4) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x1c] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined4 *)(param_1 + 0x1d) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)((longlong)param_1 + 0xec) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x1e] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)(param_1 + 0x1f) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined2 *)((longlong)param_1 + 0xfa) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)((longlong)param_1 + 0xfc) = 0xff; (GhidraScript)  
+INFO  DecompCopy.java>   *(undefined1 *)(param_1 + 0x20) = 0; (GhidraScript)  
+INFO  DecompCopy.java>   param_1[0x21] = 0; (GhidraScript)  
+INFO  DecompCopy.java>   return param_1; (GhidraScript)  
+INFO  DecompCopy.java> } (GhidraScript)  
+INFO  DecompCopy.java>  (GhidraScript)  
+INFO  DecompCopy.java> 
+=== DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /League of Legends.exe (HeadlessAnalyzer)  

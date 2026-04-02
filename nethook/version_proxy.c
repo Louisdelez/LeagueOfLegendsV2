@@ -1012,10 +1012,13 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                 Log("    +0x20 qword: 0x%llX", *(UINT64*)(host + 0x20));
                 Log("    +0x38 socket: %llu", *(UINT64*)(host + 0x38));
 
-                // plVar15 = *(host+0x20), fallback = host+8
+                // plVar15 = *(host+0x20) — NOW CONFIRMED NON-NULL!
                 void *plVar15 = *(void**)(host + 0x20);
-                if (!plVar15 || IsBadReadPtr(plVar15, 8))
+                Log("    plVar15 = %p (from host+0x20)", plVar15);
+                if (!plVar15 || IsBadReadPtr(plVar15, 0x98)) {
                     plVar15 = (void*)(host + 8);
+                    Log("    fallback to host+8");
+                }
 
                 void *vtable = *(void**)plVar15;
                 if (vtable && !IsBadReadPtr(vtable, 0x48)) {
@@ -1032,6 +1035,14 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                 Log("    +0x144 ushort: %u", *(USHORT*)(host + 0x144));
                 Log("    +0x146 ushort: %u", *(USHORT*)(host + 0x146));
                 Log("    +0x178 uint: %u", *(UINT32*)(host + 0x178));
+
+                // Queue object at plVar15 (the REAL handler object)
+                BYTE *queue = (BYTE*)plVar15;
+                Log("    QUEUE: paused=*(+0x18)=%d capacity=*(+0x80)=%llu writeIdx=*(+0x88)=%llu count=*(+0x90)=%llu",
+                    queue[0x18],
+                    *(UINT64*)(queue + 0x80),
+                    *(UINT64*)(queue + 0x88),
+                    *(UINT64*)(queue + 0x90));
             }
             // Dump CRC struct fields on first few packets
             if (connStructAddr && crcDumpCount < 20 && !IsBadReadPtr((void*)connStructAddr, 0x170)) {
@@ -1148,6 +1159,65 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
             // === USE CLIENT'S OWN DECRYPT FUNCTION ===
             // FUN_1410f2a10(bf_ctx, data, len, mode=2) is BF_cfb64_decrypt
             // We call it on a COPY to see what the client would see after decryption
+            // Log queue state periodically
+            {
+                static int queueLogCount = 0;
+                if (recvHostStruct && queueLogCount < 30) {
+                    queueLogCount++;
+                    BYTE *host2 = (BYTE*)recvHostStruct;
+                    void *pv = *(void**)(host2 + 0x20);
+                    BYTE *qp = pv ? (BYTE*)pv : host2 + 8;
+                    if (!IsBadReadPtr(qp, 0x98)) {
+                        UINT64 cap = *(UINT64*)(qp + 0x80);
+                        UINT64 cnt = *(UINT64*)(qp + 0x90);
+                        Log("  QUEUE #%d: paused=%d cap=%llu count=%llu",
+                            queueLogCount, qp[0x18], cap, cnt);
+
+                        // When count > 0, dump the first queue slot to see decoded packet
+                        if (cnt > 0 && cap > 0 && !IsBadReadPtr(*(void**)(qp + 0x78), 8)) {
+                            UINT64 wIdx = *(UINT64*)(qp + 0x88);
+                            UINT64 mask = cap - 1;
+                            // The latest written slot
+                            UINT64 slot = (wIdx + cnt - 1) & mask;
+                            BYTE **slotArray = *(BYTE***)(qp + 0x78);
+                            if (slotArray && !IsBadReadPtr(slotArray + slot, 8)) {
+                                BYTE *slotData = slotArray[slot];
+                                if (slotData && !IsBadReadPtr(slotData, 0x60)) {
+                                    // Dump the CRC struct stored in the slot
+                                    // Layout: [0x00] local_c8, [0x08] peerID, [0x0b] cmd, [0x18] local_b0
+                                    //         [0x48] payload ptr, [0x52] payload len
+                                    Log("  SLOT[%llu]: +0x00=%016llX +0x08=%04X cmd@0x0b=%02X",
+                                        slot,
+                                        *(UINT64*)slotData,
+                                        *(USHORT*)(slotData + 8),
+                                        slotData[0x0b]);
+                                    USHORT payLen = *(USHORT*)(slotData + 0x52);
+                                    Log("    payloadLen=%u flags@0x07=%02X", payLen, slotData[0x07]);
+                                    // Dump first 32 bytes of slot
+                                    Log("    [0x00-0x1F]: %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X",
+                                        slotData[0], slotData[1], slotData[2], slotData[3],
+                                        slotData[4], slotData[5], slotData[6], slotData[7],
+                                        slotData[8], slotData[9], slotData[10], slotData[11],
+                                        slotData[12], slotData[13], slotData[14], slotData[15],
+                                        slotData[16], slotData[17], slotData[18], slotData[19],
+                                        slotData[20], slotData[21], slotData[22], slotData[23],
+                                        slotData[24], slotData[25], slotData[26], slotData[27],
+                                        slotData[28], slotData[29], slotData[30], slotData[31]);
+                                    // Also dump payload if available
+                                    BYTE *payPtr = *(BYTE**)(slotData + 0x48);
+                                    if (payLen > 0 && payPtr && !IsBadReadPtr(payPtr, payLen < 32 ? payLen : 32)) {
+                                        Log("    PAYLOAD[0:%d]: %02X %02X %02X %02X %02X %02X %02X %02X",
+                                            payLen > 8 ? 8 : payLen,
+                                            payPtr[0], payLen>1?payPtr[1]:0, payLen>2?payPtr[2]:0, payLen>3?payPtr[3]:0,
+                                            payLen>4?payPtr[4]:0, payLen>5?payPtr[5]:0, payLen>6?payPtr[6]:0, payLen>7?payPtr[7]:0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             if (lastSendLen > 8) {  // Echo mode active
                 static int eCount = 0;
                 static int keycheckSent = 0;
