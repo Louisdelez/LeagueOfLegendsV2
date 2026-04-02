@@ -1135,18 +1135,38 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                             Log("    +0x%03X = %p %s", off, val, inImg ? "(IN IMAGE)" : "");
                         }
                     }
-                    // For any in-image pointer, try reading vtable
+                    // Read vtable entries at +0x120 and +0x128
+                    void *h120 = *(void**)((BYTE*)plVar15 + 0x120);
                     void *h128 = *(void**)((BYTE*)plVar15 + 0x128);
-                    if (h128 && !IsBadReadPtr(h128, 0x18)) {
-                        void *vt = *(void**)h128;
-                        Log("    h128=%p → vt=%p (RVA 0x%llX)", h128, vt, (UINT64)vt - imgBase);
-                        if (vt && !IsBadReadPtr((BYTE*)vt + 0x18, 8)) {
-                            void *fn10 = *(void**)((BYTE*)vt + 0x10);
-                            Log("    vt+0x10=%p (RVA 0x%llX)", fn10, (UINT64)fn10 - imgBase);
+                    if (h120 && !IsBadReadPtr((BYTE*)h120 + 0x10, 8)) {
+                        void *fn10_120 = *(void**)((BYTE*)h120 + 0x10);
+                        Log("    +0x120 vtable: fn[2]+0x10=%p (RVA 0x%llX)", fn10_120, (UINT64)fn10_120 - imgBase);
+                    }
+                    if (h128 && !IsBadReadPtr((BYTE*)h128 + 0x10, 8)) {
+                        void *fn10_128 = *(void**)((BYTE*)h128 + 0x10);
+                        Log("    +0x128 vtable: fn[2]+0x10=%p (RVA 0x%llX) %s",
+                            fn10_128, (UINT64)fn10_128 - imgBase,
+                            ((UINT64)fn10_128 - imgBase) == 0x1D52B0 ? "← STUB!" : "← REAL?");
+                    }
+                }
+            }
+
+            // Periodic check: has the consumer dispatch changed from stub?
+            {
+                static int vtCheckCount = 0;
+                vtCheckCount++;
+                if (recvHostStruct && (vtCheckCount == 30 || vtCheckCount == 60 || vtCheckCount == 100)) {
+                    BYTE *h2 = (BYTE*)recvHostStruct;
+                    void *pv2 = *(void**)(h2 + 0x20);
+                    if (pv2 && !IsBadReadPtr((BYTE*)pv2 + 0x128, 8)) {
+                        void *vh = *(void**)((BYTE*)pv2 + 0x128);
+                        HMODULE gb2 = GetModuleHandleA(NULL);
+                        if (vh && !IsBadReadPtr((BYTE*)vh + 0x10, 8)) {
+                            void *fn = *(void**)((BYTE*)vh + 0x10);
+                            Log("  VT-CHECK #%d: +0x128 fn[2]=%p (RVA 0x%llX) %s",
+                                vtCheckCount, fn, (UINT64)fn - (UINT64)gb2,
+                                ((UINT64)fn - (UINT64)gb2) == 0x1D52B0 ? "STUB" : "CHANGED!");
                         }
-                        // Also try h128 itself as having fn at +0x10 (maybe h128 IS the vtable)
-                        void *fn10_direct = *(void**)((BYTE*)h128 + 0x10);
-                        Log("    h128+0x10=%p (RVA 0x%llX)", fn10_direct, (UINT64)fn10_direct - imgBase);
                     }
                 }
             }
