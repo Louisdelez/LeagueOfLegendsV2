@@ -247,6 +247,7 @@ public class BlowFish
         }
     }
 
+    // BIG-ENDIAN: standard Blowfish convention (OpenSSL compatible)
     private static uint BytesToUInt32(byte[] data, int offset)
     {
         return ((uint)data[offset] << 24) |

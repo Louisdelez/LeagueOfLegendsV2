@@ -63,7 +63,9 @@ public class RawGameServer : IGameServer, IDisposable
         Log("=== LoL Private Server (Double CFB Mode) ===");
         Log($"Port: {_port}");
         Log($"Blowfish Key: {_config.BlowfishKey} ({_blowfishKey.Length} bytes)");
-        Log($"BF_encrypt(zeros) = {BitConverter.ToString(_cipher.EncryptBlock(new byte[8]))}");
+        var bfTest = _cipher.EncryptBlock(new byte[8]);
+        Log($"BF_encrypt(zeros) = {BitConverter.ToString(bfTest)}");
+        Log($"P[0] = 0x{_cipher.PBox[0]:X8} (client has 0xBBCD2876)");
         Log($"SessionID: 0x{_sessionId:X8}");
         Log($"Players: {_config.Players.Count}");
 
@@ -157,10 +159,48 @@ public class RawGameServer : IGameServer, IDisposable
         if (verbose)
         {
             Log($"[CLIENT] #{peer.PacketCount} {data.Length}B LNPBlob sessID=0x{sessIdLE:X8} token=0x{peer.ConnectToken:X8}");
-            Log($"  Header: {Hex(data, 20)}");
-            // Log full content of non-519B packets (these are important!)
-            if (data.Length != 519)
-                Log($"  FULL: {Hex(data, data.Length)}");
+        }
+
+        // Decrypt the payload: bytes after LNPBlob header (12B) are encrypted
+        // The encrypted data includes 4B preamble (not encrypted) + encrypted CRC layer
+        // But for < 8B payload, it's plaintext (0 CFB blocks)
+        if (data.Length > 12)
+        {
+            int payloadLen = data.Length - 12;
+            byte[] payload = new byte[payloadLen];
+            Array.Copy(data, 12, payload, 0, payloadLen);
+
+            // Double CFB decrypt
+            byte[] decrypted = DoubleCfbDecrypt(payload);
+
+            // Parse: [2B peerID LE][4B CRC nonce][1B flags][body...]
+            if (decrypted.Length >= 7)
+            {
+                ushort peerID = (ushort)(decrypted[0] | (decrypted[1] << 8));
+                uint nonce = (uint)(decrypted[2] | (decrypted[3] << 8) | (decrypted[4] << 16) | (decrypted[5] << 24));
+                byte flags = decrypted[6];
+                byte cmdType = (byte)(flags & 0x7F);
+                bool hasSentTime = (flags & 0x80) != 0;
+
+                if (peer.PacketCount <= 30 || cmdType > 5)
+                {
+                    Log($"  [DECRYPT] peerID=0x{peerID:X4} nonce=0x{nonce:X8} flags=0x{flags:X2} cmd={cmdType} sentTime={hasSentTime}");
+                    if (decrypted.Length > 7)
+                        Log($"  [BODY] {Hex(decrypted, 7, Math.Min(32, decrypted.Length - 7))}");
+                }
+
+                // Detect KeyCheck: reliable command with game data
+                if (cmdType == 0x06 || cmdType == 0x86)  // SEND_RELIABLE
+                {
+                    Log($"  [RELIABLE] cmd=0x{cmdType:X2} bodyLen={decrypted.Length - 7}");
+                    if (decrypted.Length > 11)
+                    {
+                        // ENet SEND_RELIABLE body: [2B dataLen BE][data...]
+                        int dataLen = (decrypted[7] << 8) | decrypted[8];
+                        Log($"  [DATA] len={dataLen} first4={Hex(decrypted, 9, Math.Min(4, decrypted.Length - 9))}");
+                    }
+                }
+            }
         }
 
         if (!peer.Connected)
@@ -552,22 +592,32 @@ public class RawGameServer : IGameServer, IDisposable
     /// <summary>
     /// Encrypt with Blowfish CFB using fresh IV=zeros (per-packet, no persistent state).
     /// </summary>
+    /// <summary>Swap byte order of each uint32 half (BE C# → LE native convention)</summary>
+    private static void SwapKeystream(byte[] ks)
+    {
+        (ks[0], ks[3]) = (ks[3], ks[0]);
+        (ks[1], ks[2]) = (ks[2], ks[1]);
+        (ks[4], ks[7]) = (ks[7], ks[4]);
+        (ks[5], ks[6]) = (ks[6], ks[5]);
+    }
+
     private byte[] CfbEncrypt(byte[] plaintext)
     {
-        var result = (byte[])plaintext.Clone(); // start with copy (trailing bytes stay as-is!)
+        var result = (byte[])plaintext.Clone();
         var feedback = new byte[8]; // IV = zeros
-        int fullBlocks = plaintext.Length / 8; // ONLY full blocks! (game: param_3 >> 3)
+        int fullBlocks = plaintext.Length / 8;
 
         for (int block = 0; block < fullBlocks; block++)
         {
             int i = block * 8;
+            // No swap needed: BF reads feedback in BE (same as client's CONCAT31),
+            // and outputs keystream in BE (byte-by-byte XOR matches client's uint32 XOR).
             var keystream = _cipher.EncryptBlock(feedback);
             for (int j = 0; j < 8; j++)
                 result[i + j] = (byte)(plaintext[i + j] ^ keystream[j]);
 
             Array.Copy(result, i, feedback, 0, 8);
         }
-        // Remaining bytes (plaintext.Length % 8) are NOT encrypted! (matches game behavior)
 
         return result;
     }
@@ -588,23 +638,34 @@ public class RawGameServer : IGameServer, IDisposable
     }
 
     /// <summary>
+    /// Double CFB decrypt: CFB decrypt → reverse → CFB decrypt (both IV=0).
+    /// Inverse of DoubleCfbEncrypt.
+    /// </summary>
+    private byte[] DoubleCfbDecrypt(byte[] ciphertext)
+    {
+        var result = CfbDecrypt(ciphertext);
+        Array.Reverse(result);
+        result = CfbDecrypt(result);
+        return result;
+    }
+
+    /// <summary>
     /// Decrypt with Blowfish CFB using fresh IV=zeros (per-packet).
     /// </summary>
     private byte[] CfbDecrypt(byte[] ciphertext)
     {
-        var result = (byte[])ciphertext.Clone(); // trailing bytes stay as-is
+        var result = (byte[])ciphertext.Clone();
         var feedback = new byte[8]; // IV = zeros
-        int fullBlocks = ciphertext.Length / 8; // ONLY full blocks!
+        int fullBlocks = ciphertext.Length / 8;
 
         for (int block = 0; block < fullBlocks; block++)
         {
             int i = block * 8;
             var keystream = _cipher.EncryptBlock(feedback);
-            Array.Copy(ciphertext, i, feedback, 0, 8); // feedback = input BEFORE XOR
+            Array.Copy(ciphertext, i, feedback, 0, 8);
             for (int j = 0; j < 8; j++)
                 result[i + j] = (byte)(ciphertext[i + j] ^ keystream[j]);
         }
-        // Remaining bytes NOT decrypted (matches game behavior)
 
         return result;
     }
@@ -629,6 +690,7 @@ public class RawGameServer : IGameServer, IDisposable
     private static void WriteLE16(byte[] buf, int off, ushort val) { buf[off] = (byte)val; buf[off + 1] = (byte)(val >> 8); }
     private static void WriteLE32(byte[] buf, int off, uint val) { buf[off] = (byte)val; buf[off + 1] = (byte)(val >> 8); buf[off + 2] = (byte)(val >> 16); buf[off + 3] = (byte)(val >> 24); }
     private static string Hex(byte[] d, int max = 32) => BitConverter.ToString(d, 0, Math.Min(max, d.Length));
+    private static string Hex(byte[] d, int offset, int count) => BitConverter.ToString(d, offset, Math.Min(count, d.Length - offset));
 
     private ClientInfo EnsureClientInfo(PeerInfo peer)
     {
