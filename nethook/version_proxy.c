@@ -224,6 +224,7 @@ static void ScanPBox(void) {
 static char lastSendBuf[1024];
 static int lastSendLen = 0;
 static int injectMode = 0;
+static volatile void *recvHostStruct = NULL;
 static int injectCount = 0;
 static volatile BYTE *connStructAddr = NULL;  // RBX = connection struct address
 static volatile int crcDumpCount = 0;
@@ -1099,9 +1100,48 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
             snprintf(addrStr, 64, "127.0.0.1:%d", ntohs(sin->sin_port));
             Log("RECV_SRV #%d: %dB %s cmd=0x%02X", pktCount, r, addrStr, cmdTag);
 
-            // === USE CLIENT'S OWN DECRYPT FUNCTION ===
-            // FUN_1410f2a10(bf_ctx, data, len, mode=2) is BF_cfb64_decrypt
-            // We call it on a COPY to see what the client would see after decryption
+            // Find host struct by scanning stack for object with *(ptr+0x38)==socket
+            if (!recvHostStruct) {
+                BYTE *stk;
+                __asm__ volatile("movq %%rsp, %0" : "=r"(stk));
+                for (int soff = 0; soff < 0x2000; soff += 8) {
+                    BYTE *c = *(BYTE**)(stk + soff);
+                    if (c && !IsBadReadPtr(c, 0x180) && !IsBadReadPtr(c + 0x38, 8)) {
+                        if (*(UINT64*)(c + 0x38) == (UINT64)s && c[0x50] <= 2) {
+                            recvHostStruct = c;
+                            Log("  HOST FOUND: %p (stack+0x%X)", c, soff);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Log consumer dispatch function (once)
+            static int consumerLogged = 0;
+            if (recvHostStruct && !consumerLogged) {
+                consumerLogged = 1;
+                BYTE *host = (BYTE*)recvHostStruct;
+                void *plVar15 = *(void**)(host + 0x20);
+                if (plVar15 && !IsBadReadPtr((BYTE*)plVar15 + 0x168, 8)) {
+                    HMODULE gb = GetModuleHandleA(NULL);
+                    void *h128 = *(void**)((BYTE*)plVar15 + 0x128);
+                    void *h168 = *(void**)((BYTE*)plVar15 + 0x168);
+                    Log("  CONSUMER: +0x128=%p +0x168=%p", h128, h168);
+                    // +0x128 is the handler for local_60 != 2 (our packets)
+                    // It's called as: (**(vtable+0x10))(handler, ...)
+                    // Read the vtable of +0x128
+                    if (h128 && !IsBadReadPtr(h128, 8)) {
+                        void *vt = *(void**)h128;
+                        if (vt && !IsBadReadPtr(vt, 0x18)) {
+                            void *fn10 = *(void**)((BYTE*)vt + 0x10);
+                            Log("  CONSUMER DISPATCH: vtable=%p fn+0x10=%p (RVA 0x%llX)",
+                                vt, fn10, (UINT64)fn10 - (UINT64)gb);
+                        }
+                    }
+                }
+            }
+
+            // Echo + KeyCheck injection
             if (lastSendLen > 8) {
                 static int eCount = 0;
                 static int kcSent = 0;
