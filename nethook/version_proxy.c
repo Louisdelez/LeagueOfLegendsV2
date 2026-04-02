@@ -775,7 +775,33 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
     if (to && to->sa_family == AF_INET) {
         Log("SEND socket=%llu len=%d", (unsigned long long)s, len);
         SavePacket("SEND", buf, len, to);
-        // Hook Schannel on first sendto (secur32.dll should be loaded by now)
+        // Add our cert to TLS trust store on first sendto (TLS engine is initialized by now)
+        {
+            static int certAdded = 0;
+            if (!certAdded) {
+                certAdded = 1;
+                HMODULE hExe2 = GetModuleHandleA(NULL);
+                typedef void (*AddCA_t)(int, void**, int);
+                AddCA_t AddCA = (AddCA_t)((BYTE*)hExe2 + 0x168A4F0);
+                // Read our cert
+                FILE *cf2 = fopen("cert.pem", "r");
+                if (cf2) {
+                    char pm[4096]={0}; fread(pm,1,4095,cf2); fclose(cf2);
+                    static BYTE dr[2048]; int dl=0;
+                    static const BYTE b[256]={['A']=0,['B']=1,['C']=2,['D']=3,['E']=4,['F']=5,['G']=6,['H']=7,['I']=8,['J']=9,['K']=10,['L']=11,['M']=12,['N']=13,['O']=14,['P']=15,['Q']=16,['R']=17,['S']=18,['T']=19,['U']=20,['V']=21,['W']=22,['X']=23,['Y']=24,['Z']=25,['a']=26,['b']=27,['c']=28,['d']=29,['e']=30,['f']=31,['g']=32,['h']=33,['i']=34,['j']=35,['k']=36,['l']=37,['m']=38,['n']=39,['o']=40,['p']=41,['q']=42,['r']=43,['s']=44,['t']=45,['u']=46,['v']=47,['w']=48,['x']=49,['y']=50,['z']=51,['0']=52,['1']=53,['2']=54,['3']=55,['4']=56,['5']=57,['6']=58,['7']=59,['8']=60,['9']=61,['+']=62,['/']=63};
+                    char *p=pm; while(*p&&strncmp(p,"-----BEGIN",10)!=0)p++; while(*p&&*p!='\n')p++; if(*p)p++;
+                    int bits=0,nb=0;
+                    while(*p&&strncmp(p,"-----END",8)!=0){if(*p=='\n'||*p=='\r'||*p==' '||*p=='='){p++;continue;}bits=(bits<<6)|b[(unsigned char)*p];nb+=6;if(nb>=8){nb-=8;dr[dl++]=(BYTE)(bits>>nb);bits&=(1<<nb)-1;}p++;}
+                    if (dl > 0) {
+                        void *cp2 = dr;
+                        Log("  >>> Adding our cert (%dB) to TLS trust store <<<", dl);
+                        AddCA(0, &cp2, dl);
+                        Log("  >>> CERT ADDED TO TRUST STORE! <<<");
+                    }
+                }
+            }
+        }
+        // Hook Schannel on first sendto
         if (!real_InitSecCtxW) {
             HMODULE hSec = GetModuleHandleA("secur32.dll");
             if (!hSec) hSec = GetModuleHandleA("sspicli.dll");
@@ -2000,8 +2026,63 @@ static void InstallNetHooks(void) {
         }
     }
 
-    // Patch embedded Riot CA cert with our FakeLCU cert
-    PatchRiotCA();
+    // DISABLED: trust store injection in DllMain crashes (TLS engine not init yet)
+    // Moved to first sendto hook instead
+    if (0) { // DISABLED
+    // FUN_14168a4f0(0, &cert_ptr, cert_size) adds a CA cert to the trust store
+    // FUN_1410fae90 calls this with the Riot CA. We call it with our cert too.
+    {
+        HMODULE hExe = GetModuleHandleA(NULL);
+        typedef void (*AddCACert_t)(int, void**, int);
+        AddCACert_t AddCACert = (AddCACert_t)((BYTE*)hExe + 0x168A4F0);
+
+        // Read our FakeLCU cert DER
+        FILE *cf = fopen("cert.pem", "r");
+        if (!cf) cf = fopen("D:\\LeagueOfLegendsV2\\fakeLcu.crt", "r");
+        if (cf) {
+            char pem[4096] = {0};
+            fread(pem, 1, sizeof(pem)-1, cf);
+            fclose(cf);
+
+            // Decode PEM to DER (simple base64)
+            static BYTE ourDer[2048];
+            int derLen = 0;
+            {
+                static const BYTE b64[256] = {
+                    ['A']=0,['B']=1,['C']=2,['D']=3,['E']=4,['F']=5,['G']=6,['H']=7,
+                    ['I']=8,['J']=9,['K']=10,['L']=11,['M']=12,['N']=13,['O']=14,['P']=15,
+                    ['Q']=16,['R']=17,['S']=18,['T']=19,['U']=20,['V']=21,['W']=22,['X']=23,
+                    ['Y']=24,['Z']=25,['a']=26,['b']=27,['c']=28,['d']=29,['e']=30,['f']=31,
+                    ['g']=32,['h']=33,['i']=34,['j']=35,['k']=36,['l']=37,['m']=38,['n']=39,
+                    ['o']=40,['p']=41,['q']=42,['r']=43,['s']=44,['t']=45,['u']=46,['v']=47,
+                    ['w']=48,['x']=49,['y']=50,['z']=51,['0']=52,['1']=53,['2']=54,['3']=55,
+                    ['4']=56,['5']=57,['6']=58,['7']=59,['8']=60,['9']=61,['+']=62,['/']=63
+                };
+                char *p = pem;
+                while (*p && strncmp(p, "-----BEGIN", 10) != 0) p++;
+                while (*p && *p != '\n') p++;
+                if (*p) p++;
+                int bits = 0, nbits = 0;
+                while (*p && strncmp(p, "-----END", 8) != 0) {
+                    if (*p=='\n'||*p=='\r'||*p==' '||*p=='=') { p++; continue; }
+                    bits = (bits << 6) | b64[(unsigned char)*p];
+                    nbits += 6;
+                    if (nbits >= 8) { nbits -= 8; ourDer[derLen++] = (BYTE)(bits >> nbits); bits &= (1<<nbits)-1; }
+                    p++;
+                }
+            }
+
+            if (derLen > 0) {
+                void *certPtr = ourDer;
+                Log("Adding our cert (%dB DER) to TLS trust store via FUN_14168a4f0...", derLen);
+                AddCACert(0, &certPtr, derLen);
+                Log("*** OUR CERT ADDED TO TRUST STORE! ***");
+            }
+        } else {
+            Log("Can't open cert.pem for TLS trust injection");
+        }
+    }
+    } // end of if(0) DISABLED block
 
     // Start background thread to hook Schannel when secur32.dll loads
     Log("Starting TLS bypass thread...");
@@ -2136,6 +2217,28 @@ static DWORD WINAPI TlsBypassThread(LPVOID param) {
         }
     }
     if (!real_InitSecCtxW) Log("[TLS Thread] secur32.dll never loaded (10s timeout)");
+
+    // Add cert to TLS trust store ASAP (no delay - race with TLS handshake)
+    {
+        HMODULE hExe = GetModuleHandleA(NULL);
+        typedef void (*AddCA_t)(int, void**, int);
+        AddCA_t AddCA = (AddCA_t)((BYTE*)hExe + 0x168A4F0);
+        FILE *cf = fopen("cert.pem", "r");
+        if (cf) {
+            char pm[4096]={0}; fread(pm,1,4095,cf); fclose(cf);
+            static BYTE der2[2048]; int dl2=0;
+            static const BYTE b2[256]={['A']=0,['B']=1,['C']=2,['D']=3,['E']=4,['F']=5,['G']=6,['H']=7,['I']=8,['J']=9,['K']=10,['L']=11,['M']=12,['N']=13,['O']=14,['P']=15,['Q']=16,['R']=17,['S']=18,['T']=19,['U']=20,['V']=21,['W']=22,['X']=23,['Y']=24,['Z']=25,['a']=26,['b']=27,['c']=28,['d']=29,['e']=30,['f']=31,['g']=32,['h']=33,['i']=34,['j']=35,['k']=36,['l']=37,['m']=38,['n']=39,['o']=40,['p']=41,['q']=42,['r']=43,['s']=44,['t']=45,['u']=46,['v']=47,['w']=48,['x']=49,['y']=50,['z']=51,['0']=52,['1']=53,['2']=54,['3']=55,['4']=56,['5']=57,['6']=58,['7']=59,['8']=60,['9']=61,['+']=62,['/']=63};
+            char *p2=pm; while(*p2&&strncmp(p2,"-----BEGIN",10)!=0)p2++; while(*p2&&*p2!='\n')p2++; if(*p2)p2++;
+            int bits2=0,nb2=0;
+            while(*p2&&strncmp(p2,"-----END",8)!=0){if(*p2=='\n'||*p2=='\r'||*p2==' '||*p2=='='){p2++;continue;}bits2=(bits2<<6)|b2[(unsigned char)*p2];nb2+=6;if(nb2>=8){nb2-=8;der2[dl2++]=(BYTE)(bits2>>nb2);bits2&=(1<<nb2)-1;}p2++;}
+            if (dl2 > 0) {
+                void *cp = der2;
+                Log("[TLS Thread] Adding cert (%dB) to trust store...", dl2);
+                AddCA(0, &cp, dl2);
+                Log("[TLS Thread] *** CERT ADDED! ***");
+            }
+        }
+    }
     return 0;
 }
 

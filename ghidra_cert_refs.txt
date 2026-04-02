@@ -1,0 +1,178 @@
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra_full/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (706 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (2513 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_proj2 (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_proj2 (HeadlessProject)  
+INFO  REPORT: Processing project file: /League of Legends.exe (HeadlessAnalyzer)  
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                         ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                           ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                                          ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                                                            ^
+skipping D:\LeagueOfLegendsV2\ghidra_scripts\ReadSBox.java
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\FindCertRefs.java (HeadlessAnalyzer)  
+INFO  FindCertRefs.java> === Searching xrefs to Riot CA cert at 1419eebd0 === (GhidraScript)  
+INFO  FindCertRefs.java>   Ref from 1410fae94 in FUN_1410fae90 at 1410fae90 (GhidraScript)  
+INFO  FindCertRefs.java>   Ref from 1410faea6 in FUN_1410fae90 at 1410fae90 (GhidraScript)  
+INFO  FindCertRefs.java> 
+=== Xrefs to rclient cert at 1419ee230 === (GhidraScript)  
+INFO  FindCertRefs.java>   Ref from 1410fbb14 in FUN_1410fbb10 at 1410fbb10 (GhidraScript)  
+INFO  FindCertRefs.java>   Ref from 1410fbb26 in FUN_1410fbb10 at 1410fbb10 (GhidraScript)  
+INFO  FindCertRefs.java> 
+=== Xrefs to first cert (DigiCert) at 1419ede10 === (GhidraScript)  
+INFO  FindCertRefs.java>   Ref from 1410fbe1d in FUN_1410fbdc0 at 1410fbdc0 size=1777 (GhidraScript)  
+INFO  FindCertRefs.java>   Lines: 282 (GhidraScript)  
+INFO  FindCertRefs.java>      (GhidraScript)  
+INFO  FindCertRefs.java>     void FUN_1410fbdc0(longlong *param_1) (GhidraScript)  
+INFO  FindCertRefs.java>      (GhidraScript)  
+INFO  FindCertRefs.java>     { (GhidraScript)  
+INFO  FindCertRefs.java>       undefined8 *puVar1; (GhidraScript)  
+INFO  FindCertRefs.java>       undefined *local_res8; (GhidraScript)  
+INFO  FindCertRefs.java>        (GhidraScript)  
+INFO  FindCertRefs.java>       if (*param_1 != param_1[1]) { (GhidraScript)  
+INFO  FindCertRefs.java>         param_1[1] = *param_1; (GhidraScript)  
+INFO  FindCertRefs.java>       } (GhidraScript)  
+INFO  FindCertRefs.java>       local_res8 = &DAT_141d12b70; (GhidraScript)  
+INFO  FindCertRefs.java>       local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x41b); (GhidraScript)  
+INFO  FindCertRefs.java>       puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  FindCertRefs.java>       if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  FindCertRefs.java>         FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  FindCertRefs.java>       } (GhidraScript)  
+INFO  FindCertRefs.java>       else { (GhidraScript)  
+INFO  FindCertRefs.java>         *puVar1 = local_res8; (GhidraScript)  
+INFO  FindCertRefs.java>         param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  FindCertRefs.java>       } (GhidraScript)  
+INFO  FindCertRefs.java>       local_res8 = &DAT_1419ede10; (GhidraScript)  
+INFO  FindCertRefs.java>       local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x3c9); (GhidraScript)  
+INFO  FindCertRefs.java>       puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  FindCertRefs.java>       if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  FindCertRefs.java>         FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  FindCertRefs.java>       } (GhidraScript)  
+INFO  FindCertRefs.java>       else { (GhidraScript)  
+INFO  FindCertRefs.java>         *puVar1 = local_res8; (GhidraScript)  
+INFO  FindCertRefs.java>         param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  FindCertRefs.java>       } (GhidraScript)  
+INFO  FindCertRefs.java>   Ref from 1410fbe2e in FUN_1410fbdc0 at 1410fbdc0 size=1777 (GhidraScript)  
+INFO  FindCertRefs.java>   Lines: 282 (GhidraScript)  
+INFO  FindCertRefs.java>      (GhidraScript)  
+INFO  FindCertRefs.java>     void FUN_1410fbdc0(longlong *param_1) (GhidraScript)  
+INFO  FindCertRefs.java>      (GhidraScript)  
+INFO  FindCertRefs.java>     { (GhidraScript)  
+INFO  FindCertRefs.java>       undefined8 *puVar1; (GhidraScript)  
+INFO  FindCertRefs.java>       undefined *local_res8; (GhidraScript)  
+INFO  FindCertRefs.java>        (GhidraScript)  
+INFO  FindCertRefs.java>       if (*param_1 != param_1[1]) { (GhidraScript)  
+INFO  FindCertRefs.java>         param_1[1] = *param_1; (GhidraScript)  
+INFO  FindCertRefs.java>       } (GhidraScript)  
+INFO  FindCertRefs.java>       local_res8 = &DAT_141d12b70; (GhidraScript)  
+INFO  FindCertRefs.java>       local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x41b); (GhidraScript)  
+INFO  FindCertRefs.java>       puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  FindCertRefs.java>       if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  FindCertRefs.java>         FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  FindCertRefs.java>       } (GhidraScript)  
+INFO  FindCertRefs.java>       else { (GhidraScript)  
+INFO  FindCertRefs.java>         *puVar1 = local_res8; (GhidraScript)  
+INFO  FindCertRefs.java>         param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  FindCertRefs.java>       } (GhidraScript)  
+INFO  FindCertRefs.java>       local_res8 = &DAT_1419ede10; (GhidraScript)  
+INFO  FindCertRefs.java>       local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x3c9); (GhidraScript)  
+INFO  FindCertRefs.java>       puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  FindCertRefs.java>       if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  FindCertRefs.java>         FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  FindCertRefs.java>       } (GhidraScript)  
+INFO  FindCertRefs.java>       else { (GhidraScript)  
+INFO  FindCertRefs.java>         *puVar1 = local_res8; (GhidraScript)  
+INFO  FindCertRefs.java>         param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  FindCertRefs.java>       } (GhidraScript)  
+INFO  FindCertRefs.java>   Ref from 140467651 in FUN_140467430 at 140467430 size=644 (GhidraScript)  
+INFO  FindCertRefs.java>   Lines: 138 (GhidraScript)  
+INFO  FindCertRefs.java>      (GhidraScript)  
+INFO  FindCertRefs.java>     longlong * FUN_140467430(longlong *param_1,int param_2) (GhidraScript)  
+INFO  FindCertRefs.java>      (GhidraScript)  
+INFO  FindCertRefs.java>     { (GhidraScript)  
+INFO  FindCertRefs.java>       ulonglong uVar1; (GhidraScript)  
+INFO  FindCertRefs.java>       ulonglong uVar2; (GhidraScript)  
+INFO  FindCertRefs.java>       longlong lVar3; (GhidraScript)  
+INFO  FindCertRefs.java>       undefined8 *puVar4; (GhidraScript)  
+INFO  FindCertRefs.java>       undefined4 uVar5; (GhidraScript)  
+INFO  FindCertRefs.java>       undefined4 uVar6; (GhidraScript)  
+INFO  FindCertRefs.java>       undefined4 uVar7; (GhidraScript)  
+INFO  FindCertRefs.java>       char *pcVar8; (GhidraScript)  
+INFO  FindCertRefs.java>       longlong lVar9; (GhidraScript)  
+INFO  FindCertRefs.java>       ulonglong uVar10; (GhidraScript)  
+INFO  FindCertRefs.java>       undefined8 local_res8; (GhidraScript)  
+INFO  FindCertRefs.java>        (GhidraScript)  
+INFO  FindCertRefs.java>       *param_1 = 0; (GhidraScript)  
+INFO  FindCertRefs.java>       param_1[1] = 0; (GhidraScript)  
+INFO  FindCertRefs.java>       param_1[2] = 0; (GhidraScript)  
+INFO  FindCertRefs.java>       param_1[3] = 0xf; (GhidraScript)  
+INFO  FindCertRefs.java>       *(undefined1 *)param_1 = 0; (GhidraScript)  
+INFO  FindCertRefs.java>       *(undefined1 *)(param_1 + 4) = 1; (GhidraScript)  
+INFO  FindCertRefs.java>       param_1[5] = 0; (GhidraScript)  
+INFO  FindCertRefs.java>       param_1[6] = 0; (GhidraScript)  
+INFO  FindCertRefs.java>       param_1[7] = 0; (GhidraScript)  
+INFO  FindCertRefs.java>       if (param_2 == 0) { (GhidraScript)  
+INFO  FindCertRefs.java>         uVar2 = param_1[3]; (GhidraScript)  
+INFO  FindCertRefs.java>         if (uVar2 < 0x22) { (GhidraScript)  
+INFO  FindCertRefs.java>           uVar10 = 0x7fffffffffffffff; (GhidraScript)  
+INFO  FindCertRefs.java>           if (uVar2 <= 0x7fffffffffffffff - (uVar2 >> 1)) { (GhidraScript)  
+INFO  FindCertRefs.java>   Ref from 140ac45e0 in FUN_140ac45d0 at 140ac45d0 size=45 (GhidraScript)  
+INFO  FindCertRefs.java>   Lines: 12 (GhidraScript)  
+INFO  FindCertRefs.java>      (GhidraScript)  
+INFO  FindCertRefs.java>     undefined8 * FUN_140ac45d0(undefined8 *param_1) (GhidraScript)  
+INFO  FindCertRefs.java>      (GhidraScript)  
+INFO  FindCertRefs.java>     { (GhidraScript)  
+INFO  FindCertRefs.java>       undefined8 uVar1; (GhidraScript)  
+INFO  FindCertRefs.java>        (GhidraScript)  
+INFO  FindCertRefs.java>       *param_1 = 0; (GhidraScript)  
+INFO  FindCertRefs.java>       uVar1 = FUN_1410fa1a0(&DAT_1419ede10,0x3c9); (GhidraScript)  
+INFO  FindCertRefs.java>       *param_1 = uVar1; (GhidraScript)  
+INFO  FindCertRefs.java>       return param_1; (GhidraScript)  
+INFO  FindCertRefs.java>     } (GhidraScript)  
+INFO  FindCertRefs.java>      (GhidraScript)  
+INFO  FindCertRefs.java> 
+=== Searching for cert pointer/size arrays === (GhidraScript)  
+INFO  FindCertRefs.java> 
+=== DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /League of Legends.exe (HeadlessAnalyzer)  
