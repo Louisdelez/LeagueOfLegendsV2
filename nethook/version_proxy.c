@@ -815,6 +815,53 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                 }
             }
         }
+        // Inject our cert into BoringSSL trust store on first sendto
+        {
+            static int certDone = 0;
+            if (!certDone) {
+                certDone = 1;
+                HMODULE hExe = GetModuleHandleA(NULL);
+                // FUN_14168a4f0 parses DER cert and returns a CRYPTO_BUFFER handle
+                typedef void* (*ParseCert_t)(int, void**, int);
+                ParseCert_t ParseCert = (ParseCert_t)((BYTE*)hExe + 0x168A4F0);
+                // FUN_1401e2190 is std::vector::push_back
+                typedef void (*VecPush_t)(void*, void*, void*);
+                VecPush_t VecPush = (VecPush_t)((BYTE*)hExe + 0x1E2190);
+
+                FILE *cf = fopen("cert.pem", "r");
+                if (cf) {
+                    char pm[4096]={0}; fread(pm,1,4095,cf); fclose(cf);
+                    static BYTE dr[2048]; int dl=0;
+                    static const BYTE b64[256]={['A']=0,['B']=1,['C']=2,['D']=3,['E']=4,['F']=5,['G']=6,['H']=7,['I']=8,['J']=9,['K']=10,['L']=11,['M']=12,['N']=13,['O']=14,['P']=15,['Q']=16,['R']=17,['S']=18,['T']=19,['U']=20,['V']=21,['W']=22,['X']=23,['Y']=24,['Z']=25,['a']=26,['b']=27,['c']=28,['d']=29,['e']=30,['f']=31,['g']=32,['h']=33,['i']=34,['j']=35,['k']=36,['l']=37,['m']=38,['n']=39,['o']=40,['p']=41,['q']=42,['r']=43,['s']=44,['t']=45,['u']=46,['v']=47,['w']=48,['x']=49,['y']=50,['z']=51,['0']=52,['1']=53,['2']=54,['3']=55,['4']=56,['5']=57,['6']=58,['7']=59,['8']=60,['9']=61,['+']=62,['/']=63};
+                    char *p=pm; while(*p&&strncmp(p,"-----BEGIN",10)!=0)p++; while(*p&&*p!='\n')p++; if(*p)p++;
+                    int bits=0,nb=0;
+                    while(*p&&strncmp(p,"-----END",8)!=0){if(*p=='\n'||*p=='\r'||*p==' '||*p=='='){p++;continue;}bits=(bits<<6)|b64[(unsigned char)*p];nb+=6;if(nb>=8){nb-=8;dr[dl++]=(BYTE)(bits>>nb);bits&=(1<<nb)-1;}p++;}
+
+                    if (dl > 0) {
+                        void *certPtr = dr;
+                        void *handle = ParseCert(0, &certPtr, dl);
+                        Log("  CERT: ParseCert returned handle=%p for %dB cert", handle, dl);
+
+                        if (handle) {
+                            // Now find the trust vector on the heap
+                            // FUN_1410fbdc0 was called with a vector. The vector contains
+                            // handles from ParseCert. We can scan heap for arrays containing
+                            // the handle for the Riot CA cert.
+
+                            // First, get the Riot CA handle by calling ParseCert on it
+                            BYTE *riotCA = (BYTE*)hExe + 0x19EEBD0;
+                            void *riotPtr = riotCA;
+                            void *riotHandle = ParseCert(0, &riotPtr, 1060);
+                            Log("  CERT: Riot CA handle=%p", riotHandle);
+
+                            // The trust vector is somewhere on the heap and contains riotHandle
+                            // For now, just log - we'll search in the next iteration
+                            Log("  CERT: Our cert handle=%p - need to find trust vector to inject", handle);
+                        }
+                    }
+                }
+            }
+        }
         // Patch CRC check on first sendto (game is already initialized by now)
         if (!crcPatched && !hwBpInstalled) {
             Log("About to call PatchCrcCheckEarly...");

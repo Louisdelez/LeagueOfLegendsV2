@@ -1,0 +1,262 @@
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra_full/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (712 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (1812 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_proj2 (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_proj2 (HeadlessProject)  
+INFO  REPORT: Processing project file: /League of Legends.exe (HeadlessAnalyzer)  
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                         ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                           ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                                          ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                                                            ^
+skipping D:\LeagueOfLegendsV2\ghidra_scripts\ReadSBox.java
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\DecompCertStore.java (HeadlessAnalyzer)  
+INFO  DecompCertStore.java> === FUN_1410fbb10 === (GhidraScript)  
+INFO  DecompCertStore.java> size=39 (GhidraScript)  
+INFO  DecompCertStore.java>  (GhidraScript)  
+INFO  DecompCertStore.java> void FUN_1410fbb10(void) (GhidraScript)  
+INFO  DecompCertStore.java>  (GhidraScript)  
+INFO  DecompCertStore.java> { (GhidraScript)  
+INFO  DecompCertStore.java>   undefined *local_res8 [4]; (GhidraScript)  
+INFO  DecompCertStore.java>    (GhidraScript)  
+INFO  DecompCertStore.java>   local_res8[0] = &DAT_1419ee230; (GhidraScript)  
+INFO  DecompCertStore.java>   FUN_14168a4f0(0,local_res8,0x4d9); (GhidraScript)  
+INFO  DecompCertStore.java>   return; (GhidraScript)  
+INFO  DecompCertStore.java> } (GhidraScript)  
+INFO  DecompCertStore.java>  (GhidraScript)  
+INFO  DecompCertStore.java> 
+=== FUN_1410fbdc0 === (GhidraScript)  
+INFO  DecompCertStore.java> size=1777 (GhidraScript)  
+INFO  DecompCertStore.java> Lines: 282 (GhidraScript)  
+INFO  DecompCertStore.java> [0]  (GhidraScript)  
+INFO  DecompCertStore.java> [1] void FUN_1410fbdc0(longlong *param_1) (GhidraScript)  
+INFO  DecompCertStore.java> [2]  (GhidraScript)  
+INFO  DecompCertStore.java> [3] { (GhidraScript)  
+INFO  DecompCertStore.java> [4]   undefined8 *puVar1; (GhidraScript)  
+INFO  DecompCertStore.java> [7]   if (*param_1 != param_1[1]) { (GhidraScript)  
+INFO  DecompCertStore.java> [8]     param_1[1] = *param_1; (GhidraScript)  
+INFO  DecompCertStore.java> [10]   local_res8 = &DAT_141d12b70; (GhidraScript)  
+INFO  DecompCertStore.java> [11]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x41b); (GhidraScript)  
+INFO  DecompCertStore.java> [12]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [13]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [14]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [18]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [20]   local_res8 = &DAT_1419ede10; (GhidraScript)  
+INFO  DecompCertStore.java> [21]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x3c9); (GhidraScript)  
+INFO  DecompCertStore.java> [22]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [23]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [24]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [28]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [30]   local_res8 = &DAT_1419ef000; (GhidraScript)  
+INFO  DecompCertStore.java> [31]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x4b5); (GhidraScript)  
+INFO  DecompCertStore.java> [32]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [33]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [34]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [38]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [40]   local_res8 = &DAT_1419ef4c0; (GhidraScript)  
+INFO  DecompCertStore.java> [41]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x4ec); (GhidraScript)  
+INFO  DecompCertStore.java> [42]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [43]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [44]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [48]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [50]   local_res8 = &DAT_1419ef9b0; (GhidraScript)  
+INFO  DecompCertStore.java> [51]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x3b3); (GhidraScript)  
+INFO  DecompCertStore.java> [52]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [53]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [54]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [58]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [60]   local_res8 = &DAT_1419f0490; (GhidraScript)  
+INFO  DecompCertStore.java> [61]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x402); (GhidraScript)  
+INFO  DecompCertStore.java> [62]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [63]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [64]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [68]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [70]   local_res8 = &DAT_1419efd70; (GhidraScript)  
+INFO  DecompCertStore.java> [71]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x4d7); (GhidraScript)  
+INFO  DecompCertStore.java> [72]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [73]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [74]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [78]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [80]   local_res8 = &DAT_1419f0250; (GhidraScript)  
+INFO  DecompCertStore.java> [81]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x240); (GhidraScript)  
+INFO  DecompCertStore.java> [82]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [83]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [84]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [88]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [90]   local_res8 = &DAT_141d121e0; (GhidraScript)  
+INFO  DecompCertStore.java> [91]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x60c); (GhidraScript)  
+INFO  DecompCertStore.java> [92]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [93]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [94]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [98]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [100]   local_res8 = &DAT_141d127f0; (GhidraScript)  
+INFO  DecompCertStore.java> [101]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x379); (GhidraScript)  
+INFO  DecompCertStore.java> [102]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [103]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [104]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [108]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [110]   local_res8 = &DAT_141d12f90; (GhidraScript)  
+INFO  DecompCertStore.java> [111]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x540); (GhidraScript)  
+INFO  DecompCertStore.java> [112]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [113]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [114]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [118]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [120]   local_res8 = &DAT_141d134d0; (GhidraScript)  
+INFO  DecompCertStore.java> [121]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x392); (GhidraScript)  
+INFO  DecompCertStore.java> [122]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [123]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [124]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [128]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [130]   local_res8 = &DAT_141d13870; (GhidraScript)  
+INFO  DecompCertStore.java> [131]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x345); (GhidraScript)  
+INFO  DecompCertStore.java> [132]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [133]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [134]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [138]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [140]   local_res8 = &DAT_141d13bc0; (GhidraScript)  
+INFO  DecompCertStore.java> [141]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x545); (GhidraScript)  
+INFO  DecompCertStore.java> [142]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [143]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [144]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [148]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [150]   local_res8 = &DAT_141d14110; (GhidraScript)  
+INFO  DecompCertStore.java> [151]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x1ba); (GhidraScript)  
+INFO  DecompCertStore.java> [152]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [153]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [154]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [158]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [160]   local_res8 = &DAT_141d142d0; (GhidraScript)  
+INFO  DecompCertStore.java> [161]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x1f6); (GhidraScript)  
+INFO  DecompCertStore.java> [162]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [163]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [164]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [168]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [170]   local_res8 = &DAT_141d144d0; (GhidraScript)  
+INFO  DecompCertStore.java> [171]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x673); (GhidraScript)  
+INFO  DecompCertStore.java> [172]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [173]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [174]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [178]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [180]   local_res8 = &DAT_1419f08a0; (GhidraScript)  
+INFO  DecompCertStore.java> [181]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x564); (GhidraScript)  
+INFO  DecompCertStore.java> [182]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [183]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [184]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [188]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [190]   local_res8 = &DAT_1419f0e10; (GhidraScript)  
+INFO  DecompCertStore.java> [191]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x6da); (GhidraScript)  
+INFO  DecompCertStore.java> [192]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [193]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [194]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [198]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [200]   local_res8 = &DAT_1419f14f0; (GhidraScript)  
+INFO  DecompCertStore.java> [201]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x5e1); (GhidraScript)  
+INFO  DecompCertStore.java> [202]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [203]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [204]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [208]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [210]   local_res8 = &DAT_1419f1ae0; (GhidraScript)  
+INFO  DecompCertStore.java> [211]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x56f); (GhidraScript)  
+INFO  DecompCertStore.java> [212]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [213]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [214]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [218]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [220]   local_res8 = &DAT_141d14b50; (GhidraScript)  
+INFO  DecompCertStore.java> [221]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x21f); (GhidraScript)  
+INFO  DecompCertStore.java> [222]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [223]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [224]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [228]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [230]   local_res8 = &DAT_141d14d70; (GhidraScript)  
+INFO  DecompCertStore.java> [231]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x509); (GhidraScript)  
+INFO  DecompCertStore.java> [232]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [233]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [234]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [238]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [240]   local_res8 = &DAT_141d15280; (GhidraScript)  
+INFO  DecompCertStore.java> [241]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x50a); (GhidraScript)  
+INFO  DecompCertStore.java> [242]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [243]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [244]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [248]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [250]   local_res8 = &DAT_141d15790; (GhidraScript)  
+INFO  DecompCertStore.java> [251]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x2b8); (GhidraScript)  
+INFO  DecompCertStore.java> [252]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [253]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [254]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [258]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [260]   local_res8 = &DAT_141d15a50; (GhidraScript)  
+INFO  DecompCertStore.java> [261]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x2ba); (GhidraScript)  
+INFO  DecompCertStore.java> [262]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [263]   if (puVar1 == (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [264]     FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [268]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [270]   local_res8 = &DAT_1419f2050; (GhidraScript)  
+INFO  DecompCertStore.java> [271]   local_res8 = (undefined *)FUN_14168a4f0(0,&local_res8,0x3f3); (GhidraScript)  
+INFO  DecompCertStore.java> [272]   puVar1 = (undefined8 *)param_1[1]; (GhidraScript)  
+INFO  DecompCertStore.java> [273]   if (puVar1 != (undefined8 *)param_1[2]) { (GhidraScript)  
+INFO  DecompCertStore.java> [275]     param_1[1] = param_1[1] + 8; (GhidraScript)  
+INFO  DecompCertStore.java> [276]     return; (GhidraScript)  
+INFO  DecompCertStore.java> [278]   FUN_1401e2190(param_1,puVar1,&local_res8); (GhidraScript)  
+INFO  DecompCertStore.java> [279]   return; (GhidraScript)  
+INFO  DecompCertStore.java> [280] } (GhidraScript)  
+INFO  DecompCertStore.java> [281]  (GhidraScript)  
+INFO  DecompCertStore.java> 
+=== FUN_140ac45d0 === (GhidraScript)  
+INFO  DecompCertStore.java> size=45 (GhidraScript)  
+INFO  DecompCertStore.java>  (GhidraScript)  
+INFO  DecompCertStore.java> undefined8 * FUN_140ac45d0(undefined8 *param_1) (GhidraScript)  
+INFO  DecompCertStore.java>  (GhidraScript)  
+INFO  DecompCertStore.java> { (GhidraScript)  
+INFO  DecompCertStore.java>   undefined8 uVar1; (GhidraScript)  
+INFO  DecompCertStore.java>    (GhidraScript)  
+INFO  DecompCertStore.java>   *param_1 = 0; (GhidraScript)  
+INFO  DecompCertStore.java>   uVar1 = FUN_1410fa1a0(&DAT_1419ede10,0x3c9); (GhidraScript)  
+INFO  DecompCertStore.java>   *param_1 = uVar1; (GhidraScript)  
+INFO  DecompCertStore.java>   return param_1; (GhidraScript)  
+INFO  DecompCertStore.java> } (GhidraScript)  
+INFO  DecompCertStore.java>  (GhidraScript)  
+INFO  DecompCertStore.java> 
+=== DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /League of Legends.exe (HeadlessAnalyzer)  
