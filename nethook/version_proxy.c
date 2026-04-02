@@ -1193,10 +1193,23 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                             if (fnRva == 0x57DCE0) {
                                 directDone = 1;
                                 BYTE kc[16] = {0}; kc[0] = 0x64;
-                                UINT64 kcPtr = (UINT64)kc;
-                                Log("  >>> CALLING REAL HANDLER <<<");
-                                fn(pv, &kcPtr);  // this=plVar15, data=&kcPtr
-                                Log("  >>> RETURNED OK <<<");
+                                // param_2 = pointer to key for std::map insert
+                                // The key is likely connection_id (0 or 1), not data pointer
+                                UINT64 mapKey = 0;  // try key=0
+                                // Check +0x128 BEFORE call
+                                BYTE *vt128_pre = *(BYTE**)((BYTE*)pv + 0x128);
+                                void *fn128_pre = vt128_pre ? *(void**)(vt128_pre + 0x10) : NULL;
+
+                                Log("  >>> CALLING (key=%llu) pre:+0x128 fn[2]=RVA 0x%llX <<<",
+                                    mapKey, fn128_pre ? (UINT64)fn128_pre - (UINT64)gb : 0);
+                                fn(pv, &mapKey);
+
+                                // Check +0x128 AFTER call
+                                BYTE *vt128_post = *(BYTE**)((BYTE*)pv + 0x128);
+                                void *fn128_post = vt128_post ? *(void**)(vt128_post + 0x10) : NULL;
+                                Log("  >>> RETURNED! post:+0x128 fn[2]=RVA 0x%llX %s <<<",
+                                    fn128_post ? (UINT64)fn128_post - (UINT64)gb : 0,
+                                    fn128_pre == fn128_post ? "UNCHANGED" : "*** CHANGED! ***");
                             }
                         }
                     }
