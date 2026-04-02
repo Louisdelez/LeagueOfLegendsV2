@@ -194,8 +194,17 @@ Sans ces args → "Failed to extract information from command line string" → e
 - CRC nonce computation confirmée via FUN_140577f10 du client
 - Queue slot montre cmd=6 (SEND_RELIABLE) à l'offset correct +0x1B
 - KeyCheck injecté (encrypted + raw) : le client ne réagit pas
-- Direct dispatch call → crash (vtable dans .text, opcodes lus comme pointeur)
-- **Bloqueur** : le consumer dispatch CALL [RAX+0x10] nécessite le bon function pointer runtime
+- Direct dispatch call → crash initial (double déréférencement vtable)
+
+### Phase 5 : Consumer dispatch deep dive
+- Consumer FUN_1405883d0 déqueue et dispatch via CALL [RAX+0x10]
+- +0x128 et +0x168 : **STUBS** (GetDefaultSettings=return, return 1)
+- **VRAI handler** trouvé à +0x160 : FUN_14057dce0 (RVA 0x57DCE0)
+- Fix vtable read : *(plVar15+0x160) EST directement le vtable (pas double deref)
+- **Direct dispatch RÉUSSI** : fn(plVar15, &key=0) → returned OK, pas de crash !
+- FUN_14056e310 = std::map insert dans plVar15+0x150
+- +0x128 vtable INCHANGÉ après l'appel (stubs permanents)
+- **Prochaine étape** : trouver qui lit le std::map à +0x150 (game logic consumer)
 
 ### Statistiques mises à jour
 - ~70 scripts Ghidra écrits et exécutés
