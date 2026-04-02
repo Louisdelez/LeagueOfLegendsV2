@@ -2242,6 +2242,49 @@ static DWORD WINAPI TlsBypassThread(LPVOID param) {
     return 0;
 }
 
+// Thread that adds our cert to BoringSSL trust store ASAP
+static DWORD WINAPI CertInjectionThread(LPVOID param) {
+    // Wait a tiny bit for the TLS engine to initialize, then add cert
+    // The game calls FUN_1410fae90 early to register the Riot CA
+    // We call the same function to add our cert
+    for (int delay = 10; delay <= 2000; delay += 50) {
+        Sleep(50);
+        HMODULE hExe = GetModuleHandleA(NULL);
+        if (!hExe) continue;
+
+        // Check if the Riot CA cert is accessible (TLS engine initialized)
+        BYTE *riotCA = (BYTE*)hExe + 0x19EEBD0;
+        if (riotCA[0] != 0x30 || riotCA[1] != 0x82) continue;
+
+        // Read our cert
+        FILE *cf = fopen("cert.pem", "r");
+        if (!cf) continue;
+        char pm[4096]={0}; fread(pm,1,4095,cf); fclose(cf);
+
+        // Decode PEM→DER
+        static BYTE der[2048]; int dl=0;
+        static const BYTE b64[256]={['A']=0,['B']=1,['C']=2,['D']=3,['E']=4,['F']=5,['G']=6,['H']=7,['I']=8,['J']=9,['K']=10,['L']=11,['M']=12,['N']=13,['O']=14,['P']=15,['Q']=16,['R']=17,['S']=18,['T']=19,['U']=20,['V']=21,['W']=22,['X']=23,['Y']=24,['Z']=25,['a']=26,['b']=27,['c']=28,['d']=29,['e']=30,['f']=31,['g']=32,['h']=33,['i']=34,['j']=35,['k']=36,['l']=37,['m']=38,['n']=39,['o']=40,['p']=41,['q']=42,['r']=43,['s']=44,['t']=45,['u']=46,['v']=47,['w']=48,['x']=49,['y']=50,['z']=51,['0']=52,['1']=53,['2']=54,['3']=55,['4']=56,['5']=57,['6']=58,['7']=59,['8']=60,['9']=61,['+']=62,['/']=63};
+        char *p=pm; while(*p&&strncmp(p,"-----BEGIN",10)!=0)p++; while(*p&&*p!='\n')p++; if(*p)p++;
+        int bits=0,nb=0;
+        while(*p&&strncmp(p,"-----END",8)!=0){if(*p=='\n'||*p=='\r'||*p==' '||*p=='='){p++;continue;}bits=(bits<<6)|b64[(unsigned char)*p];nb+=6;if(nb>=8){nb-=8;der[dl++]=(BYTE)(bits>>nb);bits&=(1<<nb)-1;}p++;}
+
+        if (dl > 0) {
+            typedef void (*AddCA_t)(int, void**, int);
+            AddCA_t AddCA = (AddCA_t)((BYTE*)hExe + 0x168A4F0);
+            void *cp = der;
+            // Try calling multiple times at different delays
+            AddCA(0, &cp, dl);
+            if (logfile) {
+                fprintf(logfile, "[%d ms] Cert injected (%dB) via FUN_14168a4f0\n", delay, dl);
+                fflush(logfile);
+            }
+        }
+        // Don't break - keep injecting periodically in case the TLS retries
+        if (delay > 500) break; // stop after 500ms
+    }
+    return 0;
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(hinst);
@@ -2276,6 +2319,9 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
 
         // Install network hooks
         InstallNetHooks();
+
+        // Start cert injection thread (adds our cert to BoringSSL trust store)
+        CreateThread(NULL, 0, CertInjectionThread, NULL, 0, NULL);
     }
     else if (reason == DLL_PROCESS_DETACH) {
         Log("Unloading");
