@@ -857,12 +857,83 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                             Log("  CERT: Riot CA handle=%p ctx=[%llX,%llX]",
                                 riotHandle, riotCtx[0], riotCtx[1]);
 
-                            // Examine handles (they're on heap, should be readable)
-                            // Use context arrays which are static and definitely readable
-                            Log("  CERT: ourCtx = [%p, %p, %p, %p]",
-                                (void*)ourCtx[0], (void*)ourCtx[1], (void*)ourCtx[2], (void*)ourCtx[3]);
-                            Log("  CERT: riotCtx = [%p, %p, %p, %p]",
-                                (void*)riotCtx[0], (void*)riotCtx[1], (void*)riotCtx[2], (void*)riotCtx[3]);
+                            Log("  CERT: ourHandle=%p riotHandle=%p", (void*)ourCtx[0], (void*)riotCtx[0]);
+
+                            // Scan heap for a pointer to Riot CA DER in .rdata
+                            // The original CRYPTO_BUFFER has data_ptr = riotCA (.rdata address)
+                            BYTE *riotCAaddr = (BYTE*)hExe + 0x19EEBD0;
+                            UINT64 target = (UINT64)riotCAaddr;
+                            Log("  CERT: Scanning heap for ptr to Riot CA DER at %p...", riotCAaddr);
+
+                            MEMORY_BASIC_INFORMATION mbi;
+                            int hits = 0;
+                            void *foundCB = NULL;
+
+                            // Scan only the heap region near our handles (within 1MB)
+                            BYTE *handleBase = (BYTE*)((UINT64)ourCtx[0] & ~0xFFFFF);  // align to 1MB
+                            BYTE *scanStart = handleBase - 0x100000;  // 1MB before
+                            BYTE *scanEnd = handleBase + 0x200000;    // 2MB after
+                            BYTE *scan = scanStart;
+
+                            while (scan < scanEnd && VirtualQuery(scan, &mbi, sizeof(mbi)) && hits < 5) {
+                                if (mbi.State == MEM_COMMIT && (mbi.Protect & PAGE_READWRITE) && mbi.RegionSize >= 64) {
+                                    BYTE *base = (BYTE*)mbi.BaseAddress;
+                                    SIZE_T size = mbi.RegionSize;
+                                    if (!(base > (BYTE*)hExe && base < (BYTE*)hExe + 0x20000000)) {
+                                        for (SIZE_T j = 0; j + 32 <= size && hits < 5; j += 8) {
+                                            UINT64 val = *(UINT64*)(base + j);
+                                            if (val == target) {
+                                            hits++;
+                                            // This is a CRYPTO_BUFFER with data_ptr = riotCA
+                                            // The CRYPTO_BUFFER struct might be: {data, len, ...}
+                                            // Check if next qword is the size (1060 = 0x424)
+                                            UINT64 nextVal = *(UINT64*)(base + j + 8);
+                                            Log("  CERT: HIT #%d at %p: [%p, %llu]%s",
+                                                hits, base + j, (void*)val, nextVal,
+                                                (nextVal == 1060 || (nextVal & 0xFFFF) == 1060) ? " ← SIZE MATCH!" : "");
+                                            if (nextVal == 1060 || (nextVal & 0xFFFF) == 1060) {
+                                                foundCB = base + j;
+                                            }
+                                        }
+                                    }
+                                    } // close if (!(base in image))
+                                }
+                                scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
+                            }
+
+                            if (foundCB) {
+                                // foundCB points to the CRYPTO_BUFFER for Riot CA
+                                // Now search for a pointer TO this CRYPTO_BUFFER (the vector entry)
+                                UINT64 cbAddr = (UINT64)foundCB;
+                                // But the vector might point to a wrapper object, not directly to the CB
+                                // Let's first check: search for pointer to foundCB in heap
+                                Log("  CERT: Searching for vector entry → %p...", foundCB);
+                                scan = scanStart;
+                                int vecHits = 0;
+                                while (scan < scanEnd && VirtualQuery(scan, &mbi, sizeof(mbi)) && vecHits < 5) {
+                                    if (mbi.State == MEM_COMMIT && (mbi.Protect & PAGE_READWRITE) && mbi.RegionSize >= 64) {
+                                        BYTE *base = (BYTE*)mbi.BaseAddress;
+                                        SIZE_T size = mbi.RegionSize;
+                                        if (!(base > (BYTE*)hExe && base < (BYTE*)hExe + 0x20000000)) {
+                                        for (SIZE_T j = 0; j + 8 <= size && vecHits < 5; j += 8) {
+                                            if (*(UINT64*)(base + j) == cbAddr) {
+                                                vecHits++;
+                                                Log("  CERT: Vector entry at %p → %p (CRYPTO_BUFFER)", base + j, foundCB);
+                                                // Check surrounding entries (other CRYPTO_BUFFERs should be nearby)
+                                                // A vector of N entries has N consecutive pointers
+                                                UINT64 *arr = (UINT64*)(base + j);
+                                                Log("    Array context: [%p, %p, %p, %p, %p]",
+                                                    (void*)arr[-2], (void*)arr[-1], (void*)arr[0], (void*)arr[1], (void*)arr[2]);
+                                            }
+                                        }
+                                        } // close if (!(base in image))
+                                    }
+                                    scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
+                                }
+                                if (!vecHits) Log("  CERT: No vector entries found");
+                            } else {
+                                Log("  CERT: No CRYPTO_BUFFER found with Riot CA data ptr");
+                            }
                         }
                     }
                 }

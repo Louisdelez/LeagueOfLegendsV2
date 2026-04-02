@@ -1,0 +1,91 @@
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra_full/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (726 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (1806 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Opening existing project: D:\LeagueOfLegendsV2\ghidra_proj2 (HeadlessAnalyzer)  
+INFO  Opening project: D:\LeagueOfLegendsV2\ghidra_proj2 (HeadlessProject)  
+INFO  REPORT: Processing project file: /League of Legends.exe (HeadlessAnalyzer)  
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                         ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                           ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                                          ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                                                            ^
+skipping D:\LeagueOfLegendsV2\ghidra_scripts\ReadSBox.java
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\DisasmCertCall.java (HeadlessAnalyzer)  
+INFO  DisasmCertCall.java> === Disasm around CALL FUN_1410fbdc0 at 14072c26c === (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c250: CALL 0x1410913f0 (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c255: LEA R15,[R12 + 0x8] (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c25a: MOV qword ptr [R12],RBX (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c25e: MOV RCX,R15 (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c261: MOV qword ptr [R15],R13 (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c264: MOV qword ptr [R15 + 0x8],R13 (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c268: MOV qword ptr [R15 + 0x10],R13 (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c26c: CALL 0x1410fbdc0 (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c271: LEA RCX,[R12 + 0x38] (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c276: MOV qword ptr [R12 + 0x20],R13 (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c27b: XOR EDX,EDX (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c27d: MOV qword ptr [R12 + 0x28],RSI (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c282: MOV qword ptr [R12 + 0x30],RDI (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c287: CALL 0x1410ed850 (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c28c: MOV dword ptr [R12 + 0x60],R13D (GhidraScript)  
+INFO  DisasmCertCall.java> 
+=== Function entry FUN_14072c1f0 === (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c1f0: MOV qword ptr [RSP + 0x10],RBX (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c1f5: MOV qword ptr [RSP + 0x18],RSI (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c1fa: MOV qword ptr [RSP + 0x20],RDI (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c1ff: PUSH RBP (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c200: PUSH R12 (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c202: PUSH R13 (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c204: PUSH R14 (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c206: PUSH R15 (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c208: LEA RBP,[RSP + -0x50] (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c20d: SUB RSP,0x150 (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c214: MOV RAX,qword ptr [0x141d28400] (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c21b: XOR RAX,RSP (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c21e: MOV qword ptr [RBP + 0x40],RAX (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c222: MOV R12,RCX (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c225: MOV RDI,R8 (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c228: MOV ECX,0x2e0 (GhidraScript)  
+INFO  DisasmCertCall.java>   14072c22d: MOV RSI,RDX (GhidraScript)  
+INFO  DisasmCertCall.java> === DONE === (GhidraScript)  
+INFO  REPORT: Save succeeded for processed file: /League of Legends.exe (HeadlessAnalyzer)  
