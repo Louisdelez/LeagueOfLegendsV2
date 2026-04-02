@@ -1828,6 +1828,58 @@ static void InstallNetHooks(void) {
     // Only log connect calls for debugging (without hooking)
     Log("Not hooking send/WSASend/connect (TCP) to avoid breaking SSL");
     Log("Only UDP hooks active: sendto, recvfrom, WSASendTo, WSARecvFrom");
+
+    // Check for SSL libraries to find where to hook cert verification
+    HMODULE hSSL = GetModuleHandleA("ssleay32.dll");
+    HMODULE hSSL2 = GetModuleHandleA("libssl-1_1-x64.dll");
+    HMODULE hSSL3 = GetModuleHandleA("libssl-3-x64.dll");
+    HMODULE hCrypt = GetModuleHandleA("crypt32.dll");
+    HMODULE hSch = GetModuleHandleA("schannel.dll");
+    HMODULE hBCrypt = GetModuleHandleA("bcrypt.dll");
+    HMODULE hRiotApi = GetModuleHandleA("RiotGamesApi.dll");
+    Log("SSL libs: ssleay32=%p libssl1.1=%p libssl3=%p crypt32=%p schannel=%p bcrypt=%p RiotGamesApi=%p",
+        hSSL, hSSL2, hSSL3, hCrypt, hSch, hBCrypt, hRiotApi);
+
+    // Try to find SSL_CTX_set_verify in any loaded SSL library
+    void *pSetVerify = NULL;
+    if (hRiotApi) {
+        pSetVerify = (void*)GetProcAddress(hRiotApi, "SSL_CTX_set_verify");
+        if (!pSetVerify) pSetVerify = (void*)GetProcAddress(hRiotApi, "SSL_set_verify");
+        Log("RiotGamesApi SSL_CTX_set_verify=%p SSL_set_verify=%p",
+            GetProcAddress(hRiotApi, "SSL_CTX_set_verify"),
+            GetProcAddress(hRiotApi, "SSL_set_verify"));
+    }
+    // Hook CertVerifyCertificateChainPolicy to bypass cert pinning
+    if (hCrypt) {
+        typedef BOOL (WINAPI *CertVerify_t)(LPCSTR, void*, void*, void*);
+        CertVerify_t pVerify = (CertVerify_t)GetProcAddress(hCrypt, "CertVerifyCertificateChainPolicy");
+        Log("CertVerifyCertificateChainPolicy=%p", pVerify);
+        if (pVerify) {
+            // Inline hook: overwrite first bytes with JMP to our stub that returns TRUE
+            // Our stub: set pPolicyStatus->dwError = 0, return TRUE
+            // But simpler: just NOP the function to return TRUE immediately
+            // MOV EAX, 1; RET = B8 01 00 00 00 C3 (6 bytes)
+            DWORD oldProt;
+            if (VirtualProtect((void*)pVerify, 16, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                BYTE *p = (BYTE*)pVerify;
+                // CERT_CHAIN_POLICY_STATUS is the 4th param (pPolicyStatus)
+                // We need to zero pPolicyStatus->dwError before returning TRUE
+                // pPolicyStatus is in R9 (4th param in x64)
+                // MOV dword ptr [R9+4], 0  (set dwError=0): 41 C7 41 04 00 00 00 00 (8 bytes)
+                // MOV EAX, 1: B8 01 00 00 00 (5 bytes)
+                // RET: C3 (1 byte)
+                // Total: 14 bytes
+                p[0] = 0x41; p[1] = 0xC7; p[2] = 0x41; p[3] = 0x04;
+                p[4] = 0x00; p[5] = 0x00; p[6] = 0x00; p[7] = 0x00; // [R9+4] = 0
+                p[8] = 0xB8; p[9] = 0x01; p[10] = 0x00; p[11] = 0x00; p[12] = 0x00; // EAX = 1
+                p[13] = 0xC3; // RET
+                VirtualProtect((void*)pVerify, 16, oldProt, &oldProt);
+                Log("*** PATCHED CertVerifyCertificateChainPolicy → always TRUE ***");
+            } else {
+                Log("VirtualProtect on CertVerify failed: err=%lu", GetLastError());
+            }
+        }
+    }
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
