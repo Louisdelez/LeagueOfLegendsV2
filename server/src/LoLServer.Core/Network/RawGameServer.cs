@@ -285,23 +285,33 @@ public class RawGameServer : IGameServer, IDisposable
             uint nonceWithPL = ~crc2;
             Log($"  [CRC] noPL=0x{nonceNoPL:X8} withPL=0x{nonceWithPL:X8}");
 
-            // CONFIRMED FORMAT: [4B preamble][Double CFB encrypted payload]
-            // Preamble = any 4 bytes (skipped by client at offset from CONN+0x144)
-            // CRC nonce = htonl(~CRC32_with_payload) = WriteBE32
-            // CRC includes the VERIFY_CONNECT body as payload
+            // Send multiple format variants to find the right one
+            // The hook confirmed P[0] matches, encryption roundtrip works.
+            // Try both with and without 4B preamble, both nonce endiannesses.
+            foreach (bool withPreamble in new[] { true, false })
+            foreach (bool nonceBE in new[] { true, false })
+            foreach (bool withPayloadCRC in new[] { true, false })
             {
-                var pt = new byte[2 + 4 + 1 + verifyBody.Length]; // 39B
-                WriteLE16(pt, 0, 0);           // peerID = 0
-                WriteBE32(pt, 2, nonceWithPL); // nonce in BE = htonl(~crc_with_payload)
-                pt[6] = 0x03;                  // flags = VERIFY_CONNECT
+                uint nonce2 = withPayloadCRC ? nonceWithPL : nonceNoPL;
+                var pt = new byte[2 + 4 + 1 + verifyBody.Length];
+                WriteLE16(pt, 0, 0);
+                if (nonceBE) WriteBE32(pt, 2, nonce2);
+                else WriteLE32(pt, 2, nonce2);
+                pt[6] = 0x03;
                 Array.Copy(verifyBody, 0, pt, 7, verifyBody.Length);
                 var enc = DoubleCfbEncrypt(pt);
 
-                // 4B preamble (use ConnectToken, but any value works)
-                var pkt = new byte[4 + enc.Length]; // 43B
-                WriteBE32(pkt, 0, peer.ConnectToken);
-                Array.Copy(enc, 0, pkt, 4, enc.Length);
-                Log($"  [VERIFY_CONNECT] nonce=0x{nonceWithPL:X8} BE+PL ({pkt.Length}B)");
+                byte[] pkt;
+                if (withPreamble) {
+                    pkt = new byte[4 + enc.Length];
+                    WriteBE32(pkt, 0, peer.ConnectToken);
+                    Array.Copy(enc, 0, pkt, 4, enc.Length);
+                } else {
+                    pkt = enc;
+                }
+                string label = $"{(withPreamble?"PRE":"NOP")}-{(nonceBE?"BE":"LE")}-{(withPayloadCRC?"PL":"NP")}";
+                if (peer.PacketCount <= 3)
+                    Log($"  [VC-{label}] nonce=0x{nonce2:X8} ({pkt.Length}B)");
                 Send(pkt, peer);
             }
 

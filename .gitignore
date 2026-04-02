@@ -36,3 +36,6 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+ghidra_full/
+ghidra_proj2*
+ghidra_11.3.2.zip

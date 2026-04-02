@@ -972,6 +972,42 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
         }
 
         if (isLocalhost) {
+            // Dump vtable to find the actual handler function
+            // RSI holds the HOST struct at the recvfrom call site (14058b093)
+            // RSI is callee-saved, so it should still be valid after real_recvfrom returns
+            static int vtableDumped = 0;
+            static void *hostStructAddr = NULL;
+            if (!vtableDumped) {
+                register void *rsi_val __asm__("rsi");
+                if (rsi_val && !IsBadReadPtr(rsi_val, 0x180)) {
+                    // Verify: host+0x138 should be 1 (connection seq)
+                    UINT64 connSeq = *(UINT64*)((BYTE*)rsi_val + 0x138);
+                    if (connSeq == 1) {
+                        hostStructAddr = rsi_val;
+                        Log("  HOST struct from RSI: %p (conn_seq=%llu)", rsi_val, connSeq);
+                    }
+                }
+            }
+            if (hostStructAddr && !vtableDumped && !IsBadReadPtr(hostStructAddr, 0x30)) {
+                vtableDumped = 1;
+                HMODULE gameBase = GetModuleHandleA(NULL);
+                // plVar15 = *(host + 0x20) or (host + 8)
+                void *plVar15 = *(void**)((BYTE*)hostStructAddr + 0x20);
+                if (!plVar15 || IsBadReadPtr(plVar15, 8))
+                    plVar15 = (void*)((BYTE*)hostStructAddr + 8);
+                if (!IsBadReadPtr(plVar15, 8)) {
+                    void *vtable = *(void**)plVar15;
+                    if (!IsBadReadPtr(vtable, 0x30)) {
+                        void *handler28 = *(void**)((BYTE*)vtable + 0x28);
+                        void *handler18 = *(void**)((BYTE*)vtable + 0x18);
+                        void *handler40 = *(void**)((BYTE*)vtable + 0x40);
+                        Log("  VTABLE at %p:", vtable);
+                        Log("    +0x18 = %p (RVA 0x%llX)", handler18, (UINT64)handler18 - (UINT64)gameBase);
+                        Log("    +0x28 = %p (RVA 0x%llX) ← called after CRC pass", handler28, (UINT64)handler28 - (UINT64)gameBase);
+                        Log("    +0x40 = %p (RVA 0x%llX)", handler40, (UINT64)handler40 - (UINT64)gameBase);
+                    }
+                }
+            }
             // Dump CRC struct fields on first few packets
             if (connStructAddr && crcDumpCount < 20 && !IsBadReadPtr((void*)connStructAddr, 0x170)) {
                 crcDumpCount++;
@@ -1087,7 +1123,7 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
             // === USE CLIENT'S OWN DECRYPT FUNCTION ===
             // FUN_1410f2a10(bf_ctx, data, len, mode=2) is BF_cfb64_decrypt
             // We call it on a COPY to see what the client would see after decryption
-            if (lastSendLen > 8) {
+            if (lastSendLen > 8) {  // Echo mode active
                 static int eCount = 0;
                 static int keycheckSent = 0;
                 eCount++;
