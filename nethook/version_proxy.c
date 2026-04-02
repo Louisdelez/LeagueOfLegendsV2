@@ -944,8 +944,35 @@ static int recvCallLogged = 0;
 
 // (moved to before Hook_sendto)
 
+static volatile void *recvHostStruct = NULL;
+
 int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                          struct sockaddr *from, int *fromlen) {
+    // Find host struct: the object whose *(ptr+0x38) == our socket handle
+    // Host struct layout: +0x38 = socket, +0x50 = some byte, +0x28 = ushort
+    if (!recvHostStruct) {
+        // Scan near connStructAddr (the host might be nearby in memory)
+        // Actually, the host is passed as param_1 (RCX) to the outer function
+        // Since we can't capture RCX, scan the stack for a pointer to an object with +0x38 = socket
+        BYTE *stack;
+        __asm__ volatile("movq %%rsp, %0" : "=r"(stack));
+        for (int off = 0; off < 0x2000; off += 8) {
+            BYTE *candidate = *(BYTE**)(stack + off);
+            if (candidate && !IsBadReadPtr(candidate, 0x180) && !IsBadReadPtr(candidate + 0x38, 8)) {
+                UINT64 sock = *(UINT64*)(candidate + 0x38);
+                if (sock == (UINT64)s) {
+                    // Found! Verify: +0x50 should be a small byte
+                    BYTE b50 = candidate[0x50];
+                    if (b50 <= 2) {
+                        recvHostStruct = candidate;
+                        Log("  FOUND HOST at %p (stack offset +0x%X, socket=%llu, +0x50=%d)",
+                            candidate, off, sock, b50);
+                        break;
+                    }
+                }
+            }
+        }
+    }
     // Ensure HW breakpoint on this thread (recv thread handles CRC check)
     if (hwBpInstalled && !crcPatched) {
         EnsureHwBpOnThisThread();
@@ -972,41 +999,39 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
         }
 
         if (isLocalhost) {
-            // Dump vtable to find the actual handler function
-            // RSI holds the HOST struct at the recvfrom call site (14058b093)
-            // RSI is callee-saved, so it should still be valid after real_recvfrom returns
+            // Find and dump vtable for the handler using REAL host struct
             static int vtableDumped = 0;
-            static void *hostStructAddr = NULL;
-            if (!vtableDumped) {
-                register void *rsi_val __asm__("rsi");
-                if (rsi_val && !IsBadReadPtr(rsi_val, 0x180)) {
-                    // Verify: host+0x138 should be 1 (connection seq)
-                    UINT64 connSeq = *(UINT64*)((BYTE*)rsi_val + 0x138);
-                    if (connSeq == 1) {
-                        hostStructAddr = rsi_val;
-                        Log("  HOST struct from RSI: %p (conn_seq=%llu)", rsi_val, connSeq);
-                    }
-                }
-            }
-            if (hostStructAddr && !vtableDumped && !IsBadReadPtr(hostStructAddr, 0x30)) {
+            if (recvHostStruct && !vtableDumped) {
                 vtableDumped = 1;
                 HMODULE gameBase = GetModuleHandleA(NULL);
-                // plVar15 = *(host + 0x20) or (host + 8)
-                void *plVar15 = *(void**)((BYTE*)hostStructAddr + 0x20);
+                UINT64 base = (UINT64)gameBase;
+                BYTE *host = (BYTE*)recvHostStruct;
+
+                Log("  REAL HOST struct at %p:", host);
+                Log("    +0x08 qword: 0x%llX", *(UINT64*)(host + 8));
+                Log("    +0x20 qword: 0x%llX", *(UINT64*)(host + 0x20));
+                Log("    +0x38 socket: %llu", *(UINT64*)(host + 0x38));
+
+                // plVar15 = *(host+0x20), fallback = host+8
+                void *plVar15 = *(void**)(host + 0x20);
                 if (!plVar15 || IsBadReadPtr(plVar15, 8))
-                    plVar15 = (void*)((BYTE*)hostStructAddr + 8);
-                if (!IsBadReadPtr(plVar15, 8)) {
-                    void *vtable = *(void**)plVar15;
-                    if (!IsBadReadPtr(vtable, 0x30)) {
-                        void *handler28 = *(void**)((BYTE*)vtable + 0x28);
-                        void *handler18 = *(void**)((BYTE*)vtable + 0x18);
-                        void *handler40 = *(void**)((BYTE*)vtable + 0x40);
-                        Log("  VTABLE at %p:", vtable);
-                        Log("    +0x18 = %p (RVA 0x%llX)", handler18, (UINT64)handler18 - (UINT64)gameBase);
-                        Log("    +0x28 = %p (RVA 0x%llX) ← called after CRC pass", handler28, (UINT64)handler28 - (UINT64)gameBase);
-                        Log("    +0x40 = %p (RVA 0x%llX)", handler40, (UINT64)handler40 - (UINT64)gameBase);
-                    }
+                    plVar15 = (void*)(host + 8);
+
+                void *vtable = *(void**)plVar15;
+                if (vtable && !IsBadReadPtr(vtable, 0x48)) {
+                    void *fn28 = *(void**)((BYTE*)vtable + 0x28);
+                    void *fn18 = *(void**)((BYTE*)vtable + 0x18);
+                    Log("  REAL VTABLE at %p:", vtable);
+                    Log("    [0x18] = %p (RVA 0x%llX)", fn18, (UINT64)fn18 - base);
+                    Log("    [0x28] = %p (RVA 0x%llX) ← HANDLER", fn28, (UINT64)fn28 - base);
                 }
+
+                // Also dump critical offsets
+                Log("    +0x120 byte: %d", host[0x120]);
+                Log("    +0x138 qword: %llu", *(UINT64*)(host + 0x138));
+                Log("    +0x144 ushort: %u", *(USHORT*)(host + 0x144));
+                Log("    +0x146 ushort: %u", *(USHORT*)(host + 0x146));
+                Log("    +0x178 uint: %u", *(UINT32*)(host + 0x178));
             }
             // Dump CRC struct fields on first few packets
             if (connStructAddr && crcDumpCount < 20 && !IsBadReadPtr((void*)connStructAddr, 0x170)) {
