@@ -869,33 +869,26 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                             int hits = 0;
                             void *foundCB = NULL;
 
-                            // Scan only the heap region near our handles (within 1MB)
-                            BYTE *handleBase = (BYTE*)((UINT64)ourCtx[0] & ~0xFFFFF);  // align to 1MB
-                            BYTE *scanStart = handleBase - 0x100000;  // 1MB before
-                            BYTE *scanEnd = handleBase + 0x200000;    // 2MB after
-                            BYTE *scan = scanStart;
+                            // Search heap for DER byte PATTERN (not pointer)
+                            // BoringSSL copies DER bytes to heap
+                            BYTE *scan = NULL;
 
-                            while (scan < scanEnd && VirtualQuery(scan, &mbi, sizeof(mbi)) && hits < 5) {
-                                if (mbi.State == MEM_COMMIT && (mbi.Protect & PAGE_READWRITE) && mbi.RegionSize >= 64) {
+                            while (VirtualQuery(scan, &mbi, sizeof(mbi)) && hits < 3) {
+                                if (mbi.State == MEM_COMMIT && (mbi.Protect & PAGE_READWRITE) && mbi.RegionSize >= 1060) {
                                     BYTE *base = (BYTE*)mbi.BaseAddress;
                                     SIZE_T size = mbi.RegionSize;
-                                    if (!(base > (BYTE*)hExe && base < (BYTE*)hExe + 0x20000000)) {
-                                        for (SIZE_T j = 0; j + 32 <= size && hits < 5; j += 8) {
-                                            UINT64 val = *(UINT64*)(base + j);
-                                            if (val == target) {
-                                            hits++;
-                                            // This is a CRYPTO_BUFFER with data_ptr = riotCA
-                                            // The CRYPTO_BUFFER struct might be: {data, len, ...}
-                                            // Check if next qword is the size (1060 = 0x424)
-                                            UINT64 nextVal = *(UINT64*)(base + j + 8);
-                                            Log("  CERT: HIT #%d at %p: [%p, %llu]%s",
-                                                hits, base + j, (void*)val, nextVal,
-                                                (nextVal == 1060 || (nextVal & 0xFFFF) == 1060) ? " ← SIZE MATCH!" : "");
-                                            if (nextVal == 1060 || (nextVal & 0xFFFF) == 1060) {
-                                                foundCB = base + j;
-                                            }
-                                        }
+                                    // Skip binary image
+                                    if (base > (BYTE*)hExe && base < (BYTE*)hExe + 0x20000000) {
+                                        scan = base + mbi.RegionSize; continue;
                                     }
+                                    for (SIZE_T j = 0; j + 1060 <= size && hits < 3; j += 4) {
+                                        // Match first 8 bytes of Riot CA DER
+                                        if (*(UINT64*)(base + j) == *(UINT64*)riotCAaddr &&
+                                            memcmp(base + j, riotCAaddr, 64) == 0) {
+                                            hits++;
+                                            foundCB = base + j;
+                                            Log("  CERT: Riot CA DER copy at heap %p (hit #%d)", foundCB, hits);
+                                        }
                                     } // close if (!(base in image))
                                 }
                                 scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
@@ -907,30 +900,60 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                                 UINT64 cbAddr = (UINT64)foundCB;
                                 // But the vector might point to a wrapper object, not directly to the CB
                                 // Let's first check: search for pointer to foundCB in heap
-                                Log("  CERT: Searching for vector entry → %p...", foundCB);
-                                scan = scanStart;
+                                // Search for a pointer TO foundCB (the CRYPTO_BUFFER.data field)
+                                UINT64 cbDataAddr = (UINT64)foundCB;
+                                Log("  CERT: Searching for CRYPTO_BUFFER with data=%p...", foundCB);
+                                scan = NULL;
                                 int vecHits = 0;
-                                while (scan < scanEnd && VirtualQuery(scan, &mbi, sizeof(mbi)) && vecHits < 5) {
+                                void *cbObj = NULL;
+                                while (VirtualQuery(scan, &mbi, sizeof(mbi)) && vecHits < 5) {
                                     if (mbi.State == MEM_COMMIT && (mbi.Protect & PAGE_READWRITE) && mbi.RegionSize >= 64) {
                                         BYTE *base = (BYTE*)mbi.BaseAddress;
                                         SIZE_T size = mbi.RegionSize;
-                                        if (!(base > (BYTE*)hExe && base < (BYTE*)hExe + 0x20000000)) {
-                                        for (SIZE_T j = 0; j + 8 <= size && vecHits < 5; j += 8) {
-                                            if (*(UINT64*)(base + j) == cbAddr) {
-                                                vecHits++;
-                                                Log("  CERT: Vector entry at %p → %p (CRYPTO_BUFFER)", base + j, foundCB);
-                                                // Check surrounding entries (other CRYPTO_BUFFERs should be nearby)
-                                                // A vector of N entries has N consecutive pointers
-                                                UINT64 *arr = (UINT64*)(base + j);
-                                                Log("    Array context: [%p, %p, %p, %p, %p]",
-                                                    (void*)arr[-2], (void*)arr[-1], (void*)arr[0], (void*)arr[1], (void*)arr[2]);
+                                        if (base > (BYTE*)hExe && base < (BYTE*)hExe + 0x20000000) {
+                                            scan = base + mbi.RegionSize; continue;
+                                        }
+                                        for (SIZE_T j = 0; j + 32 <= size && vecHits < 5; j += 8) {
+                                            // CRYPTO_BUFFER: {data_ptr, len, pool_ptr, refcount}
+                                            // Check: data_ptr == foundCB AND len == 1060
+                                            if (*(UINT64*)(base+j) == cbDataAddr) {
+                                                UINT64 len = *(UINT64*)(base+j+8);
+                                                if (len == 1060) {
+                                                    vecHits++;
+                                                    cbObj = base + j;
+                                                    Log("  CERT: CRYPTO_BUFFER at %p: data=%p len=%llu",
+                                                        cbObj, foundCB, len);
+                                                    // Now search for pointer to THIS cbObj (in the trust vector)
+                                                    UINT64 cbObjAddr = (UINT64)cbObj;
+                                                    BYTE *scan2 = NULL;
+                                                    int tvHits = 0;
+                                                    MEMORY_BASIC_INFORMATION mbi2;
+                                                    while (VirtualQuery(scan2, &mbi2, sizeof(mbi2)) && tvHits < 3) {
+                                                        if (mbi2.State == MEM_COMMIT && (mbi2.Protect & PAGE_READWRITE) && mbi2.RegionSize >= 64) {
+                                                            BYTE *b2 = (BYTE*)mbi2.BaseAddress;
+                                                            SIZE_T s2 = mbi2.RegionSize;
+                                                            if (b2 > (BYTE*)hExe && b2 < (BYTE*)hExe + 0x20000000) {
+                                                                scan2 = b2 + s2; continue;
+                                                            }
+                                                            for (SIZE_T k = 0; k + 8 <= s2 && tvHits < 3; k += 8) {
+                                                                if (*(UINT64*)(b2+k) == cbObjAddr) {
+                                                                    tvHits++;
+                                                                    Log("  CERT: TRUST VECTOR ENTRY at %p → cbObj %p",
+                                                                        b2+k, cbObj);
+                                                                    // The vector struct is 24B before the first entry
+                                                                    // Or: search for begin_ptr pointing near this
+                                                                }
+                                                            }
+                                                        }
+                                                        scan2 = (BYTE*)mbi2.BaseAddress + mbi2.RegionSize;
+                                                    }
+                                                }
                                             }
                                         }
-                                        } // close if (!(base in image))
                                     }
                                     scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
                                 }
-                                if (!vecHits) Log("  CERT: No vector entries found");
+                                if (!vecHits) Log("  CERT: No CRYPTO_BUFFER found");
                             } else {
                                 Log("  CERT: No CRYPTO_BUFFER found with Riot CA data ptr");
                             }
