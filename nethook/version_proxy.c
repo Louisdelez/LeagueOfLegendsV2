@@ -81,6 +81,47 @@ static BYTE tramp_WSARecvFrom[32];
 static BYTE tramp_send[32];
 static BYTE tramp_WSASend[32];
 static BYTE tramp_connect[32];
+static BYTE tramp_InitSecCtx[32];
+
+// Forward declarations
+static void Log(const char *fmt, ...);
+static void MakeTrampoline(void *target, BYTE *tramp);
+static void PatchJmp(void *target, void *dest);
+static DWORD WINAPI TlsBypassThread(LPVOID param);
+
+// TlsBypassThread defined later (after all types are declared)
+
+// Schannel TLS bypass: hook InitializeSecurityContextW
+typedef LONG (WINAPI *InitSecCtxW_fn)(void*, void*, void*, ULONG, ULONG, ULONG, void*, ULONG, void*, void*, ULONG*, void*);
+static InitSecCtxW_fn real_InitSecCtxW = NULL;
+static int tlsHookCount = 0;
+
+LONG WINAPI Hook_InitSecCtxW(void *p1, void *p2, void *p3, ULONG fContextReq,
+    ULONG r1, ULONG TargetDataRep, void *pInput, ULONG r2,
+    void *pNewCtx, void *pOutput, ULONG *pfContextAttr, void *ptsExpiry) {
+
+    // Add ISC_REQ_MANUAL_CRED_VALIDATION to disable automatic cert validation
+    // ISC_REQ_MANUAL_CRED_VALIDATION = 0x00080000
+    fContextReq |= 0x00080000;
+
+    LONG result = real_InitSecCtxW(p1, p2, p3, fContextReq, r1, TargetDataRep,
+                                    pInput, r2, pNewCtx, pOutput, pfContextAttr, ptsExpiry);
+
+    tlsHookCount++;
+    if (tlsHookCount <= 20) {
+        Log("InitSecCtx #%d: flags=0x%08X result=0x%08X", tlsHookCount, fContextReq, result);
+    }
+
+    // If the result is SEC_E_UNTRUSTED_ROOT or similar cert error, change to OK
+    if (result == (LONG)0x80090325 ||   // SEC_E_UNTRUSTED_ROOT
+        result == (LONG)0x80090326 ||   // SEC_E_CERT_UNKNOWN
+        result == (LONG)0x80090328) {   // SEC_E_WRONG_PRINCIPAL
+        Log("  TLS cert error 0x%08X → forcing SEC_I_CONTINUE_NEEDED", result);
+        result = 0x00090312;  // SEC_I_CONTINUE_NEEDED
+    }
+
+    return result;
+}
 
 static void Log(const char *fmt, ...) {
     if (!logfile) return;
@@ -631,8 +672,21 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
     if (to && to->sa_family == AF_INET) {
         Log("SEND socket=%llu len=%d", (unsigned long long)s, len);
         SavePacket("SEND", buf, len, to);
+        // Hook Schannel on first sendto (secur32.dll should be loaded by now)
+        if (!real_InitSecCtxW) {
+            HMODULE hSec = GetModuleHandleA("secur32.dll");
+            if (!hSec) hSec = GetModuleHandleA("sspicli.dll");
+            if (hSec) {
+                void *pISCW = (void*)GetProcAddress(hSec, "InitializeSecurityContextW");
+                if (pISCW) {
+                    MakeTrampoline(pISCW, tramp_InitSecCtx);
+                    real_InitSecCtxW = (InitSecCtxW_fn)tramp_InitSecCtx;
+                    PatchJmp(pISCW, Hook_InitSecCtxW);
+                    Log("*** Hooked InitializeSecurityContextW → TLS bypass! ***");
+                }
+            }
+        }
         // Patch CRC check on first sendto (game is already initialized by now)
-        // Try to patch CRC (may already be done in DllMain)
         if (!crcPatched && !hwBpInstalled) {
             Log("About to call PatchCrcCheckEarly...");
             PatchCrcCheckEarly();
@@ -1824,10 +1878,30 @@ static void InstallNetHooks(void) {
         Log("Hooked WSARecvFrom!");
     }
 
-    // DON'T hook send/WSASend/connect — they break SSL/TLS
-    // Only log connect calls for debugging (without hooking)
-    Log("Not hooking send/WSASend/connect (TCP) to avoid breaking SSL");
-    Log("Only UDP hooks active: sendto, recvfrom, WSASendTo, WSARecvFrom");
+    // Hook Schannel InitializeSecurityContextW to bypass TLS cert validation
+    {
+        HMODULE hSecur = GetModuleHandleA("secur32.dll");
+        if (!hSecur) hSecur = GetModuleHandleA("sspicli.dll");
+        if (hSecur) {
+            void *pISCW = (void*)GetProcAddress(hSecur, "InitializeSecurityContextW");
+            if (pISCW) {
+                MakeTrampoline(pISCW, tramp_InitSecCtx);
+                real_InitSecCtxW = (InitSecCtxW_fn)tramp_InitSecCtx;
+                PatchJmp(pISCW, Hook_InitSecCtxW);
+                Log("Hooked InitializeSecurityContextW at %p → TLS bypass active!", pISCW);
+            } else {
+                Log("InitializeSecurityContextW not found in secur32/sspicli");
+            }
+        } else {
+            Log("secur32.dll / sspicli.dll not loaded");
+        }
+    }
+
+    // Start background thread to hook Schannel when secur32.dll loads
+    Log("Starting TLS bypass thread...");
+    CreateThread(NULL, 0, TlsBypassThread, NULL, 0, NULL);
+
+    Log("Hooks: sendto, recvfrom, WSASendTo, WSARecvFrom + TLS bypass thread");
 
     // Check for SSL libraries to find where to hook cert verification
     HMODULE hSSL = GetModuleHandleA("ssleay32.dll");
@@ -1849,7 +1923,62 @@ static void InstallNetHooks(void) {
             GetProcAddress(hRiotApi, "SSL_CTX_set_verify"),
             GetProcAddress(hRiotApi, "SSL_set_verify"));
     }
-    // Hook CertVerifyCertificateChainPolicy to bypass cert pinning
+    // Hook Schannel to bypass TLS cert verification
+    // The client uses Schannel (Windows TLS), not OpenSSL
+    // We need to patch the credential flags to disable server cert validation
+    {
+        HMODULE hSecur = GetModuleHandleA("secur32.dll");
+        if (!hSecur) hSecur = GetModuleHandleA("sspicli.dll");
+        if (hSecur) {
+            // AcquireCredentialsHandleW is called to set up TLS credentials
+            // The SCHANNEL_CRED struct has a dwFlags field
+            // If we set SCH_CRED_MANUAL_CRED_VALIDATION (0x8) and
+            // SCH_CRED_NO_SERVERNAME_CHECK (0x4), cert validation is disabled
+
+            // Better approach: hook InitializeSecurityContextW
+            // After it returns, check if it returns SEC_E_UNTRUSTED_ROOT (0x80090325)
+            // and change it to SEC_E_OK (0)
+
+            // Simplest approach: find and patch the Schannel credential flags
+            // The client calls AcquireCredentialsHandleW with SCHANNEL_CRED
+            // We can hook this to modify the flags
+
+            // Hook InitializeSecurityContextW to intercept TLS handshake results
+            typedef LONG (WINAPI *InitSecCtxW_t)(void*, void*, void*, ULONG, ULONG, ULONG, void*, ULONG, void*, void*, ULONG*, void*);
+            InitSecCtxW_t pInitSecCtx = (InitSecCtxW_t)GetProcAddress(hSecur, "InitializeSecurityContextW");
+            Log("Schannel: secur32=%p InitializeSecurityContextW=%p", hSecur, pInitSecCtx);
+
+            // Patch InitializeSecurityContextW to never return cert errors
+            // SEC_E_UNTRUSTED_ROOT = 0x80090325
+            // SEC_I_CONTINUE_NEEDED = 0x00090312
+            // SEC_E_OK = 0
+            // We'll inline hook it: save first bytes, JMP to our wrapper
+            if (pInitSecCtx) {
+                // Instead of complex inline hook, patch AcquireCredentialsHandleW
+                // to set SCH_CRED_MANUAL_CRED_VALIDATION in the credential flags
+                // Actually, simplest: just hook the IAT of the main EXE for these functions
+
+                // For now: directly patch the SCHANNEL_CRED flags when they're on the stack
+                // This requires knowing when AcquireCredentialsHandle is called...
+
+                // EASIEST approach: hook `connect()` for TCP connections to the LCU port
+                // and wrap the socket in our own TLS that accepts any cert.
+                // But that's complex too.
+
+                // Let's try: Hook WSASend/WSARecv for the TCP socket to the LCU
+                // and implement our own TLS layer? No, too complex.
+
+                // SIMPLEST: patch the ISC_REQ flags in InitializeSecurityContext calls
+                // Add ISC_REQ_MANUAL_CRED_VALIDATION (0x00080000) to disable cert check
+                // This requires hooking InitializeSecurityContextW
+
+                // Use same inline hook technique as for sendto/recvfrom
+                Log("Attempting to hook InitializeSecurityContextW for TLS bypass...");
+            }
+        }
+    }
+
+    // Also hook CertVerifyCertificateChainPolicy (might help with some paths)
     if (hCrypt) {
         typedef BOOL (WINAPI *CertVerify_t)(LPCSTR, void*, void*, void*);
         CertVerify_t pVerify = (CertVerify_t)GetProcAddress(hCrypt, "CertVerifyCertificateChainPolicy");
@@ -1880,6 +2009,28 @@ static void InstallNetHooks(void) {
             }
         }
     }
+}
+
+// Background thread to hook Schannel when secur32.dll loads
+static DWORD WINAPI TlsBypassThread(LPVOID param) {
+    for (int i = 0; i < 100; i++) {
+        Sleep(100);
+        if (real_InitSecCtxW) break;
+        HMODULE hSec = GetModuleHandleA("secur32.dll");
+        if (!hSec) hSec = GetModuleHandleA("sspicli.dll");
+        if (hSec) {
+            void *p = (void*)GetProcAddress(hSec, "InitializeSecurityContextW");
+            if (p) {
+                MakeTrampoline(p, tramp_InitSecCtx);
+                real_InitSecCtxW = (InitSecCtxW_fn)tramp_InitSecCtx;
+                PatchJmp(p, Hook_InitSecCtxW);
+                Log("*** [TLS Thread] Hooked InitializeSecurityContextW! ***");
+                break;
+            }
+        }
+    }
+    if (!real_InitSecCtxW) Log("[TLS Thread] secur32.dll never loaded (10s timeout)");
+    return 0;
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
