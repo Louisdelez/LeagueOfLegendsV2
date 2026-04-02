@@ -822,7 +822,7 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                 certDone = 1;
                 HMODULE hExe = GetModuleHandleA(NULL);
                 // FUN_14168a4f0 parses DER cert and returns a CRYPTO_BUFFER handle
-                typedef void* (*ParseCert_t)(int, void**, int);
+                typedef void* (*ParseCert_t)(void*, void**, int);
                 ParseCert_t ParseCert = (ParseCert_t)((BYTE*)hExe + 0x168A4F0);
                 // FUN_1401e2190 is std::vector::push_back
                 typedef void (*VecPush_t)(void*, void*, void*);
@@ -838,25 +838,31 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                     while(*p&&strncmp(p,"-----END",8)!=0){if(*p=='\n'||*p=='\r'||*p==' '||*p=='='){p++;continue;}bits=(bits<<6)|b64[(unsigned char)*p];nb+=6;if(nb>=8){nb-=8;dr[dl++]=(BYTE)(bits>>nb);bits&=(1<<nb)-1;}p++;}
 
                     if (dl > 0) {
+                        // Allocate a persistent context (heap, not stack)
+                        // FUN_1416c9b30 uses param_1 as context (if non-NULL) or &local_48
+                        // We need a heap-allocated context so the result persists
+                        static UINT64 ourCtx[4] = {0}; // persistent context
+                        static UINT64 riotCtx[4] = {0};
+
                         void *certPtr = dr;
-                        void *handle = ParseCert(0, &certPtr, dl);
-                        Log("  CERT: ParseCert returned handle=%p for %dB cert", handle, dl);
+                        void *handle = ParseCert(ourCtx, &certPtr, dl);
+                        Log("  CERT: ParseCert(ourCtx) returned handle=%p ctx=[%llX,%llX]",
+                            handle, ourCtx[0], ourCtx[1]);
 
-                        if (handle) {
-                            // Now find the trust vector on the heap
-                            // FUN_1410fbdc0 was called with a vector. The vector contains
-                            // handles from ParseCert. We can scan heap for arrays containing
-                            // the handle for the Riot CA cert.
-
-                            // First, get the Riot CA handle by calling ParseCert on it
+                        if (handle || ourCtx[0]) {
+                            // Parse Riot CA too
                             BYTE *riotCA = (BYTE*)hExe + 0x19EEBD0;
                             void *riotPtr = riotCA;
-                            void *riotHandle = ParseCert(0, &riotPtr, 1060);
-                            Log("  CERT: Riot CA handle=%p", riotHandle);
+                            void *riotHandle = ParseCert(riotCtx, &riotPtr, 1060);
+                            Log("  CERT: Riot CA handle=%p ctx=[%llX,%llX]",
+                                riotHandle, riotCtx[0], riotCtx[1]);
 
-                            // The trust vector is somewhere on the heap and contains riotHandle
-                            // For now, just log - we'll search in the next iteration
-                            Log("  CERT: Our cert handle=%p - need to find trust vector to inject", handle);
+                            // Examine handles (they're on heap, should be readable)
+                            // Use context arrays which are static and definitely readable
+                            Log("  CERT: ourCtx = [%p, %p, %p, %p]",
+                                (void*)ourCtx[0], (void*)ourCtx[1], (void*)ourCtx[2], (void*)ourCtx[3]);
+                            Log("  CERT: riotCtx = [%p, %p, %p, %p]",
+                                (void*)riotCtx[0], (void*)riotCtx[1], (void*)riotCtx[2], (void*)riotCtx[3]);
                         }
                     }
                 }
