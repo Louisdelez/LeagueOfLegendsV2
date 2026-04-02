@@ -1124,27 +1124,29 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                 void *plVar15 = *(void**)(host + 0x20);
                 if (plVar15 && !IsBadReadPtr((BYTE*)plVar15 + 0x168, 8)) {
                     HMODULE gb = GetModuleHandleA(NULL);
-                    void *h128 = *(void**)((BYTE*)plVar15 + 0x128);
-                    void *h168 = *(void**)((BYTE*)plVar15 + 0x168);
-                    Log("  CONSUMER: +0x128=%p +0x168=%p", h128, h168);
-                    // +0x128 is the handler for local_60 != 2 (our packets)
-                    // The consumer calls: (**(code**)(*plVar3 + 0x10))(plVar3, ...)
-                    // where plVar3 = *(plVar15 + 0x128)
-                    // So we need to read *(h128) = vtable, then *(vtable+0x10) = dispatch fn
-                    if (h128 && !IsBadReadPtr(h128, 8)) {
-                        void *vt = *(void**)h128;
-                        Log("    +0x128 obj vtable = %p", vt);
-                        if (vt && !IsBadReadPtr((BYTE*)vt + 0x18, 8)) {
-                            for (int vi = 0; vi < 4; vi++) {
-                                void *fn = *(void**)((BYTE*)vt + vi * 8);
-                                Log("      vt[%d]+0x%02X = %p (RVA 0x%llX)", vi, vi*8, fn, (UINT64)fn - (UINT64)gb);
-                            }
+                    // Scan offsets 0x100-0x180 for non-null pointers in image range
+                    UINT64 imgBase = (UINT64)gb;
+                    Log("  CONSUMER SCAN (plVar15=%p, imgBase=0x%llX):", plVar15, imgBase);
+                    for (int off = 0x100; off <= 0x180; off += 8) {
+                        void *val = *(void**)((BYTE*)plVar15 + off);
+                        if (val != NULL) {
+                            UINT64 v = (UINT64)val;
+                            int inImg = (v > imgBase && v < imgBase + 0x20000000);
+                            Log("    +0x%03X = %p %s", off, val, inImg ? "(IN IMAGE)" : "");
                         }
                     }
-                    // Also check +0x168 handler
-                    if (h168 && h168 != h128 && !IsBadReadPtr(h168, 8)) {
-                        void *vt2 = *(void**)h168;
-                        Log("    +0x168 obj vtable = %p", vt2);
+                    // For any in-image pointer, try reading vtable
+                    void *h128 = *(void**)((BYTE*)plVar15 + 0x128);
+                    if (h128 && !IsBadReadPtr(h128, 0x18)) {
+                        void *vt = *(void**)h128;
+                        Log("    h128=%p → vt=%p (RVA 0x%llX)", h128, vt, (UINT64)vt - imgBase);
+                        if (vt && !IsBadReadPtr((BYTE*)vt + 0x18, 8)) {
+                            void *fn10 = *(void**)((BYTE*)vt + 0x10);
+                            Log("    vt+0x10=%p (RVA 0x%llX)", fn10, (UINT64)fn10 - imgBase);
+                        }
+                        // Also try h128 itself as having fn at +0x10 (maybe h128 IS the vtable)
+                        void *fn10_direct = *(void**)((BYTE*)h128 + 0x10);
+                        Log("    h128+0x10=%p (RVA 0x%llX)", fn10_direct, (UINT64)fn10_direct - imgBase);
                     }
                 }
             }
