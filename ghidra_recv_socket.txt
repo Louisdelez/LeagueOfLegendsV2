@@ -1,0 +1,202 @@
+INFO  Using log config file: jar:file:/D:/LeagueOfLegendsV2/ghidra_full/ghidra_11.3.2_PUBLIC/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\application.log (LoggingInitialization)  
+INFO  Loading user preferences: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (702 ms) (ClassSearcher)  
+INFO  Initializing SSL Context (SSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: SHA1PRNG (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (ApplicationTrustManagerFactory)  
+INFO  Headless startup complete (1772 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 57 extension points (18 false positives) (ClassSearcher)  
+INFO  HEADLESS Script Paths:
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\8051\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\DATA\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\WildcardAssembler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\PIC\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger-rmi-trace\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\GnuDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\FunctionID\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\BytePatterns\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\BSim\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Base\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\MicrosoftCodeAnalyzer\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Jython\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Debug\Debugger\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\SwiftDemangler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\PDB\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\SystemEmulation\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\DecompilerDependent\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\FileFormats\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\PyGhidra\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\VersionTracking\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Features\Decompiler\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\Atmel\ghidra_scripts
+    D:\LeagueOfLegendsV2\ghidra_full\ghidra_11.3.2_PUBLIC\Ghidra\Processors\JVM\ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Creating project: D:\LeagueOfLegendsV2\ghidra_proj2 (HeadlessAnalyzer)  
+INFO  Creating project: D:\LeagueOfLegendsV2\ghidra_proj2 (DefaultProject)  
+INFO  REPORT: Processing input files:  (HeadlessAnalyzer)  
+INFO       project: D:\LeagueOfLegendsV2\ghidra_proj2 (HeadlessAnalyzer)  
+INFO  IMPORTING: file:///D:/LeagueOfLegendsV2/client-private/Game/League of Legends.exe (HeadlessAnalyzer)  
+INFO  Using Loader: Portable Executable (PE) (AutoImporter)  
+INFO  Using Language/Compiler: x86:LE:64:default:windows (AutoImporter)  
+INFO  Using Library Search Path: [., C:\WINDOWS\SysWOW64, C:\Program Files\Eclipse Adoptium\jdk-21.0.10.7-hotspot\bin, C:\WINDOWS\Sun\Java\bin, C:\WINDOWS\system32, C:\WINDOWS, C:\Users\loicd\bin, C:\Program Files\Git\mingw64\bin, C:\Program Files\Git\usr\local\bin, C:\Program Files\Git\usr\bin, C:\WINDOWS\System32\Wbem, C:\WINDOWS\System32\WindowsPowerShell\v1.0, C:\WINDOWS\System32\OpenSSH, C:\WINDOWS\AtlasModules, C:\WINDOWS\AtlasModules\Tools, C:\WINDOWS\AtlasModules\Scripts, C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common, C:\Program Files\dotnet, C:\Program Files\PuTTY, C:\Program Files\WireGuard, C:\Program Files\Git\cmd, C:\Program Files\nodejs, C:\Program Files\GitHub CLI, C:\Program Files\WezTerm, C:\Users\loicd\AppData\Local\Microsoft\WindowsApps, C:\Users\loicd\.lmstudio\bin, C:\Users\loicd\.local\bin, C:\Users\loicd\AppData\Roaming\npm, C:\Users\loicd\AppData\Local\Programs\Ollama, C:\Users\loicd\AppData\Local\Programs\Warp\bin, C:\Users\loicd\AppData\Local\Programs\Zed\bin, C:\Users\loicd\.dotnet\tools, C:\Users\loicd\AppData\Local\Python\bin, D:\LeagueOfLegendsV2\jdk21\jdk-21.0.10+7\bin, C:\Program Files\Git\usr\bin\vendor_perl, C:\Program Files\Git\usr\bin\core_perl] (AutoImporter)  
+INFO  TLS callbacks at 1418ee020 (TLSDirectory)  
+INFO  Additional info:
+Loading file:///D:/LeagueOfLegendsV2/client-private/Game/League of Legends.exe?MD5=4226901a4692036491695db7b8931028...
+------------------------------------------------
+
+Searching 32 paths for library STUB.DLL...
+Loading file:///D:/LeagueOfLegendsV2/client-private/Game/stub.dll?MD5=c75ed4c62f57368bd458a4f0a2abec1d...
+Created exports file: C:\Users\loicd\AppData\Roaming\ghidra\ghidra_11.3.2_PUBLIC\symbols\win64\stub.exports
+------------------------------------------------
+
+Applying cached symbols from STUB.DLL
+Linking the External Programs of 'League of Legends.exe' to imported libraries...
+  [STUB.DLL] -> not found in project
+------------------------------------------------
+
+ (AutoImporter)  
+INFO  IMPORTING: Loaded 0 additional files (HeadlessAnalyzer)  
+INFO  ANALYZING all memory and code: file:///D:/LeagueOfLegendsV2/client-private/Game/League of Legends.exe (HeadlessAnalyzer)  
+INFO  Skipping PDB processing: failed to locate PDB file in configured locations (PdbUniversalAnalyzer)  
+INFO  Use a script to set the PDB file location. I.e.,
+    PdbAnalyzer.setPdbFileOption(currentProgram, new File("/path/to/pdb/file.pdb")); or
+    PdbUniversalAnalyzer.setPdbFileOption(currentProgram, new File("/path/to/pdb/file.pdb"));
+Or set the symbol server search configuration using:    PdbPlugin.saveSymbolServerServiceConfig(...);
+ This must be done using a pre-script (prior to analysis). (PdbUniversalAnalyzer)  
+INFO  Packed database cache: C:\Users\loicd\AppData\Local\ghidra\packed-db-cache (PackedDatabaseCache)  
+INFO  Evicting 32 filesystems from cache (FileSystemInstanceManager)  
+INFO  Unprocessed TypeDescriptor: bool (__cdecl *)(class CharacterPackage * __ptr64,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > & __ptr64) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: void (__cdecl *)(char const * __ptr64,class EventSystem::GlobalParams const & __ptr64,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > & __ptr64) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class CherryGameModeClient * __ptr64 (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: void (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class BrawlGameModeClient * __ptr64 (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class UltBookGameModeClient * __ptr64 (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class TutorialsGameModeClient * __ptr64 (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class StrawberryGameModeClient * __ptr64 (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class RubyGameModeClient * __ptr64 (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class KiwiGameModeClient * __ptr64 (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: void (__cdecl *)(class AString const & __ptr64,unsigned __int64,unsigned __int64,unsigned __int64,unsigned int) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: void (__cdecl *)(class Material & __ptr64) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class Riot::Banners (__cdecl *)(class Riot::Banners const & __ptr64) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class Riot::Banners (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class BindingProperty (__cdecl *)(class BindingProperty const & __ptr64) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class BindingProperty (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class Riot::Recording (__cdecl *)(class Riot::Recording const & __ptr64) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class Riot::Recording (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class Riot::Sequence (__cdecl *)(class Riot::Sequence const & __ptr64) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class Riot::Sequence (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class Riot::Render (__cdecl *)(class Riot::Render const & __ptr64) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class Riot::Render (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class Riot::Playback (__cdecl *)(class Riot::Playback const & __ptr64) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class Riot::Playback (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class Riot::Game (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class BindingResult (__cdecl *)(unsigned int * __ptr64) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class BindingResult (__cdecl *)(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const & __ptr64) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class BindingResult (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class BindingResult (__cdecl *)(enum team_e * __ptr64) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: char const * __ptr64 (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: class TFTGameModeClient * __ptr64 (__cdecl *)(void) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: void (__cdecl *)(enum MessageBoxDialog::ButtonId,class AString const & __ptr64) (TypeDescriptorModel)  
+INFO  Unprocessed TypeDescriptor: void (__cdecl *)(class Riot::EventMultiWaitable * __ptr64) (TypeDescriptorModel)  
+WARN  Decompiling 1414270d0: Unable to read bytes at ram:20ccccccc (DecompileCallback)  
+WARN  Decompiling 1414270d0: Unable to read bytes at ram:20ccccccc (DecompileCallback)  
+INFO  Applied data type archive: windows_vs12_64 (ApplyDataArchiveAnalyzer)  
+INFO  Applied data type archive: windows_vs12_64 (ApplyDataArchiveAnalyzer)  
+ERROR Could not create Data at address 1418b6c50 (DemangledVariable)  
+ERROR Could not create Data at address 1418b7350 (DemangledVariable)  
+INFO  -----------------------------------------------------
+    ASCII Strings                              1.464 secs
+    Apply Data Archives                        0.374 secs
+    Call Convention ID                         0.841 secs
+    Call-Fixup Installer                      11.921 secs
+    Create Address Tables                      4.451 secs
+    Create Address Tables - One Time          35.954 secs
+    Create Function                           16.922 secs
+    Data Reference                            22.835 secs
+    Decompiler Switch Analysis               252.840 secs
+    Demangler Microsoft                        0.343 secs
+    Disassemble                               55.152 secs
+    Disassemble Entry Points                   2.397 secs
+    Disassemble Entry Points - One Time        0.128 secs
+    Embedded Media                             0.250 secs
+    External Entry References                  0.002 secs
+    Function ID                               27.636 secs
+    Function Start Search                      0.491 secs
+    Non-Returning Functions - Discovered      13.136 secs
+    Non-Returning Functions - Known            0.006 secs
+    PDB Universal                              0.011 secs
+    Reference                                 18.506 secs
+    Scalar Operand References                 33.547 secs
+    Shared Return Calls                       12.223 secs
+    Stack                                    151.948 secs
+    Subroutine References                     18.638 secs
+    Subroutine References - One Time           0.041 secs
+    Windows x86 PE Exception Handling          1.307 secs
+    Windows x86 PE RTTI Analyzer               3.043 secs
+    Windows x86 Thread Environment Block (TEB) Analyzer     0.011 secs
+    WindowsResourceReference                   0.356 secs
+    x86 Constant Reference Analyzer          172.937 secs
+-----------------------------------------------------
+     Total Time   859 secs
+-----------------------------------------------------
+ (AutoAnalysisManager)  
+INFO  REPORT: Analysis succeeded for file: file:///D:/LeagueOfLegendsV2/client-private/Game/League of Legends.exe (HeadlessAnalyzer)  
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                         ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                           ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                                          ^
+ReadSBox.java:17: error: illegal escape character
+        println("Captured context at: D:\LeagueOfLegendsV2\client-private\Game\nethook_logs\CRYPTO_CTX_*.bin");
+                                                                                            ^
+skipping D:\LeagueOfLegendsV2\ghidra_scripts\ReadSBox.java
+INFO  SCRIPT: D:\LeagueOfLegendsV2\ghidra_scripts\DecompRecvSocket.java (HeadlessAnalyzer)  
+INFO  DecompRecvSocket.java> Target: 14058b099 (GhidraScript)  
+INFO  DecompRecvSocket.java> No function at target! Creating one... (GhidraScript)  
+INFO  DecompRecvSocket.java> 
+Functions in range 0x58AF00-0x58B200: (GhidraScript)  
+INFO  DecompRecvSocket.java> 
+Instructions around 14058b080-14058b0b0: (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b073: MOV qword ptr [RSP + 0x28],RAX (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b078: XOR R9D,R9D (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b07b: LEA RAX,[RBP + -0x80] (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b07f: MOVZX R8D,R15W (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b083: MOV RDX,RBX (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b086: MOV qword ptr [RSP + 0x20],RAX (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b08b: MOV dword ptr [RSP + 0x40],0x80 (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b093: CALL qword ptr [0x1418dfd20] (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b099: MOV EDI,EAX (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b09b: TEST EAX,EAX (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b09d: JG 0x14058b0d4 (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b09f: CMP byte ptr [RSI + 0x34],0x0 (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b0a3: JZ 0x14058b0c9 (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b0a5: CALL 0x1410f48f0 (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b0aa: CMP EAX,0x2738 (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b0af: JZ 0x14058b0c9 (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b0b1: CMP EAX,0x2746 (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b0b6: JZ 0x14058b0c9 (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b0b8: MOV R8D,0x1000 (GhidraScript)  
+INFO  DecompRecvSocket.java>   14058b0be: LEA RDX,[RBP] (GhidraScript)  
+INFO  DecompRecvSocket.java> 
+Candidate 14058af30: MOV qword ptr [RSP + 0x20],RSI (GhidraScript)  
+INFO  DecompRecvSocket.java>   Failed: Unable to create function at 14058af30 due to overlap with another namespace (GhidraScript)  
+INFO  DecompRecvSocket.java> 
+=== Xrefs to FUN_140588f70 === (GhidraScript)  
+INFO  DecompRecvSocket.java>   Called from: 141eca69c (GhidraScript)  
+INFO  DecompRecvSocket.java>   Called from: 141bed1d8 (GhidraScript)  
+INFO  DecompRecvSocket.java>   Called from: 141bed1ec (GhidraScript)  
+INFO  DecompRecvSocket.java>   Called from: 141bed1fc (GhidraScript)  
+INFO  DecompRecvSocket.java>   Called from: 14058b1c0 (GhidraScript)  
+INFO  ANALYZING changes made by post scripts: file:///D:/LeagueOfLegendsV2/client-private/Game/League of Legends.exe (HeadlessAnalyzer)  
+INFO  REPORT: Post-analysis succeeded for file: file:///D:/LeagueOfLegendsV2/client-private/Game/League of Legends.exe (HeadlessAnalyzer)  
+INFO  REPORT: Save succeeded for: /League of Legends.exe (ghidra_proj2:/League of Legends.exe) (HeadlessAnalyzer)  
+INFO  REPORT: Import succeeded (HeadlessAnalyzer)  

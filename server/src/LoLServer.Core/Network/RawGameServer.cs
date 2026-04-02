@@ -171,213 +171,92 @@ public class RawGameServer : IGameServer, IDisposable
             EnsureClientInfo(peer);
         }
 
-        // MINIMAL PLAINTEXT: 7 bytes after token = 0 CFB blocks = NO encryption!
-        // Format: [4B token][2B peerID=0][4B nonce][1B flags=0x03] = 11 bytes total
+        // =================================================================
+        // VERIFY_CONNECT: [4B header][Double CFB encrypted payload]
+        // Header = 4 bytes consumed by client (param_1+0x146 = 4)
+        // Payload plaintext: [2B peerID LE][4B CRC nonce][1B flags][body...]
+        //
+        // CRC nonce = ~CRC32 over struct:
+        //   init = (byte[8] | 0xFFFFFF00) ^ 0xB1F740B4, byte[8]=0
+        //   feed: byte[9]=0, bytes[0..7]={1,0,0,0,0,0,0,0}, 8x 0xFF
+        //   nonce = ~crc = 0x8DFE1964
+        //
+        // FUN_140577f10 calls (*DAT_1418dfd10)(~crc) before returning.
+        // If that's htonl: returned value = byte-swapped = 0x6419FE8D
+        //   → client reads LE int → need BE bytes [8D FE 19 64]
+        // If that's identity: returned value = 0x8DFE1964
+        //   → client reads LE int → need LE bytes [64 19 FE 8D]
+        //
+        // We try BOTH to determine which is correct.
+        // =================================================================
         {
-            // Correct CRC nonce from Ghidra: peerID=0, local_c8=1, local_res10=0xFFFF..., no payload
             uint nonce = 0x8DFE1964;
-            var minimal = new byte[11];
-            WriteBE32(minimal, 0, peer.ConnectToken); // token (4B, skipped by client)
-            WriteLE16(minimal, 4, 0); // peerID = 0
-            WriteBE32(minimal, 6, nonce); // CRC nonce BE
-            minimal[10] = 0x03; // flags = VERIFY_CONNECT
-            Log($"  [MINIMAL-VC] 11B nonce=0x{nonce:X8}");
-            Send(minimal, peer);
-        }
-
-        // CORRECT FORMAT: Double CFB with computed CRC nonce
-        // Format: [2B peerID LE][4B CRC_nonce BE][1B flags][36B VERIFY_CONNECT body BE]
-        // Then prepend 4B token, double CFB encrypt, send
-        {
-            byte[] verifyBody = {
-                0x00, 0x01,  // outPeerID = 1
-                0x03, 0xE4,  // MTU = 996
-                0x00, 0x00, 0x80, 0x00,  // windowSize = 32768
-                0x00, 0x00, 0x00, 0x20,  // channelCount = 32
-                0x00, 0x00, 0x00, 0x00,  // inBW
-                0x00, 0x00, 0x00, 0x00,  // outBW
-                0x00, 0x00, 0x00, 0x20,  // throttleInt
-                0x00, 0x00, 0x00, 0x02,  // throttleAcc
-                0x00, 0x00, 0x00, 0x02,  // throttleDec
-            };
-
-            // CRC nonce computation based on Ghidra analysis of FUN_140577f10:
-            // The CRC is computed over a STACK struct in FUN_140588f70, NOT the packet payload!
-            //
-            // Stack struct layout (param_1 of FUN_140577f10 = &local_c8):
-            //   offset 0x00 (local_c8) = *(conn+0x138) = connection sequence (starts at 1)
-            //   offset 0x08 (local_c0) = 0 (when local_c8 != 0)
-            //   offset 0x18 (local_b0) = 0xFFFFFFFFFFFFFFFF
-            //   offset 0x48 (local_80) = 0 (payload ptr)
-            //   offset 0x52             = 0 (payload len)
-            //
-            // FUN_140577f10 processes: byte[8], byte[9], byte[0..7], local_res10[0..7]
-            // where byte[8..9] = first 2 bytes of local_c0 = {0, 0}
-            //       byte[0..7] = local_c8 = 1 as int64 LE
-            //       local_res10 = 0xFFFFFFFFFFFFFFFF
-
-            byte peerLo = 0, peerHi = 0; // local_c0 bytes = 0
-            uint crc = ((uint)peerLo | 0xFFFFFF00u) ^ 0xB1F740B4u;
-            crc = CrcByte(crc, peerHi);
-
-            // bytes[0..7] = local_c8 = *(conn+0x138) = 1 as int64 LE
-            byte[] localC8 = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-            foreach (var b in localC8) crc = CrcByte(crc, b);
-
-            // local_res10 at offset 0x18 = 0xFFFFFFFFFFFFFFFF
-            for (int i = 0; i < 8; i++) crc = CrcByte(crc, 0xFF);
-
-            // NO payload in CRC (payloadLen = 0 in the stack struct)
-            uint nonceBits = ~crc;
-            // htonl(~crc) is what FUN_140577f10 returns
-            // iVar20 = *(int*)(data+2) reads nonce as LE int
-            // For match: *(int*) read of our bytes must == htonl(~crc)
-            // htonl byte-swaps: htonl(AABBCCDD) = DDCCBBAA
-            // *(int*) LE read of [A,B,C,D] = D<<24|C<<16|B<<8|A
-            // So we need: D<<24|C<<16|B<<8|A = htonl(~crc) = byte_swap(~crc)
-            // This means bytes = [~crc>>24, ~crc>>16, ~crc>>8, ~crc&FF] i.e. ~crc in BE!
-            // Which is the same as WriteBE32(nonceBits)
-
-            // Build plaintext
-            var pt = new byte[2 + 4 + 1 + verifyBody.Length]; // 39 bytes
-            WriteLE16(pt, 0, 0); // peerID = 0
-            WriteBE32(pt, 2, nonceBits); // nonce in BE (= ~crc in BE = what htonl produces)
-            pt[6] = 0x03; // flags = VERIFY_CONNECT (cmd type 3)
-            Array.Copy(verifyBody, 0, pt, 7, verifyBody.Length);
-
-            // Double CFB encrypt
-            var enc = DoubleCfbEncrypt(pt);
-
-            // Send with 4B token prefix (skipped by client)
-            var pkt = new byte[4 + enc.Length];
-            WriteBE32(pkt, 0, peer.ConnectToken);
-            Array.Copy(enc, 0, pkt, 4, enc.Length);
-            Log($"  [CORRECT-VC] nonce=0x{nonceBits:X8} peerID=0 flags=0x03 ({pkt.Length}B)");
-            Send(pkt, peer);
-
-            // Also without token prefix
-            Log($"  [CORRECT-VC-NP] no prefix ({enc.Length}B)");
-            Send(enc, peer);
-        }
-
-        // TEST: Send packet same size as echo with our own data
-        if (data.Length > 52) // only for larger packets
-        {
-            var custom = new byte[data.Length - 8]; // same size as echo
-            // Fill with token prefix + our ENet VERIFY_CONNECT + zero padding
-            WriteBE32(custom, 0, peer.ConnectToken); // token at bytes 0-3
-            int off = 4;
-            // Standard ENet header
-            WriteBE32(custom, off, _sessionId); off += 4;
-            WriteBE16(custom, off, (ushort)(peer.OutgoingPeerID | 0x8000)); off += 2;
-            WriteBE16(custom, off, (ushort)(Environment.TickCount & 0xFFFF)); off += 2;
-            // VERIFY_CONNECT command
-            custom[off] = 0x83; off++; // cmd=3 | SENT_TIME
-            custom[off] = 0xFF; off++; // channel
-            WriteBE16(custom, off, 1); off += 2; // seq
-            // VERIFY_CONNECT body
-            WriteBE16(custom, off, peer.OutgoingPeerID); off += 2;
-            WriteBE16(custom, off, 996); off += 2;
-            WriteBE32(custom, off, 32768); off += 4;
-            WriteBE32(custom, off, 32); off += 4;
-            off += 20; // zeros for remaining fields
-            // Rest is zero padding
-            Log($"  [CUSTOM-511] ENet VC padded to {custom.Length}B");
-            Send(custom, peer);
-        }
-
-        // SIDE-CHANNEL: Send echo with ONE byte flipped
-        // If the client accepts (sends different packet), the flipped byte doesn't matter.
-        // If rejected (client retransmits 519B), the byte IS validated.
-        if (data.Length > 8)
-        {
-            var echo = new byte[data.Length - 8];
-            Array.Copy(data, 8, echo, 0, echo.Length);
-
-            // Flip byte at position = packetCount (test one byte per packet)
-            int flipPos = peer.PacketCount - 1; // 0-based
-            if (flipPos >= 0 && flipPos < echo.Length)
+            // Standard ENet VERIFY_CONNECT body = 36 bytes (big-endian):
+            //   [2B outgoingPeerID]
+            //   [1B incomingSessionID]
+            //   [1B outgoingSessionID]
+            //   [4B mtu]
+            //   [4B windowSize]
+            //   [4B channelCount]
+            //   [4B incomingBandwidth]
+            //   [4B outgoingBandwidth]
+            //   [4B packetThrottleInterval]
+            //   [4B packetThrottleAcceleration]
+            //   [4B packetThrottleDeceleration]
+            var verifyBody = new byte[36];
             {
-                echo[flipPos] ^= 0xFF; // flip all bits of this byte
-                Log($"  [FLIP] Flipped byte {flipPos} of echo (was 0x{(byte)(echo[flipPos] ^ 0xFF):X2})");
+                int o = 0;
+                WriteBE16(verifyBody, o, 0); o += 2;     // outPeerID = 0 (server's peer ID for this client)
+                verifyBody[o++] = 0xFF;                   // incomingSessionID
+                verifyBody[o++] = 0xFF;                   // outgoingSessionID
+                WriteBE32(verifyBody, o, 996); o += 4;    // MTU
+                WriteBE32(verifyBody, o, 32768); o += 4;  // windowSize
+                WriteBE32(verifyBody, o, 1); o += 4;      // channelCount (LoL uses 1 channel typically)
+                WriteBE32(verifyBody, o, 0); o += 4;      // incomingBandwidth
+                WriteBE32(verifyBody, o, 0); o += 4;      // outgoingBandwidth
+                WriteBE32(verifyBody, o, 5000); o += 4;   // packetThrottleInterval (ms)
+                WriteBE32(verifyBody, o, 2); o += 4;      // packetThrottleAcceleration
+                WriteBE32(verifyBody, o, 2); o += 4;      // packetThrottleDeceleration
             }
 
-            Send(echo, peer);
-        }
+            // =================================================================
+            // CONN[0x146] = 0 → NO header prefix! Send raw encrypted data.
+            // CRC includes payload! FUN_1405725f0 copies body to param_1+9
+            // and updates param_1[0x52] BEFORE calling FUN_140577f10.
+            // =================================================================
 
-        // Other test variants (kept for comparison)
-        // Hypothesis: crypto might be disabled for recv (*param_3 == '\0')
-        // Format: [4B padding (skipped by client)][plaintext ENet data]
-        {
-            ushort sentTime = (ushort)(Environment.TickCount & 0xFFFF);
-            var pt = new byte[4 + 48]; // 4 pad + 48 ENet
-            // Padding: use token, zeros, or session ID
-            WriteBE32(pt, 0, peer.ConnectToken); // or _sessionId or 0
-            int o = 4;
-            WriteBE32(pt, o, _sessionId); o += 4;
-            WriteBE16(pt, o, (ushort)(peer.OutgoingPeerID | 0x8000)); o += 2;
-            WriteBE16(pt, o, sentTime); o += 2;
-            pt[o] = 0x83; o++; // VERIFY_CONNECT | SENT_TIME
-            pt[o] = 0xFF; o++; // channel
-            WriteBE16(pt, o, peer.VerifySeqNo); o += 2;
-            WriteBE16(pt, o, peer.OutgoingPeerID); o += 2;
-            WriteBE16(pt, o, 996); o += 2;
-            WriteBE32(pt, o, 32768); o += 4;
-            WriteBE32(pt, o, 32); o += 4;
-            o += 20; // zeros
-            Log($"  [PLAINTEXT-ONLY] {pt.Length}B");
-            Send(pt, peer);
+            // CRC WITHOUT payload (in case payload is NOT included)
+            uint nonceNoPL = nonce;  // 0x8DFE1964
 
-            // Also try with zero padding
-            var pt0 = (byte[])pt.Clone();
-            WriteBE32(pt0, 0, 0);
-            Log($"  [PLAINTEXT-ZERO] {pt0.Length}B");
-            Send(pt0, peer);
+            // CRC WITH payload
+            byte peerLo = 0, peerHi = 0;
+            uint crc2 = ((uint)peerLo | 0xFFFFFF00u) ^ 0xB1F740B4u;
+            crc2 = CrcByte(crc2, peerHi);
+            byte[] localC8 = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+            foreach (var b in localC8) crc2 = CrcByte(crc2, b);
+            for (int i = 0; i < 8; i++) crc2 = CrcByte(crc2, 0xFF);
+            foreach (var b in verifyBody) crc2 = CrcByte(crc2, b);
+            uint nonceWithPL = ~crc2;
+            Log($"  [CRC] noPL=0x{nonceNoPL:X8} withPL=0x{nonceWithPL:X8}");
 
-            // Also try single CFB encrypted (no echo for clean test)
-            var enet = new byte[48];
-            Array.Copy(pt, 4, enet, 0, 48);
-            var enc = CfbEncrypt(enet);
-            var encWithPad = new byte[4 + enc.Length];
-            WriteBE32(encWithPad, 0, peer.ConnectToken);
-            Array.Copy(enc, 0, encWithPad, 4, enc.Length);
-            Log($"  [SCFB-ONLY] {encWithPad.Length}B (no echo!)");
-            Send(encWithPad, peer);
-
-            // V-2LAYER: Two-layer encryption
-            // Inner: double CFB of [peerID(2)][nonce(4)][flags(1)][payload(36)] = 43B
-            // Outer: single CFB of [4B header][inner_encrypted(43B)] = 47B
+            // CONFIRMED FORMAT: [4B preamble][Double CFB encrypted payload]
+            // Preamble = any 4 bytes (skipped by client at offset from CONN+0x144)
+            // CRC nonce = htonl(~CRC32_with_payload) = WriteBE32
+            // CRC includes the VERIFY_CONNECT body as payload
             {
-                // Build inner plaintext (CRC format)
-                // For now, use nonce=0 (will fail CRC but tests the path)
-                var inner = new byte[43];
-                WriteLE16(inner, 0, peer.OutgoingPeerID); // peerID LE
-                WriteBE32(inner, 2, 0); // nonce placeholder
-                inner[6] = 0x03; // flags = VERIFY_CONNECT
-                int z = 7;
-                WriteBE16(inner, z, peer.OutgoingPeerID); z += 2;
-                WriteBE16(inner, z, 996); z += 2;
-                WriteBE32(inner, z, 32768); z += 4;
-                WriteBE32(inner, z, 32); z += 4;
-                z += 20; // zeros
+                var pt = new byte[2 + 4 + 1 + verifyBody.Length]; // 39B
+                WriteLE16(pt, 0, 0);           // peerID = 0
+                WriteBE32(pt, 2, nonceWithPL); // nonce in BE = htonl(~crc_with_payload)
+                pt[6] = 0x03;                  // flags = VERIFY_CONNECT
+                Array.Copy(verifyBody, 0, pt, 7, verifyBody.Length);
+                var enc = DoubleCfbEncrypt(pt);
 
-                var innerEnc = DoubleCfbEncrypt(inner);
-
-                // Outer: single CFB of [sessID][innerEnc]
-                var outer = new byte[4 + innerEnc.Length];
-                WriteBE32(outer, 0, _sessionId);
-                Array.Copy(innerEnc, 0, outer, 4, innerEnc.Length);
-                var outerEnc = CfbEncrypt(outer);
-                Log($"  [2LAYER] Outer-sCFB(sessID+Inner-dCFB) ({outerEnc.Length}B)");
-                Send(outerEnc, peer);
-
-                // Also try without inner encryption (just outer single CFB)
-                var outerPlain = new byte[4 + inner.Length];
-                WriteBE32(outerPlain, 0, _sessionId);
-                Array.Copy(inner, 0, outerPlain, 4, inner.Length);
-                var outerOnlyEnc = CfbEncrypt(outerPlain);
-                Log($"  [1LAYER] Outer-sCFB(sessID+plainInner) ({outerOnlyEnc.Length}B)");
-                Send(outerOnlyEnc, peer);
+                // 4B preamble (use ConnectToken, but any value works)
+                var pkt = new byte[4 + enc.Length]; // 43B
+                WriteBE32(pkt, 0, peer.ConnectToken);
+                Array.Copy(enc, 0, pkt, 4, enc.Length);
+                Log($"  [VERIFY_CONNECT] nonce=0x{nonceWithPL:X8} BE+PL ({pkt.Length}B)");
+                Send(pkt, peer);
             }
 
             peer.VerifySeqNo++;

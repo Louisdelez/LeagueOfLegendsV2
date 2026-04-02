@@ -385,6 +385,119 @@ static void EnsureHwBpOnThisThread(void) {
     );
     // After the NOP, SINGLE_STEP fires and our VEH sets DR0
 }
+// ============================================================
+// DIRECT SYSCALL to NtProtectVirtualMemory
+// Bypasses ALL user-mode hooks (stub.dll, etc.)
+// ============================================================
+
+// Read the syscall number from ntdll's NtProtectVirtualMemory export.
+// The function starts with: mov r10,rcx / mov eax,SYSCALL_NUM / ...
+static DWORD GetSyscallNumber(const char *funcName) {
+    HMODULE ntdll = GetModuleHandleA("ntdll.dll");
+    if (!ntdll) return 0;
+    BYTE *func = (BYTE*)GetProcAddress(ntdll, funcName);
+    if (!func) { Log("Syscall %s: export not found!", funcName); return 0; }
+
+    Log("Syscall %s: func at %p, bytes: %02X %02X %02X %02X %02X %02X %02X %02X",
+        funcName, func, func[0], func[1], func[2], func[3], func[4], func[5], func[6], func[7]);
+
+    // Check if the in-memory function is not hooked
+    if (func[0] == 0x4C && func[1] == 0x8B && func[2] == 0xD1 && func[3] == 0xB8) {
+        DWORD num = *(DWORD*)(func + 4);
+        Log("Syscall %s: standard pattern (in-memory), num=0x%X", funcName, num);
+        return num;
+    }
+
+    // Function is hooked! Read syscall number from ntdll.dll FILE on disk instead.
+    Log("Syscall %s: HOOKED (starts with %02X %02X), reading from disk...", funcName, func[0], func[1]);
+
+    // Get the RVA of the function
+    BYTE *ntdllBase = (BYTE*)ntdll;
+    DWORD funcRVA = (DWORD)(func - ntdllBase);
+    Log("Syscall %s: ntdll base=%p, func RVA=0x%X", funcName, ntdllBase, funcRVA);
+
+    // Read the original bytes from ntdll.dll on disk
+    char ntdllPath[MAX_PATH];
+    GetSystemDirectoryA(ntdllPath, MAX_PATH);
+    strcat(ntdllPath, "\\ntdll.dll");
+
+    HANDLE hFile = CreateFileA(ntdllPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+    if (hFile == INVALID_HANDLE_VALUE) {
+        Log("Syscall %s: can't open %s (err=%lu)", funcName, ntdllPath, GetLastError());
+        return 0;
+    }
+
+    // Parse PE headers to convert RVA to file offset
+    BYTE peHeader[4096];
+    DWORD bytesRead;
+    ReadFile(hFile, peHeader, sizeof(peHeader), &bytesRead, NULL);
+
+    IMAGE_DOS_HEADER *dos = (IMAGE_DOS_HEADER*)peHeader;
+    IMAGE_NT_HEADERS64 *nt = (IMAGE_NT_HEADERS64*)(peHeader + dos->e_lfanew);
+    IMAGE_SECTION_HEADER *sections = (IMAGE_SECTION_HEADER*)((BYTE*)&nt->OptionalHeader + nt->FileHeader.SizeOfOptionalHeader);
+
+    DWORD fileOffset = 0;
+    for (int i = 0; i < nt->FileHeader.NumberOfSections; i++) {
+        if (funcRVA >= sections[i].VirtualAddress &&
+            funcRVA < sections[i].VirtualAddress + sections[i].Misc.VirtualSize) {
+            fileOffset = funcRVA - sections[i].VirtualAddress + sections[i].PointerToRawData;
+            break;
+        }
+    }
+
+    if (fileOffset == 0) {
+        Log("Syscall %s: can't find section for RVA 0x%X", funcName, funcRVA);
+        CloseHandle(hFile);
+        return 0;
+    }
+
+    // Read the original (unhooked) function bytes from disk
+    BYTE origBytes[16];
+    SetFilePointer(hFile, fileOffset, NULL, FILE_BEGIN);
+    ReadFile(hFile, origBytes, sizeof(origBytes), &bytesRead, NULL);
+    CloseHandle(hFile);
+
+    Log("Syscall %s: disk bytes at offset 0x%X: %02X %02X %02X %02X %02X %02X %02X %02X",
+        funcName, fileOffset,
+        origBytes[0], origBytes[1], origBytes[2], origBytes[3],
+        origBytes[4], origBytes[5], origBytes[6], origBytes[7]);
+
+    // Should be: 4C 8B D1 B8 xx xx xx xx
+    if (origBytes[0] == 0x4C && origBytes[1] == 0x8B && origBytes[2] == 0xD1 && origBytes[3] == 0xB8) {
+        DWORD num = *(DWORD*)(origBytes + 4);
+        Log("Syscall %s: from disk, num=0x%X", funcName, num);
+        return num;
+    }
+
+    Log("Syscall %s: unexpected disk bytes, pattern not found!", funcName);
+    return 0;
+}
+
+// Direct syscall for NtProtectVirtualMemory
+// Uses dynamically allocated executable shellcode to avoid inline asm issues
+// NTSTATUS NtProtectVirtualMemory(HANDLE ProcessHandle, PVOID *BaseAddress,
+//     PSIZE_T RegionSize, ULONG NewProtect, PULONG OldProtect)
+typedef LONG (NTAPI *NtProtectVirtualMemory_t)(HANDLE, PVOID*, PSIZE_T, ULONG, PULONG);
+
+static NtProtectVirtualMemory_t MakeSyscallStub(DWORD sysnum) {
+    // Allocate RWX page for our tiny syscall stub
+    BYTE *stub = (BYTE*)VirtualAlloc(NULL, 64, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    if (!stub) return NULL;
+
+    int i = 0;
+    // mov r10, rcx  (Windows syscall convention)
+    stub[i++] = 0x4C; stub[i++] = 0x8B; stub[i++] = 0xD1;
+    // mov eax, sysnum
+    stub[i++] = 0xB8;
+    *(DWORD*)(stub + i) = sysnum; i += 4;
+    // syscall
+    stub[i++] = 0x0F; stub[i++] = 0x05;
+    // ret
+    stub[i++] = 0xC3;
+
+    return (NtProtectVirtualMemory_t)stub;
+}
+
 static void PatchCrcCheckEarly(void) {
     if (crcPatched || hwBpInstalled) return;
     hwBpInstalled = 1;
@@ -392,9 +505,109 @@ static void PatchCrcCheckEarly(void) {
     HMODULE hMod = GetModuleHandleA(NULL);
     if (!hMod) return;
 
-    // Try VirtualProtect first (unlikely to work due to stub.dll)
     BYTE *target = (BYTE*)hMod + 0x572827;
-    if (target[0] == 0x44 && target[1] == 0x3B && target[2] == 0xE0) {
+    if (target[0] != 0x44 || target[1] != 0x3B || target[2] != 0xE0) {
+        if (target[0] == 0x90 && target[3] == 0xB0) {
+            crcPatched = 1;
+            Log("CRC already patched!");
+            return;
+        }
+        Log("CRC target bytes unexpected: %02X %02X %02X %02X %02X %02X",
+            target[0], target[1], target[2], target[3], target[4], target[5]);
+        return;
+    }
+
+    Log("CRC target verified: %02X %02X %02X at %p", target[0], target[1], target[2], target);
+
+    // Method 1: Direct syscall to NtProtectVirtualMemory (bypasses all user-mode hooks)
+    DWORD sysnum = GetSyscallNumber("NtProtectVirtualMemory");
+    if (sysnum != 0) {
+        Log("NtProtectVirtualMemory syscall number: 0x%X", sysnum);
+
+        NtProtectVirtualMemory_t NtProtect = MakeSyscallStub(sysnum);
+        if (!NtProtect) {
+            Log("Failed to allocate syscall stub!");
+            goto try_virtualprotect;
+        }
+
+        void *baseAddr = (void*)target;
+        SIZE_T regionSize = 6;
+        DWORD oldProtect = 0;
+
+        LONG status = NtProtect((HANDLE)-1, &baseAddr, &regionSize,
+                                PAGE_EXECUTE_READWRITE, &oldProtect);
+        Log("Direct syscall NtProtectVirtualMemory status: 0x%08X (oldProtect=0x%X)", status, oldProtect);
+
+        if (status == 0) {  // STATUS_SUCCESS
+            target[0] = 0x90; target[1] = 0x90; target[2] = 0x90;
+            target[3] = 0xB0; target[4] = 0x01; target[5] = 0x90;
+            DWORD dummy;
+            baseAddr = (void*)target;
+            regionSize = 6;
+            NtProtect((HANDLE)-1, &baseAddr, &regionSize, oldProtect, &dummy);
+            VirtualFree((void*)NtProtect, 0, MEM_RELEASE);
+            crcPatched = 1;
+            Log("*** CRC PATCHED via NtProtectVirtualMemory! ***");
+            Log("Bytes now: %02X %02X %02X %02X %02X %02X",
+                target[0], target[1], target[2], target[3], target[4], target[5]);
+            return;
+        }
+        Log("NtProtect failed (0x%08X), trying NtWriteVirtualMemory...", status);
+        VirtualFree((void*)NtProtect, 0, MEM_RELEASE);
+
+        // Method 1b: NtWriteVirtualMemory (writes to memory directly, different kernel path)
+        DWORD writeSysnum = GetSyscallNumber("NtWriteVirtualMemory");
+        if (writeSysnum != 0) {
+            Log("NtWriteVirtualMemory syscall number: 0x%X", writeSysnum);
+
+            // NtWriteVirtualMemory(ProcessHandle, BaseAddress, Buffer, Size, *Written)
+            typedef LONG (NTAPI *NtWriteVM_t)(HANDLE, PVOID, PVOID, SIZE_T, PSIZE_T);
+            NtWriteVM_t NtWrite = (NtWriteVM_t)MakeSyscallStub(writeSysnum);
+            if (NtWrite) {
+                BYTE patch[] = {0x90, 0x90, 0x90, 0xB0, 0x01, 0x90};
+                SIZE_T written = 0;
+                LONG wStatus = NtWrite((HANDLE)-1, target, patch, 6, &written);
+                Log("NtWriteVirtualMemory status: 0x%08X (written=%llu)", wStatus, (unsigned long long)written);
+
+                if (wStatus == 0 && target[0] == 0x90) {
+                    VirtualFree((void*)NtWrite, 0, MEM_RELEASE);
+                    crcPatched = 1;
+                    Log("*** CRC PATCHED via NtWriteVirtualMemory! ***");
+                    return;
+                }
+                VirtualFree((void*)NtWrite, 0, MEM_RELEASE);
+            }
+        }
+
+        // Method 1c: Try NtProtect with PAGE_READWRITE (less suspicious than RWX)
+        {
+            NtProtectVirtualMemory_t NtProt2 = MakeSyscallStub(sysnum);
+            if (NtProt2) {
+                void *ba2 = (void*)target;
+                SIZE_T rs2 = 0x1000;  // full page
+                DWORD op2 = 0;
+                LONG s2 = NtProt2((HANDLE)-1, &ba2, &rs2, PAGE_READWRITE, &op2);
+                Log("NtProtect(PAGE_RW, page) status: 0x%08X (old=0x%X)", s2, op2);
+                if (s2 == 0) {
+                    target[0] = 0x90; target[1] = 0x90; target[2] = 0x90;
+                    target[3] = 0xB0; target[4] = 0x01; target[5] = 0x90;
+                    DWORD d2;
+                    ba2 = (void*)target;
+                    rs2 = 0x1000;
+                    NtProt2((HANDLE)-1, &ba2, &rs2, op2, &d2);
+                    VirtualFree((void*)NtProt2, 0, MEM_RELEASE);
+                    crcPatched = 1;
+                    Log("*** CRC PATCHED via NtProtect(PAGE_RW)! ***");
+                    return;
+                }
+                VirtualFree((void*)NtProt2, 0, MEM_RELEASE);
+            }
+        }
+    }
+
+    // Method 2: VirtualProtect (may work if stub.dll hasn't hooked it yet)
+    try_virtualprotect:
+    {
         DWORD oldProtect;
         if (VirtualProtect(target, 6, PAGE_EXECUTE_READWRITE, &oldProtect)) {
             target[0] = 0x90; target[1] = 0x90; target[2] = 0x90;
@@ -404,16 +617,18 @@ static void PatchCrcCheckEarly(void) {
             Log("CRC PATCHED via VirtualProtect!");
             return;
         }
-        Log("VirtualProtect failed (err=%lu), using HW breakpoint", GetLastError());
+        Log("VirtualProtect failed (err=%lu)", GetLastError());
     }
 
-    // Set HW breakpoints (this also registers the VEH)
+    // Method 3: Hardware breakpoints (last resort)
+    Log("Falling back to HW breakpoint method...");
     SetHardwareBreakpoint();
 }
 
 int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                        const struct sockaddr *to, int tolen) {
     if (to && to->sa_family == AF_INET) {
+        Log("SEND socket=%llu len=%d", (unsigned long long)s, len);
         SavePacket("SEND", buf, len, to);
         // Patch CRC check on first sendto (game is already initialized by now)
         // Try to patch CRC (may already be done in DllMain)
@@ -434,11 +649,10 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
             }
         }
 
-        // Save ONLY the first 519B sendto for echo injection (the CONNECT)
-        if (len == 519 && lastSendLen == 0) {
+        // Save EVERY sendto for echo (capture latest packet of each size)
+        if (len > 0 && len <= 1024) {
             memcpy(lastSendBuf, buf, len);
             lastSendLen = len;
-            Log("Captured first 519B CONNECT for echo injection");
         }
         // Capture RBX register - should be param_1 (connection struct)
         if (len == 519 && pktCount <= 3) {
@@ -738,6 +952,9 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
     }
     int r = real_recvfrom(s, buf, len, flags, from, fromlen);
     if (r > 0 && from && from->sa_family == AF_INET) {
+        struct sockaddr_in *sinCheck = (struct sockaddr_in*)from;
+        if (ntohl(sinCheck->sin_addr.s_addr) == 0x7F000001)
+            Log("RECV socket=%llu len=%d bufsize=%d", (unsigned long long)s, r, len);
         struct sockaddr_in *sin = (struct sockaddr_in*)from;
         int isLocalhost = (ntohl(sin->sin_addr.s_addr) == 0x7F000001); // 127.0.0.1
 
@@ -866,6 +1083,297 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
             char addrStr[64];
             snprintf(addrStr, 64, "127.0.0.1:%d", ntohs(sin->sin_port));
             Log("RECV_SRV #%d: %dB %s cmd=0x%02X", pktCount, r, addrStr, cmdTag);
+
+            // === USE CLIENT'S OWN DECRYPT FUNCTION ===
+            // FUN_1410f2a10(bf_ctx, data, len, mode=2) is BF_cfb64_decrypt
+            // We call it on a COPY to see what the client would see after decryption
+            if (lastSendLen > 8) {
+                // Echo mode: always return the client's own data
+                int echoLen = lastSendLen - 8;
+                if (echoLen > 0 && echoLen <= len) {
+                    memcpy(buf, lastSendBuf + 8, echoLen);
+                    r = echoLen;
+                    static int eCount = 0;
+                    eCount++;
+                    if (eCount <= 50)
+                        Log("  ECHO #%d: %dB (from %dB send)", eCount, r, lastSendLen);
+                }
+            }
+            if (0) {  // DISABLED: complex VC injection code below  // skip first few to let game init
+                HMODULE gameBase = GetModuleHandleA(NULL);
+                // FUN_1410f2a10 at RVA 0x10F2A10
+                typedef void (*bf_cfb_t)(void* ctx, BYTE* data, USHORT len, int mode);
+                bf_cfb_t BfCfb = (bf_cfb_t)((BYTE*)gameBase + 0x10F2A10);
+
+                // Find BF context: stored in tree at (connStruct + 0x120 + 8)
+                // From hook log: connStruct+0x128 points to tree root
+                // Tree node with key=1 has value at node+0x28 → bf context ptr
+                // We need to traverse: *(*(connStruct + 0x128) + some_offset)
+                // Simpler: we already found the BF_KEY address in P-box scan
+                // Let's scan for it again from the known tree location
+                void *bfCtx = NULL;
+                if (connStructAddr && !IsBadReadPtr((void*)(connStructAddr + 0x120), 16)) {
+                    BYTE *cryptoBase = (BYTE*)connStructAddr + 0x120;
+                    BYTE cryptoFlag = cryptoBase[0];  // *param_3 check
+                    Log("  DECRYPT_TEST: cryptoFlag=%d", cryptoFlag);
+
+                    if (cryptoFlag != 0) {
+                        // The tree is at cryptoBase + 8
+                        // Tree lookup for key=1: navigate the std::map
+                        // Root is at *(cryptoBase + 8)
+                        void **treePtr = (void**)(cryptoBase + 8);
+                        if (!IsBadReadPtr(treePtr, 8) && *treePtr) {
+                            // std::map node layout: [left][parent][right][color][key(8B)][value]
+                            // We need the node where key=1
+                            // Root node → child(1) → value at +0x28
+                            BYTE *rootNode = (BYTE*)(*(void**)(*treePtr));  // root->left (first child)
+                            if (!IsBadReadPtr(rootNode, 0x30)) {
+                                UINT64 nodeKey = *(UINT64*)(rootNode + 0x20);
+                                void *nodeVal = *(void**)(rootNode + 0x28);
+                                Log("  DECRYPT_TEST: tree node key=%llu val=%p", nodeKey, nodeVal);
+                                if (nodeKey == 1 && nodeVal && !IsBadReadPtr(nodeVal, 8)) {
+                                    bfCtx = nodeVal;
+                                    Log("  DECRYPT_TEST: BF context at %p", bfCtx);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (bfCtx) {
+                    // CONN[0x146]=0 → no header! Decrypt ALL bytes
+                    int encLen = r;
+                    if (encLen > 0 && encLen < 512) {
+                        BYTE decBuf[512];
+                        memcpy(decBuf, buf, encLen);
+
+                        // Double CFB decrypt: decrypt → reverse → decrypt
+                        BfCfb(bfCtx, decBuf, (USHORT)encLen, 2);  // pass 1
+
+                        // Reverse
+                        for (int i = 0; i < encLen / 2; i++) {
+                            BYTE tmp = decBuf[i];
+                            decBuf[i] = decBuf[encLen - 1 - i];
+                            decBuf[encLen - 1 - i] = tmp;
+                        }
+
+                        BfCfb(bfCtx, decBuf, (USHORT)encLen, 2);  // pass 2
+
+                        // Log decrypted first 16 bytes
+                        Log("  DECRYPTED[0:16]: %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X",
+                            decBuf[0], decBuf[1], decBuf[2], decBuf[3],
+                            decBuf[4], decBuf[5], decBuf[6], decBuf[7],
+                            decBuf[8], decBuf[9], decBuf[10], decBuf[11],
+                            decBuf[12], decBuf[13], decBuf[14], decBuf[15]);
+                        UINT16 parsedPeerID = decBuf[0] | (decBuf[1] << 8);
+                        UINT32 parsedNonce = *(UINT32*)(decBuf + 2);
+                        BYTE parsedFlags = decBuf[6];
+                        Log("  PARSED: peerID=0x%04X nonce=0x%08X flags=0x%02X",
+                            parsedPeerID, parsedNonce, parsedFlags);
+
+                        // Try injecting via client's own encrypt function (FUN_1410f41e0)
+                        // to see if the packet format is correct
+                        if (pktCount <= 4) {
+                            typedef void (*bf_cfb_enc_t)(void* ctx, BYTE* data, USHORT len, int mode);
+                            bf_cfb_enc_t BfCfbEnc = (bf_cfb_enc_t)((BYTE*)gameBase + 0x10F41E0);
+
+                            // First: decrypt the client's CONNECT to extract connectID and fields
+                            // Client sends: [4B magic][4B sessID][4B token][encrypted payload 507B]
+                            // After stripping 12B header, 507B remain. The client's code skips
+                            // CONN[0x144]=4 bytes, then decrypts remaining 503B.
+                            // But for OUR decrypt: the client's send path encrypts starting from
+                            // the token (offset 8). Let me just decrypt bytes 12..518 (507B)
+                            // using Double CFB decrypt.
+                            static BYTE clientConnect[512];
+                            static int connectDecrypted = 0;
+                            static UINT32 clientConnectID = 0;
+                            if (!connectDecrypted && lastSendLen == 519) {
+                                // Try decrypting from offset 8 (after LNPBlob 8B header)
+                                // The encrypted data = bytes 8..518 = 511 bytes
+                                // Token at bytes 8-11 might be part of encrypted or preamble
+                                // Client's CONN[0x144]=4 means 4B preamble before encrypted
+                                // So: bytes 8-11 = preamble (not encrypted), bytes 12-518 = encrypted (507B)
+                                // But the SEND path encrypts everything after the preamble
+                                // Let's try BOTH: decrypt 511B (with token) and 507B (without token)
+
+                                // Use SEND encrypt function (FUN_1410f41e0) to "decrypt"
+                                // Since CFB is auto-inverse: E(E(x)) reverses the encryption
+                                // Double: E41e0 → reverse → E41e0. To undo: E41e0 → reverse → E41e0 again!
+                                // Actually, to undo FUN_1410f41e0 we need FUN_1410f2a10 (the recv decrypt).
+                                // But the roundtrip test proved this works! Let me just try it on the right bytes.
+
+                                // The client's send data after LNPBlob header:
+                                // Bytes 8-518 = 511B. Client skips 4B (CONN+0x144), encrypts 507B.
+                                // So encrypted region is bytes 12-518 = 507B.
+                                // Use FUN_1410f2a10 mode 2 (recv decrypt) - this IS the inverse of send encrypt.
+
+                                // But ALSO try using BfCfbEnc (FUN_1410f41e0) to self-decrypt
+                                // Method C: use send function to self-decrypt 507B
+                                BYTE decC[512];
+                                memcpy(decC, lastSendBuf + 12, 507);
+                                BfCfbEnc(bfCtx, decC, 507, 2);  // "encrypt" pass = decrypt pass 2
+                                for (int i = 0; i < 507/2; i++) { BYTE t = decC[i]; decC[i] = decC[506-i]; decC[506-i] = t; }
+                                BfCfbEnc(bfCtx, decC, 507, 2);  // decrypt pass 1
+
+                                // Method A: standard recv decrypt of 507B
+                                BYTE decA[512];
+                                memcpy(decA, lastSendBuf + 12, 507);
+                                BfCfb(bfCtx, decA, 507, 2);
+                                for (int i = 0; i < 507/2; i++) { BYTE t = decA[i]; decA[i] = decA[506-i]; decA[506-i] = t; }
+                                BfCfb(bfCtx, decA, 507, 2);
+
+                                // Method B: recv decrypt 511B (including 4B token)
+                                BYTE decB[512];
+                                memcpy(decB, lastSendBuf + 8, 511);
+                                BfCfb(bfCtx, decB, 511, 2);
+                                for (int i = 0; i < 511/2; i++) { BYTE t = decB[i]; decB[i] = decB[510-i]; decB[510-i] = t; }
+                                BfCfb(bfCtx, decB, 511, 2);
+
+                                Log("  CONNECT decrypt A (recv 507B):");
+                                Log("    [0:16]: %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X",
+                                    decA[0], decA[1], decA[2], decA[3], decA[4], decA[5], decA[6], decA[7],
+                                    decA[8], decA[9], decA[10], decA[11], decA[12], decA[13], decA[14], decA[15]);
+                                Log("  CONNECT decrypt B (recv 511B):");
+                                Log("    [0:16]: %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X",
+                                    decB[0], decB[1], decB[2], decB[3], decB[4], decB[5], decB[6], decB[7],
+                                    decB[8], decB[9], decB[10], decB[11], decB[12], decB[13], decB[14], decB[15]);
+                                // B with 4B skip (token preamble):
+                                Log("  CONNECT decrypt B+4 (skip token):");
+                                Log("    [0:16]: %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X",
+                                    decB[4], decB[5], decB[6], decB[7], decB[8], decB[9], decB[10], decB[11],
+                                    decB[12], decB[13], decB[14], decB[15], decB[16], decB[17], decB[18], decB[19]);
+                                Log("  CONNECT decrypt C (send func 507B):");
+                                Log("    [0:16]: %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X",
+                                    decC[0], decC[1], decC[2], decC[3], decC[4], decC[5], decC[6], decC[7],
+                                    decC[8], decC[9], decC[10], decC[11], decC[12], decC[13], decC[14], decC[15]);
+
+                                // Choose: look for flags=0x01 (CONNECT) at offset 6
+                                BYTE *dec = decA;
+                                if (decC[6] == 0x01) { dec = decC; Log("  Using C (send func)"); }
+                                else if (decA[6] == 0x01) { dec = decA; Log("  Using A (recv 507B)"); }
+                                else if (decB[10] == 0x01) { dec = decB + 4; Log("  Using B+4 (recv 511B skip token)"); }
+                                else { Log("  No method gave flags=0x01! Trying C anyway"); dec = decC; }
+
+                                memcpy(clientConnect, dec, 507);
+                                connectDecrypted = 1;
+                                Log("  CLIENT CONNECT decrypted:");
+                                Log("    [0:16]: %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X",
+                                    clientConnect[0], clientConnect[1], clientConnect[2], clientConnect[3],
+                                    clientConnect[4], clientConnect[5], clientConnect[6], clientConnect[7],
+                                    clientConnect[8], clientConnect[9], clientConnect[10], clientConnect[11],
+                                    clientConnect[12], clientConnect[13], clientConnect[14], clientConnect[15]);
+                                Log("    [16:32]: %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X",
+                                    clientConnect[16], clientConnect[17], clientConnect[18], clientConnect[19],
+                                    clientConnect[20], clientConnect[21], clientConnect[22], clientConnect[23],
+                                    clientConnect[24], clientConnect[25], clientConnect[26], clientConnect[27],
+                                    clientConnect[28], clientConnect[29], clientConnect[30], clientConnect[31]);
+                                // The CONNECT body in decrypted plaintext:
+                                // After [2B peerID][4B nonce][1B flags] = 7 bytes header
+                                // CONNECT body: [2B outPeerID][1B inSessID][1B outSessID]
+                                //   [4B mtu][4B windowSize][4B channelCount]
+                                //   [4B inBW][4B outBW][4B throttleInt][4B throttleAcc][4B throttleDec]
+                                //   [4B connectID][4B data]
+                                // connectID is at body offset 2+1+1+4*8 = 36
+                                // = decrypt offset 7 + 36 = 43
+                                clientConnectID = (UINT32)clientConnect[43] << 24 |
+                                                  (UINT32)clientConnect[44] << 16 |
+                                                  (UINT32)clientConnect[45] << 8 |
+                                                  (UINT32)clientConnect[46];
+                                Log("    connectID (BE at offset 43): 0x%08X", clientConnectID);
+                                // Also try reading as LE
+                                UINT32 cidLE = *(UINT32*)(clientConnect + 43);
+                                Log("    connectID (LE at offset 43): 0x%08X", cidLE);
+                            }
+
+                            // Build VERIFY_CONNECT with connectID
+                            typedef int (*crc_fn_t)(BYTE *param);
+                            crc_fn_t CrcFn = (crc_fn_t)((BYTE*)gameBase + 0x577f10);
+
+                            // 40-byte body: standard 36 + 4 connectID
+                            BYTE body[40];
+                            memset(body, 0, 40);
+                            int o = 0;
+                            body[o+0] = 0x00; body[o+1] = 0x00;  // outPeerID BE = 0
+                            body[o+2] = 0x00;  // incomingSessionID = 0
+                            body[o+3] = 0x00;  // outgoingSessionID = 0
+                            body[o+4] = 0x00; body[o+5] = 0x00; body[o+6] = 0x04; body[o+7] = 0x00;  // MTU=1024
+                            body[o+8] = 0x00; body[o+9] = 0x00; body[o+10] = 0x80; body[o+11] = 0x00; // windowSize=32768
+                            body[o+12] = 0x00; body[o+13] = 0x00; body[o+14] = 0x00; body[o+15] = 0x08; // channelCount=8
+                            body[o+16] = 0x00; body[o+17] = 0x00; body[o+18] = 0x00; body[o+19] = 0x00; // inBW
+                            body[o+20] = 0x00; body[o+21] = 0x00; body[o+22] = 0x00; body[o+23] = 0x00; // outBW
+                            body[o+24] = 0x00; body[o+25] = 0x00; body[o+26] = 0x13; body[o+27] = 0x88; // throttleInt=5000
+                            body[o+28] = 0x00; body[o+29] = 0x00; body[o+30] = 0x00; body[o+31] = 0x02; // throttleAcc
+                            body[o+32] = 0x00; body[o+33] = 0x00; body[o+34] = 0x00; body[o+35] = 0x02; // throttleDec
+                            // connectID = just use 1 (we can't decrypt client's CONNECT reliably)
+                            body[o+36] = 0x00;
+                            body[o+37] = 0x00;
+                            body[o+38] = 0x00;
+                            body[o+39] = 0x01;  // connectID = 1 (BE)
+
+                            // Build CRC struct as FUN_1405725f0 would
+                            BYTE crcBuf[0x60];
+                            memset(crcBuf, 0, sizeof(crcBuf));
+                            *(UINT64*)(crcBuf + 0x00) = 1;  // local_c8 = connection seq
+                            *(UINT64*)(crcBuf + 0x18) = 0xFFFFFFFFFFFFFFFF;  // local_b0
+                            *(UINT16*)(crcBuf + 0x08) = 0;  // peerID
+                            // Set payload (40 bytes = 36 + connectID)
+                            static BYTE payBuf[64];
+                            memcpy(payBuf, body, 40);
+                            *(UINT64*)(crcBuf + 0x48) = (UINT64)payBuf;
+                            *(UINT16*)(crcBuf + 0x52) = 40;
+
+                            int crcNonce = CrcFn(crcBuf);
+                            Log("  INJECT CRC nonce from client = 0x%08X", (UINT32)crcNonce);
+
+                            // Build plaintext: [2B peerID][4B nonce][1B flags][40B body]
+                            // Total = 2+4+1+40 = 47 bytes
+                            BYTE testPt[47];
+                            memset(testPt, 0, 47);
+                            testPt[0] = 0x00; testPt[1] = 0x00;  // peerID
+                            *(UINT32*)(testPt + 2) = (UINT32)crcNonce;  // nonce as returned
+                            testPt[6] = 0x03;  // flags = VERIFY_CONNECT
+                            memcpy(testPt + 7, body, 40);
+
+                            // Encrypt using client's OWN function (FUN_1410f41e0, mode 2)
+                            BYTE testEnc[47];
+                            memcpy(testEnc, testPt, 47);
+                            BfCfbEnc(bfCtx, testEnc, 47, 2);  // pass 1
+                            for (int i = 0; i < 47/2; i++) {
+                                BYTE tmp = testEnc[i]; testEnc[i] = testEnc[46-i]; testEnc[46-i] = tmp;
+                            }
+                            BfCfbEnc(bfCtx, testEnc, 47, 2);  // pass 2
+
+                            // Verify roundtrip
+                            BYTE testDec[47];
+                            memcpy(testDec, testEnc, 47);
+                            BfCfb(bfCtx, testDec, 47, 2);
+                            for (int i = 0; i < 47/2; i++) {
+                                BYTE tmp = testDec[i]; testDec[i] = testDec[46-i]; testDec[46-i] = tmp;
+                            }
+                            BfCfb(bfCtx, testDec, 47, 2);
+
+                            Log("  ROUNDTRIP: pt=%02X%02X%02X%02X%02X%02X%02X enc=%02X%02X%02X%02X%02X%02X%02X dec=%02X%02X%02X%02X%02X%02X%02X",
+                                testPt[0], testPt[1], testPt[2], testPt[3], testPt[4], testPt[5], testPt[6],
+                                testEnc[0], testEnc[1], testEnc[2], testEnc[3], testEnc[4], testEnc[5], testEnc[6],
+                                testDec[0], testDec[1], testDec[2], testDec[3], testDec[4], testDec[5], testDec[6]);
+
+                            if (memcmp(testPt, testDec, 47) == 0) {
+                                // Inject our VERIFY_CONNECT (47B encrypted)
+                                // With 4B preamble (CONN+0x144=4)
+                                memset(buf, 0, 51);
+                                memcpy(buf + 4, testEnc, 47);  // 4B preamble + 47B enc
+                                r = 51;
+                                static int vcCount = 0;
+                                vcCount++;
+                                Log("  INJECTED VC #%d: 51B (4B pre + 47B enc, connectID=0x%08X)", vcCount, clientConnectID);
+                            } else {
+                                Log("  ROUNDTRIP FAILED! Encryption/decryption mismatch");
+                            }
+                        }
+                    }
+                }
+            }
+
         } else {
             // Non-localhost: use standard logging
             SavePacket("RECV", buf, r, from);

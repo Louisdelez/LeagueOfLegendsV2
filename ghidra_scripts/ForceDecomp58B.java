@@ -6,62 +6,59 @@ import ghidra.program.model.listing.Instruction;
 import ghidra.program.model.address.Address;
 
 public class ForceDecomp58B extends GhidraScript {
+    @Override
     public void run() throws Exception {
-        DecompInterface d = new DecompInterface();
-        d.openProgram(currentProgram);
+        DecompInterface decomp = new DecompInterface();
+        decomp.openProgram(currentProgram);
 
-        // Show instructions around the recvfrom call at 14058b093
-        println("=== INSTRUCTIONS AROUND recvfrom CALL (14058b080-14058b120) ===");
-        Address start = currentProgram.getAddressFactory().getAddress("14058b050");
-        Instruction inst = currentProgram.getListing().getInstructionAfter(start);
-        while (inst != null && inst.getAddress().getOffset() < 0x14058b150L) {
-            println("  " + inst.getAddress() + ": " + inst);
-            inst = inst.getNext();
-        }
-
-        // Try to find the real function start by scanning backwards for a common prologue
-        println("\n=== SCANNING BACKWARDS FOR FUNCTION START ===");
-        for (long addr = 0x14058b080L; addr >= 0x14058af00L; addr--) {
+        // Dump disassembly from 0x58AEE0 to 0x58B300
+        println("=== DISASSEMBLY 14058aee0 - 14058b300 ===");
+        for (long addr = 0x14058aee0L; addr < 0x14058b300L; ) {
             Address a = currentProgram.getAddressFactory().getAddress(String.format("%x", addr));
-            inst = currentProgram.getListing().getInstructionAt(a);
+            Instruction inst = currentProgram.getListing().getInstructionAt(a);
             if (inst != null) {
-                String mnemonic = inst.getMnemonicString();
-                // Common function prologues: PUSH, SUB RSP, MOV [RSP+...], LEA
-                if (mnemonic.equals("PUSH") || mnemonic.startsWith("SUB") || 
-                    (mnemonic.equals("MOV") && inst.toString().contains("RSP"))) {
-                    println("  Possible prologue at " + a + ": " + inst);
-                }
+                println(String.format("  %s: %s", a, inst));
+                addr += inst.getLength();
+            } else {
+                addr++;
             }
         }
 
-        // Try creating function at some candidate addresses
-        long[] candidates = {0x14058af20L, 0x14058af30L, 0x14058af40L, 0x14058af50L, 
-                            0x14058af60L, 0x14058af80L, 0x14058afa0L, 0x14058afc0L,
-                            0x14058afe0L, 0x14058b000L, 0x14058b020L, 0x14058b040L,
-                            0x14058b060L, 0x14058b070L};
-        for (long c : candidates) {
-            Address ca = currentProgram.getAddressFactory().getAddress(String.format("%x", c));
-            try {
-                Function f = createFunction(ca, null);
-                if (f != null && f.getBody().getNumAddresses() > 50) {
-                    println("\n=== CREATED FUNCTION at " + ca + " size=" + f.getBody().getNumAddresses() + " ===");
-                    // Check if it contains our target
-                    if (f.getBody().contains(currentProgram.getAddressFactory().getAddress("14058b093"))) {
-                        println("*** CONTAINS recvfrom call! ***");
-                        DecompileResults r = d.decompileFunction(f, 120, monitor);
-                        if (r.decompileCompleted()) {
-                            String[] lines = r.getDecompiledFunction().getC().split("\n");
-                            println("Lines: " + lines.length);
-                            for (String line : lines) println(line);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                // Skip
+        // Look for function prologue scanning backwards from recvfrom call
+        println("\n=== Function prologue search ===");
+        for (long addr = 0x14058b090L; addr > 0x14058ae00L; addr--) {
+            Address a = currentProgram.getAddressFactory().getAddress(String.format("%x", addr));
+            Instruction inst = currentProgram.getListing().getInstructionAt(a);
+            if (inst != null && inst.toString().contains("SUB RSP")) {
+                println(String.format("  SUB RSP at %s: %s", a, inst));
             }
+        }
+
+        // Check function pointer tables
+        println("\n=== Key function pointers ===");
+        long[] ptrs = {0x1418dfd20L, 0x1418dfd10L, 0x1418dfd18L, 0x1418dfd28L};
+        String[] names = {"recvfrom?", "CRC_nonce", "unknown-8", "unknown+8"};
+        for (int i = 0; i < ptrs.length; i++) {
+            Address pa = currentProgram.getAddressFactory().getAddress(String.format("%x", ptrs[i]));
+            try {
+                byte[] b = new byte[8];
+                currentProgram.getMemory().getBytes(pa, b);
+                long val = 0;
+                for (int j = 7; j >= 0; j--) val = (val << 8) | (b[j] & 0xFF);
+                println(String.format("  [%s] 0x%X = 0x%X", names[i], ptrs[i], val));
+            } catch (Exception e) {
+                println(String.format("  [%s] 0x%X = ERROR: %s", names[i], ptrs[i], e.getMessage()));
+            }
+        }
+
+        // Check Xrefs to FUN_140588f70
+        println("\n=== Xrefs to FUN_140588f70 ===");
+        Address f588 = currentProgram.getAddressFactory().getAddress("140588f70");
+        for (var ref : currentProgram.getReferenceManager().getReferencesTo(f588)) {
+            println("  From: " + ref.getFromAddress());
         }
 
         println("\n=== DONE ===");
-        d.dispose();
+        decomp.dispose();
     }
 }
