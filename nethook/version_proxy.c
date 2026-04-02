@@ -944,35 +944,8 @@ static int recvCallLogged = 0;
 
 // (moved to before Hook_sendto)
 
-static volatile void *recvHostStruct = NULL;
-
 int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                          struct sockaddr *from, int *fromlen) {
-    // Find host struct: the object whose *(ptr+0x38) == our socket handle
-    // Host struct layout: +0x38 = socket, +0x50 = some byte, +0x28 = ushort
-    if (!recvHostStruct) {
-        // Scan near connStructAddr (the host might be nearby in memory)
-        // Actually, the host is passed as param_1 (RCX) to the outer function
-        // Since we can't capture RCX, scan the stack for a pointer to an object with +0x38 = socket
-        BYTE *stack;
-        __asm__ volatile("movq %%rsp, %0" : "=r"(stack));
-        for (int off = 0; off < 0x2000; off += 8) {
-            BYTE *candidate = *(BYTE**)(stack + off);
-            if (candidate && !IsBadReadPtr(candidate, 0x180) && !IsBadReadPtr(candidate + 0x38, 8)) {
-                UINT64 sock = *(UINT64*)(candidate + 0x38);
-                if (sock == (UINT64)s) {
-                    // Found! Verify: +0x50 should be a small byte
-                    BYTE b50 = candidate[0x50];
-                    if (b50 <= 2) {
-                        recvHostStruct = candidate;
-                        Log("  FOUND HOST at %p (stack offset +0x%X, socket=%llu, +0x50=%d)",
-                            candidate, off, sock, b50);
-                        break;
-                    }
-                }
-            }
-        }
-    }
     // Ensure HW breakpoint on this thread (recv thread handles CRC check)
     if (hwBpInstalled && !crcPatched) {
         EnsureHwBpOnThisThread();
@@ -999,51 +972,6 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
         }
 
         if (isLocalhost) {
-            // Find and dump vtable for the handler using REAL host struct
-            static int vtableDumped = 0;
-            if (recvHostStruct && !vtableDumped) {
-                vtableDumped = 1;
-                HMODULE gameBase = GetModuleHandleA(NULL);
-                UINT64 base = (UINT64)gameBase;
-                BYTE *host = (BYTE*)recvHostStruct;
-
-                Log("  REAL HOST struct at %p:", host);
-                Log("    +0x08 qword: 0x%llX", *(UINT64*)(host + 8));
-                Log("    +0x20 qword: 0x%llX", *(UINT64*)(host + 0x20));
-                Log("    +0x38 socket: %llu", *(UINT64*)(host + 0x38));
-
-                // plVar15 = *(host+0x20) — NOW CONFIRMED NON-NULL!
-                void *plVar15 = *(void**)(host + 0x20);
-                Log("    plVar15 = %p (from host+0x20)", plVar15);
-                if (!plVar15 || IsBadReadPtr(plVar15, 0x98)) {
-                    plVar15 = (void*)(host + 8);
-                    Log("    fallback to host+8");
-                }
-
-                void *vtable = *(void**)plVar15;
-                if (vtable && !IsBadReadPtr(vtable, 0x48)) {
-                    void *fn28 = *(void**)((BYTE*)vtable + 0x28);
-                    void *fn18 = *(void**)((BYTE*)vtable + 0x18);
-                    Log("  REAL VTABLE at %p:", vtable);
-                    Log("    [0x18] = %p (RVA 0x%llX)", fn18, (UINT64)fn18 - base);
-                    Log("    [0x28] = %p (RVA 0x%llX) ← HANDLER", fn28, (UINT64)fn28 - base);
-                }
-
-                // Also dump critical offsets
-                Log("    +0x120 byte: %d", host[0x120]);
-                Log("    +0x138 qword: %llu", *(UINT64*)(host + 0x138));
-                Log("    +0x144 ushort: %u", *(USHORT*)(host + 0x144));
-                Log("    +0x146 ushort: %u", *(USHORT*)(host + 0x146));
-                Log("    +0x178 uint: %u", *(UINT32*)(host + 0x178));
-
-                // Queue object at plVar15 (the REAL handler object)
-                BYTE *queue = (BYTE*)plVar15;
-                Log("    QUEUE: paused=*(+0x18)=%d capacity=*(+0x80)=%llu writeIdx=*(+0x88)=%llu count=*(+0x90)=%llu",
-                    queue[0x18],
-                    *(UINT64*)(queue + 0x80),
-                    *(UINT64*)(queue + 0x88),
-                    *(UINT64*)(queue + 0x90));
-            }
             // Dump CRC struct fields on first few packets
             if (connStructAddr && crcDumpCount < 20 && !IsBadReadPtr((void*)connStructAddr, 0x170)) {
                 crcDumpCount++;
@@ -1159,166 +1087,16 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
             // === USE CLIENT'S OWN DECRYPT FUNCTION ===
             // FUN_1410f2a10(bf_ctx, data, len, mode=2) is BF_cfb64_decrypt
             // We call it on a COPY to see what the client would see after decryption
-            // Log queue state periodically
-            {
-                static int queueLogCount = 0;
-                if (recvHostStruct && queueLogCount < 30) {
-                    queueLogCount++;
-                    BYTE *host2 = (BYTE*)recvHostStruct;
-                    void *pv = *(void**)(host2 + 0x20);
-                    BYTE *qp = pv ? (BYTE*)pv : host2 + 8;
-                    if (!IsBadReadPtr(qp, 0x98)) {
-                        UINT64 cap = *(UINT64*)(qp + 0x80);
-                        UINT64 cnt = *(UINT64*)(qp + 0x90);
-                        Log("  QUEUE #%d: paused=%d cap=%llu count=%llu",
-                            queueLogCount, qp[0x18], cap, cnt);
-
-                        // Dump slot 0 always
-                        if (cap > 0) {
-                            BYTE **slotArray = *(BYTE***)(qp + 0x78);
-                            UINT64 slot = 0;
-                            BYTE *slotData = NULL;
-                            if (slotArray && !IsBadReadPtr(slotArray, cap * 8))
-                                slotData = slotArray[0];
-                            if (slotData && !IsBadReadPtr(slotData, 0x60)) {
-                                    // Slot layout: [0x00] connID [0x0C] const=4 [0x10] CRC struct copy
-                                    // CRC struct: +0x00 local_c8, +0x08 peerID(2B), +0x0A flags>>7, +0x0B cmd
-                                    BYTE *crc = slotData + 0x10; // CRC struct starts at slot+0x10
-                                    USHORT peerID = *(USHORT*)(crc + 8);
-                                    BYTE sentTime = crc[0x0A];
-                                    BYTE cmd = crc[0x0B];
-                                    USHORT payLen = *(USHORT*)(crc + 0x52);
-                                    Log("  SLOT[%llu]: connID=%llu peerID=0x%04X cmd=%d sentTime=%d payLen=%d",
-                                        slot, *(UINT64*)slotData, peerID, cmd, sentTime, payLen);
-                                    // Dump first 32 bytes of slot
-                                    Log("    [0x00-0x1F]: %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X",
-                                        slotData[0], slotData[1], slotData[2], slotData[3],
-                                        slotData[4], slotData[5], slotData[6], slotData[7],
-                                        slotData[8], slotData[9], slotData[10], slotData[11],
-                                        slotData[12], slotData[13], slotData[14], slotData[15],
-                                        slotData[16], slotData[17], slotData[18], slotData[19],
-                                        slotData[20], slotData[21], slotData[22], slotData[23],
-                                        slotData[24], slotData[25], slotData[26], slotData[27],
-                                        slotData[28], slotData[29], slotData[30], slotData[31]);
-                                    // Dump payload from CRC struct
-                                    BYTE *payPtr = *(BYTE**)(crc + 0x48);
-                                    if (payLen > 0 && payPtr && !IsBadReadPtr(payPtr, payLen < 32 ? payLen : 32)) {
-                                        int dumpLen = payLen < 16 ? payLen : 16;
-                                        char hex[128]; int hoff = 0;
-                                        for (int b = 0; b < dumpLen; b++)
-                                            hoff += snprintf(hex+hoff, sizeof(hex)-hoff, "%02X ", payPtr[b]);
-                                        Log("    PAYLOAD[%d]: %s", payLen, hex);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (lastSendLen > 8) {  // Echo mode active
+            if (lastSendLen > 8) {
                 static int eCount = 0;
-                static int keycheckSent = 0;
                 eCount++;
-
-                // Phase 1: Echo for first 20 packets (establish connection)
-                // Phase 2: After echo, inject KeyCheck
-                if (eCount <= 20 || keycheckSent >= 5) {
-                    // Echo mode
-                    int echoLen = lastSendLen - 8;
-                    if (echoLen > 0 && echoLen <= len) {
-                        memcpy(buf, lastSendBuf + 8, echoLen);
-                        r = echoLen;
-                        if (eCount <= 30)
-                            Log("  ECHO #%d: %dB", eCount, r);
-                    }
-                } else if (keycheckSent < 5) {
-                    // Inject KeyCheck using client's own encrypt functions
-                    HMODULE gameBase = GetModuleHandleA(NULL);
-                    typedef void (*bf_cfb_enc_t)(void* ctx, BYTE* data, USHORT len, int mode);
-                    typedef int (*crc_fn_t)(BYTE *param);
-                    bf_cfb_enc_t BfCfbEnc = (bf_cfb_enc_t)((BYTE*)gameBase + 0x10F41E0);
-                    crc_fn_t CrcFn = (crc_fn_t)((BYTE*)gameBase + 0x577f10);
-
-                    // Find BF context
-                    void *bfCtx = NULL;
-                    if (connStructAddr && !IsBadReadPtr((void*)(connStructAddr + 0x120), 16)) {
-                        BYTE *cryptoBase = (BYTE*)connStructAddr + 0x120;
-                        if (cryptoBase[0] != 0) {
-                            void **treePtr = (void**)(cryptoBase + 8);
-                            if (!IsBadReadPtr(treePtr, 8) && *treePtr) {
-                                BYTE *rootNode = (BYTE*)(*(void**)(*treePtr));
-                                if (!IsBadReadPtr(rootNode, 0x30)) {
-                                    UINT64 nodeKey = *(UINT64*)(rootNode + 0x20);
-                                    if (nodeKey == 1)
-                                        bfCtx = *(void**)(rootNode + 0x28);
-                                }
-                            }
-                        }
-                    }
-
-                    if (bfCtx) {
-                        keycheckSent++;
-                        // Build KeyCheck payload:
-                        // ENet SEND_RELIABLE body after CRC header
-                        BYTE kcPayload[22]; // channel(1)+seqNo(2)+dataLen(2)+keycheck(16)+pad(1)
-                        memset(kcPayload, 0, sizeof(kcPayload));
-                        kcPayload[0] = 0x00;  // channelID = 0
-                        kcPayload[1] = 0x00; kcPayload[2] = 0x01;  // reliableSeqNo = 1 (BE)
-                        kcPayload[3] = 0x00; kcPayload[4] = 0x10;  // dataLen = 16 (BE)
-                        // KeyCheck: [4B opcode LE][1B playerNo][3B pad][8B checksum]
-                        kcPayload[5] = 0x64; kcPayload[6] = 0x00; kcPayload[7] = 0x00; kcPayload[8] = 0x00; // opcode=100 LE
-                        kcPayload[9] = 0x00;   // playerNo = 0
-                        // rest is zeros (checksum)
-
-                        // Build CRC struct for nonce
-                        BYTE crcBuf[0x60];
-                        memset(crcBuf, 0, sizeof(crcBuf));
-                        *(UINT64*)(crcBuf + 0x00) = 1;
-                        *(UINT64*)(crcBuf + 0x18) = 0xFFFFFFFFFFFFFFFF;
-                        *(UINT16*)(crcBuf + 0x08) = 0;  // peerID
-
-                        // Include payload in CRC
-                        static BYTE payBuf[64];
-                        int payLen = 21; // 1+2+2+16 = channel+seq+len+data
-                        memcpy(payBuf, kcPayload, payLen);
-                        *(UINT64*)(crcBuf + 0x48) = (UINT64)payBuf;
-                        *(UINT16*)(crcBuf + 0x52) = (UINT16)payLen;
-
-                        int crcNonce = CrcFn(crcBuf);
-                        Log("  KEYCHECK CRC nonce = 0x%08X", (UINT32)crcNonce);
-
-                        // Build plaintext: [2B peerID][4B nonce][1B flags][payload]
-                        int ptLen = 2 + 4 + 1 + payLen; // 28 bytes
-                        BYTE pt[32];
-                        memset(pt, 0, 32);
-                        pt[0] = 0x00; pt[1] = 0x00;  // peerID = 0
-                        *(UINT32*)(pt + 2) = (UINT32)crcNonce;
-                        pt[6] = 0x06;  // flags = SEND_RELIABLE (cmd=6)
-                        memcpy(pt + 7, kcPayload, payLen);
-
-                        // Double CFB encrypt with client's function
-                        BYTE enc[32];
-                        memcpy(enc, pt, ptLen);
-                        BfCfbEnc(bfCtx, enc, (USHORT)ptLen, 2);
-                        for (int i = 0; i < ptLen/2; i++) {
-                            BYTE tmp = enc[i]; enc[i] = enc[ptLen-1-i]; enc[ptLen-1-i] = tmp;
-                        }
-                        BfCfbEnc(bfCtx, enc, (USHORT)ptLen, 2);
-
-                        // Inject: 4B preamble + encrypted
-                        memset(buf, 0, 4);
-                        memcpy(buf + 4, enc, ptLen);
-                        r = 4 + ptLen;
-                        Log("  INJECTED KeyCheck #%d: %dB (nonce=0x%08X)", keycheckSent, r, (UINT32)crcNonce);
-                    } else {
-                        // Fallback: echo
-                        int echoLen = lastSendLen - 8;
-                        if (echoLen > 0 && echoLen <= len) {
-                            memcpy(buf, lastSendBuf + 8, echoLen);
-                            r = echoLen;
-                        }
-                    }
+                // Echo mode for first 30 packets, then alternate echo + KeyCheck
+                int echoLen = lastSendLen - 8;
+                if (echoLen > 0 && echoLen <= len) {
+                    memcpy(buf, lastSendBuf + 8, echoLen);
+                    r = echoLen;
+                    if (eCount <= 50)
+                        Log("  ECHO #%d: %dB", eCount, r);
                 }
             }
             if (0) {  // DISABLED: complex VC injection code below  // skip first few to let game init
