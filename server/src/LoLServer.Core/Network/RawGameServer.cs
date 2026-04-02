@@ -235,126 +235,43 @@ public class RawGameServer : IGameServer, IDisposable
         //
         // We try BOTH to determine which is correct.
         // =================================================================
+        // ALWAYS echo back to keep recvfrom unblocked.
+        // The hook replaces small echoes with client's own data (pings).
+        // Large echoes pass through (the hook's smart mode handles them).
+        if (data.Length > 12)
         {
-            uint nonce = 0x8DFE1964;
-            // Standard ENet VERIFY_CONNECT body = 36 bytes (big-endian):
-            //   [2B outgoingPeerID]
-            //   [1B incomingSessionID]
-            //   [1B outgoingSessionID]
-            //   [4B mtu]
-            //   [4B windowSize]
-            //   [4B channelCount]
-            //   [4B incomingBandwidth]
-            //   [4B outgoingBandwidth]
-            //   [4B packetThrottleInterval]
-            //   [4B packetThrottleAcceleration]
-            //   [4B packetThrottleDeceleration]
-            var verifyBody = new byte[36];
-            {
-                int o = 0;
-                WriteBE16(verifyBody, o, 0); o += 2;     // outPeerID = 0 (server's peer ID for this client)
-                verifyBody[o++] = 0xFF;                   // incomingSessionID
-                verifyBody[o++] = 0xFF;                   // outgoingSessionID
-                WriteBE32(verifyBody, o, 996); o += 4;    // MTU
-                WriteBE32(verifyBody, o, 32768); o += 4;  // windowSize
-                WriteBE32(verifyBody, o, 1); o += 4;      // channelCount (LoL uses 1 channel typically)
-                WriteBE32(verifyBody, o, 0); o += 4;      // incomingBandwidth
-                WriteBE32(verifyBody, o, 0); o += 4;      // outgoingBandwidth
-                WriteBE32(verifyBody, o, 5000); o += 4;   // packetThrottleInterval (ms)
-                WriteBE32(verifyBody, o, 2); o += 4;      // packetThrottleAcceleration
-                WriteBE32(verifyBody, o, 2); o += 4;      // packetThrottleDeceleration
-            }
-
-            // =================================================================
-            // CONN[0x146] = 0 → NO header prefix! Send raw encrypted data.
-            // CRC includes payload! FUN_1405725f0 copies body to param_1+9
-            // and updates param_1[0x52] BEFORE calling FUN_140577f10.
-            // =================================================================
-
-            // CRC WITHOUT payload (in case payload is NOT included)
-            uint nonceNoPL = nonce;  // 0x8DFE1964
-
-            // CRC WITH payload
-            byte peerLo = 0, peerHi = 0;
-            uint crc2 = ((uint)peerLo | 0xFFFFFF00u) ^ 0xB1F740B4u;
-            crc2 = CrcByte(crc2, peerHi);
-            byte[] localC8 = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-            foreach (var b in localC8) crc2 = CrcByte(crc2, b);
-            for (int i = 0; i < 8; i++) crc2 = CrcByte(crc2, 0xFF);
-            foreach (var b in verifyBody) crc2 = CrcByte(crc2, b);
-            uint nonceWithPL = ~crc2;
-            Log($"  [CRC] noPL=0x{nonceNoPL:X8} withPL=0x{nonceWithPL:X8}");
-
-            // Send multiple format variants to find the right one
-            // The hook confirmed P[0] matches, encryption roundtrip works.
-            // Try both with and without 4B preamble, both nonce endiannesses.
-            foreach (bool withPreamble in new[] { true, false })
-            foreach (bool nonceBE in new[] { true, false })
-            foreach (bool withPayloadCRC in new[] { true, false })
-            {
-                uint nonce2 = withPayloadCRC ? nonceWithPL : nonceNoPL;
-                var pt = new byte[2 + 4 + 1 + verifyBody.Length];
-                WriteLE16(pt, 0, 0);
-                if (nonceBE) WriteBE32(pt, 2, nonce2);
-                else WriteLE32(pt, 2, nonce2);
-                pt[6] = 0x03;
-                Array.Copy(verifyBody, 0, pt, 7, verifyBody.Length);
-                var enc = DoubleCfbEncrypt(pt);
-
-                byte[] pkt;
-                if (withPreamble) {
-                    pkt = new byte[4 + enc.Length];
-                    WriteBE32(pkt, 0, peer.ConnectToken);
-                    Array.Copy(enc, 0, pkt, 4, enc.Length);
-                } else {
-                    pkt = enc;
-                }
-                string label = $"{(withPreamble?"PRE":"NOP")}-{(nonceBE?"BE":"LE")}-{(withPayloadCRC?"PL":"NP")}";
-                if (peer.PacketCount <= 3)
-                    Log($"  [VC-{label}] nonce=0x{nonce2:X8} ({pkt.Length}B)");
-                Send(pkt, peer);
-            }
-
-            peer.VerifySeqNo++;
+            int echoLen = data.Length - 8; // strip 8B LNPBlob
+            var echo = new byte[echoLen];
+            Array.Copy(data, 8, echo, 0, echoLen);
+            Send(echo, peer);
         }
 
-        // After handshake settles (packet 10+), send KeyCheck
-        if (!peer.GameInitSent && peer.PacketCount >= 10)
+        // Send KeyCheck after echo handshake completes (packet 35+)
+        // Hook echo phase = 30 packets, server echo = always
+        // The CAFE-prefixed packet arrives alongside regular echo
+        if (!peer.GameInitSent && peer.PacketCount >= 35)
         {
             peer.GameInitSent = true;
-            Log($"  [GAME] Sending KeyCheck on reliable channel");
+            Log($"  [GAME] Sending KeyCheck via CRC-format packet");
 
-            // Build KeyCheck as ENet SEND_RELIABLE
-            // Format: [4B token][ENet cmd header][KeyCheck payload]
-            // ENet SEND_RELIABLE: [1B cmd=0x86(RELIABLE|SENT_TIME)][1B channel=0][2B seq BE][2B dataLen BE][payload]
-            // KeyCheck opcode: 0x64000000 (LE) = opcode 100
-            var keyCheck = new byte[4 + 6 + 12]; // token(4) + cmd header(6) + keycheck payload(12)
-            WriteBE32(keyCheck, 0, peer.ConnectToken);
-            keyCheck[4] = 0x86; // SEND_RELIABLE | SENT_TIME
-            keyCheck[5] = 0x00; // channel 0
-            WriteBE16(keyCheck, 6, 1); // seqNo
-            WriteBE16(keyCheck, 8, 12); // dataLen = 12 bytes
+            // ===== SEND RELIABLE KeyCheck =====
+            // ENet SEND_RELIABLE body after CRC flags byte:
+            //   [1B channelID][2B reliableSeqNo BE][2B dataLen BE][data...]
+            // KeyCheck data: [4B opcode=0x64 LE][1B playerNo][3B pad][4B checkId]
+            var reliableBody = new byte[1 + 2 + 2 + 12]; // channel(1) + seq(2) + len(2) + KeyCheck(12)
+            reliableBody[0] = 0x00; // channel 0
+            WriteBE16(reliableBody, 1, peer.ReliableSeqNo++); // seqNo
+            WriteBE16(reliableBody, 3, 12); // dataLen = 12
 
-            // KeyCheck payload: [4B opcode LE][1B playerNo][3B padding][4B checkId]
-            keyCheck[10] = 0x64; // opcode 100 (LE low byte)
-            keyCheck[11] = 0x00;
-            keyCheck[12] = 0x00;
-            keyCheck[13] = 0x00;
-            keyCheck[14] = 0x00; // playerNo = 0
-            keyCheck[15] = 0x00;
-            keyCheck[16] = 0x00;
-            keyCheck[17] = 0x00;
-            // checkId = the Blowfish key checksum
-            WriteBE32(keyCheck, 18, 0); // checkId = 0 for now
+            // KeyCheck payload at offset 5
+            WriteLE32(reliableBody, 5, 0x64); // opcode 100 = KeyCheck
+            reliableBody[9] = 0x00; // playerNo = 0
+            // bytes 10-16: zeros (padding + checkId=0)
 
-            Log($"  [KEYCHECK] {keyCheck.Length}B plaintext");
-            Send(keyCheck, peer);
-
-            // Also try as echo-sized packet
-            var kcPadded = new byte[data.Length - 8]; // same size as last echo
-            Array.Copy(keyCheck, 0, kcPadded, 0, Math.Min(keyCheck.Length, kcPadded.Length));
-            Log($"  [KEYCHECK-PAD] {kcPadded.Length}B");
-            Send(kcPadded, peer);
+            // DISABLED: SEND_RELIABLE causes crash. Testing with PING only.
+            // SendCrcPacket(peer, 0x06, reliableBody); // 0x06 = SEND_RELIABLE
+            SendCrcPacket(peer, 0x05, new byte[0]); // Just PING for now
+            Log($"  [PING-TEST] sent PING only (KeyCheck disabled)");
         }
     }
 
@@ -365,197 +282,9 @@ public class RawGameServer : IGameServer, IDisposable
     /// Encrypted: Double CFB (encrypt → reverse → encrypt), Blowfish IV=0
     /// Sent: raw encrypted bytes, no prefix
     /// </summary>
-    private void SendVerifyConnect(PeerInfo peer)
-    {
-        ushort peerID = peer.OutgoingPeerID;
-        byte commandType = 0x03; // VERIFY_CONNECT
-        byte flags = commandType; // no timestamp (bit7=0), command_type in bits 0-6
-
-        // --- Build the ENet VERIFY_CONNECT command body (36 bytes, big-endian) ---
-        var body = new byte[36];
-        int off = 0;
-        WriteBE16(body, off, peerID); off += 2;       // outPeerID
-        WriteBE16(body, off, 996); off += 2;           // MTU
-        WriteBE32(body, off, 32768); off += 4;         // windowSize
-        WriteBE32(body, off, 32); off += 4;            // channelCount
-        WriteBE32(body, off, 0); off += 4;             // inBandwidth
-        WriteBE32(body, off, 0); off += 4;             // outBandwidth
-        WriteBE32(body, off, 32); off += 4;            // throttleInterval
-        WriteBE32(body, off, 2); off += 4;             // throttleAccel
-        WriteBE32(body, off, 2); off += 4;             // throttleDec
-
-        // --- Compute CRC_NONCE ---
-        // Based on Ghidra analysis of FUN_140577f10 + FUN_140588f70:
-        // The CRC is computed over a STACK struct, NOT the packet payload.
-        //
-        // Stack struct (param_1 of FUN_140577f10):
-        //   byte[8..9]  = first 2 bytes of local_c0 = {0, 0} (when conn+0x138 != 0)
-        //   byte[0..7]  = local_c8 = *(conn+0x138) = 1 as int64 LE
-        //   offset 0x18 = local_b0 = 0xFFFFFFFFFFFFFFFF
-        //   payload_len = 0 (no payload in CRC)
-        //
-        // Processing order: init(byte[8]), byte[9], byte[0..7], local_res10[0..7]
-
-        byte peerLo = 0; // byte[8] of stack struct = 0
-        byte peerHi = 0; // byte[9] of stack struct = 0
-        uint crc = ((uint)peerLo | 0xFFFFFF00u) ^ 0xB1F740B4u;
-        crc = CrcByte(crc, peerHi);
-
-        // bytes[0..7] = local_c8 = 1 as int64 LE
-        byte[] localC8 = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-        for (int i = 0; i < 8; i++)
-            crc = CrcByte(crc, localC8[i]);
-
-        // local_res10 = 0xFFFFFFFFFFFFFFFF
-        for (int i = 0; i < 8; i++)
-            crc = CrcByte(crc, 0xFF);
-
-        // NO payload in CRC (payloadLen = 0)
-        uint crcNonce = ~crc;
-        Log($"  [CRC] nonce=0x{crcNonce:X8} (peerLo=0, peerHi=0, localC8=1, res10=0xFF*8)");
-
-        // --- Build plaintext packet ---
-        // [2B peerID LE][4B CRC_NONCE BE][1B flags][36B body] = 43 bytes
-        var plaintext = new byte[2 + 4 + 1 + body.Length];
-        int p = 0;
-        WriteLE16(plaintext, p, peerID); p += 2;
-        WriteBE32(plaintext, p, crcNonce); p += 4;
-        plaintext[p] = flags; p += 1;
-        Array.Copy(body, 0, plaintext, p, body.Length);
-
-        // --- Send ENet VERIFY_CONNECT with SINGLE CFB + token prefix ---
-        // Analysis shows client uses SINGLE CFB, NOT double!
-        // Standard ENet: [4B sessID][2B peerID|flags][2B sentTime][cmd...][body...]
-        {
-            var enetPlain = new byte[48];
-            int ep = 0;
-            WriteBE32(enetPlain, ep, _sessionId); ep += 4;
-            WriteBE16(enetPlain, ep, (ushort)(peer.OutgoingPeerID | 0x8000)); ep += 2;
-            WriteBE16(enetPlain, ep, (ushort)(Environment.TickCount & 0xFFFF)); ep += 2;
-            enetPlain[ep] = 0x83; ep++; // VERIFY_CONNECT | SENT_TIME
-            enetPlain[ep] = 0xFF; ep++; // channel
-            WriteBE16(enetPlain, ep, peer.VerifySeqNo); ep += 2;
-            Array.Copy(body, 0, enetPlain, ep, body.Length);
-
-            var singleEnc = CfbEncrypt(enetPlain);
-
-            // V1: Just single CFB (no prefix)
-            Log($"  [VC-S1] Single CFB no prefix ({singleEnc.Length}B)");
-            Send(singleEnc, peer);
-
-            // V2: Token prefix + single CFB
-            var withToken = new byte[4 + singleEnc.Length];
-            WriteBE32(withToken, 0, peer.ConnectToken); // EDE36B43
-            Array.Copy(singleEnc, 0, withToken, 4, singleEnc.Length);
-            Log($"  [VC-S2] Token + single CFB ({withToken.Length}B)");
-            Send(withToken, peer);
-
-            // V3: Token prefix + single CFB (LE token)
-            var withTokenLE = new byte[4 + singleEnc.Length];
-            WriteLE32(withTokenLE, 0, peer.ConnectToken);
-            Array.Copy(singleEnc, 0, withTokenLE, 4, singleEnc.Length);
-            Log($"  [VC-S3] Token(LE) + single CFB ({withTokenLE.Length}B)");
-            Send(withTokenLE, peer);
-
-            // V4: Double CFB with ENet format (no CRC nonce)
-            var dblEnc = DoubleCfbEncrypt(enetPlain);
-            Log($"  [VC-D1] Double CFB ENet ({dblEnc.Length}B)");
-            Send(dblEnc, peer);
-
-            // V5: Token + double CFB ENet
-            var dblWithToken = new byte[4 + dblEnc.Length];
-            WriteBE32(dblWithToken, 0, peer.ConnectToken);
-            Array.Copy(dblEnc, 0, dblWithToken, 4, dblEnc.Length);
-            Log($"  [VC-D2] Token + double CFB ENet ({dblWithToken.Length}B)");
-            Send(dblWithToken, peer);
-        }
-
-        // Also send double CFB of CRC format WITH token prefix
-        var encrypted = DoubleCfbEncrypt(plaintext);
-
-        // V6: Token + double CFB of CRC format (the missing combo!)
-        var tokenCrc = new byte[4 + encrypted.Length];
-        WriteBE32(tokenCrc, 0, peer.ConnectToken);
-        Array.Copy(encrypted, 0, tokenCrc, 4, encrypted.Length);
-        Log($"  [VC-D3] Token + dblCFB CRC format ({tokenCrc.Length}B)");
-        Send(tokenCrc, peer);
-
-        // V7: Also try with LE token
-        WriteLE32(tokenCrc, 0, peer.ConnectToken);
-        Log($"  [VC-D4] Token(LE) + dblCFB CRC ({tokenCrc.Length}B)");
-        Send(tokenCrc, peer);
-
-        // V8: No prefix, just the CRC-format double CFB
-        Log($"  [VC-D5] dblCFB CRC no prefix ({encrypted.Length}B)");
-        Send(encrypted, peer);
-
-        // V9-V11: PLAINTEXT with 4B padding (if crypto is disabled for recv!)
-        {
-            // Rebuild ENet plaintext for this scope
-            var pt = new byte[48];
-            int z = 0;
-            WriteBE32(pt, z, _sessionId); z += 4;
-            WriteBE16(pt, z, (ushort)(peer.OutgoingPeerID | 0x8000)); z += 2;
-            WriteBE16(pt, z, (ushort)(Environment.TickCount & 0xFFFF)); z += 2;
-            pt[z] = 0x83; z++; pt[z] = 0xFF; z++;
-            WriteBE16(pt, z, peer.VerifySeqNo); z += 2;
-            WriteBE16(pt, z, peer.OutgoingPeerID); z += 2;
-            WriteBE16(pt, z, 996); z += 2;
-            WriteBE32(pt, z, 32768); z += 4;
-            WriteBE32(pt, z, 32); z += 4;
-            z += 20; // zeros
-
-            // Token + PLAINTEXT
-            var ptPkt = new byte[4 + pt.Length];
-            WriteBE32(ptPkt, 0, peer.ConnectToken);
-            Array.Copy(pt, 0, ptPkt, 4, pt.Length);
-            Log($"  [VC-PT1] Token + PLAINTEXT ({ptPkt.Length}B)");
-            Send(ptPkt, peer);
-
-            // Zero pad + PLAINTEXT
-            var ptZero = new byte[4 + pt.Length];
-            Array.Copy(pt, 0, ptZero, 4, pt.Length);
-            Log($"  [VC-PT2] Zeros + PLAINTEXT ({ptZero.Length}B)");
-            Send(ptZero, peer);
-        }
-
-        peer.VerifySeqNo++;
-    }
-
-    private void ScheduleGameInit(PeerInfo peer)
-    {
-        if (peer.GameInitSent) return;
-        peer.GameInitSent = true;
-
-        Log($"  [GAME_INIT] Sending game initialization packets");
-
-        // Send a PING to keep the connection alive
-        SendPing(peer);
-    }
-
-    private void SendPing(PeerInfo peer)
-    {
-        // Same CRC as all packets: based on stack struct, not packet content
-        ushort peerID = peer.PeerId;
-        byte flags = 0x05; // PING, no timestamp
-
-        uint crc = (0xFFFFFF00u) ^ 0xB1F740B4u; // peerLo=0
-        crc = CrcByte(crc, 0); // peerHi=0
-        byte[] localC8 = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-        for (int i = 0; i < 8; i++) crc = CrcByte(crc, localC8[i]);
-        for (int i = 0; i < 8; i++) crc = CrcByte(crc, 0xFF); // local_res10
-        uint crcNonce = ~crc;
-
-        // [2B peerID LE][4B CRC_NONCE BE][1B flags] = 7 bytes
-        var plaintext = new byte[7];
-        int p = 0;
-        WriteLE16(plaintext, p, peerID); p += 2;
-        WriteBE32(plaintext, p, crcNonce); p += 4;
-        plaintext[p] = flags;
-
-        var encrypted = DoubleCfbEncrypt(plaintext);
-        Send(encrypted, peer);
-    }
+    // Old SendVerifyConnect, ScheduleGameInit, SendPing removed.
+    // Now using SendCrcPacket for all server→client communication.
+    // The hook DLL fixes CRC nonces automatically.
 
     // ========================================================================
     //  CRC32 HELPERS
@@ -621,18 +350,18 @@ public class RawGameServer : IGameServer, IDisposable
     {
         var result = (byte[])plaintext.Clone();
         var feedback = new byte[8]; // IV = zeros
-        int fullBlocks = plaintext.Length / 8;
+        int num = 0;
 
-        for (int block = 0; block < fullBlocks; block++)
+        for (int i = 0; i < plaintext.Length; i++)
         {
-            int i = block * 8;
-            // No swap needed: BF reads feedback in BE (same as client's CONCAT31),
-            // and outputs keystream in BE (byte-by-byte XOR matches client's uint32 XOR).
-            var keystream = _cipher.EncryptBlock(feedback);
-            for (int j = 0; j < 8; j++)
-                result[i + j] = (byte)(plaintext[i + j] ^ keystream[j]);
-
-            Array.Copy(result, i, feedback, 0, 8);
+            if (num == 0)
+            {
+                var keystream = _cipher.EncryptBlock(feedback);
+                Array.Copy(keystream, feedback, 8);
+            }
+            result[i] = (byte)(plaintext[i] ^ feedback[num]);
+            feedback[num] = result[i];
+            num = (num + 1) & 7;
         }
 
         return result;
@@ -700,15 +429,19 @@ public class RawGameServer : IGameServer, IDisposable
     {
         var result = (byte[])ciphertext.Clone();
         var feedback = new byte[8]; // IV = zeros
-        int fullBlocks = ciphertext.Length / 8;
+        int num = 0;
 
-        for (int block = 0; block < fullBlocks; block++)
+        for (int i = 0; i < ciphertext.Length; i++)
         {
-            int i = block * 8;
-            var keystream = _cipher.EncryptBlock(feedback);
-            Array.Copy(ciphertext, i, feedback, 0, 8);
-            for (int j = 0; j < 8; j++)
-                result[i + j] = (byte)(ciphertext[i + j] ^ keystream[j]);
+            if (num == 0)
+            {
+                var keystream = _cipher.EncryptBlock(feedback);
+                Array.Copy(keystream, feedback, 8);
+            }
+            byte cipher = ciphertext[i];
+            result[i] = (byte)(cipher ^ feedback[num]);
+            feedback[num] = cipher;
+            num = (num + 1) & 7;
         }
 
         return result;
@@ -757,6 +490,35 @@ public class RawGameServer : IGameServer, IDisposable
     public void Stop() { _running = false; _socket?.Close(); }
     public void Dispose() { Stop(); _socket?.Dispose(); }
 
+    /// <summary>
+    /// Send a packet in the CRC-format that the hook DLL can fix.
+    /// Format: [2B magic 0xCAFE] + Double-CFB encrypted plaintext:
+    ///   [2B peerID LE=0][4B CRC nonce placeholder][1B flags=cmdType][body...]
+    /// The hook will strip the magic marker, fix CRC nonce, and deliver.
+    /// </summary>
+    private void SendCrcPacket(PeerInfo peer, byte cmdType, byte[] body)
+    {
+        // Build plaintext: [2B peerID LE][4B nonce (any)][1B flags][body...]
+        var plaintext = new byte[2 + 4 + 1 + body.Length];
+        WriteLE16(plaintext, 0, 0); // peerID = 0 (server)
+        WriteLE32(plaintext, 2, 0xDEADBEEF); // placeholder nonce (hook will fix)
+        plaintext[6] = cmdType;
+        if (body.Length > 0)
+            Array.Copy(body, 0, plaintext, 7, body.Length);
+
+        // Double-CFB encrypt
+        var encrypted = DoubleCfbEncrypt(plaintext);
+
+        // Prefix with magic marker 0xCAFE so hook can distinguish from echo
+        var packet = new byte[2 + encrypted.Length];
+        packet[0] = 0xCA;
+        packet[1] = 0xFE;
+        Array.Copy(encrypted, 0, packet, 2, encrypted.Length);
+
+        Log($"  [CRC-PKT] cmd=0x{cmdType:X2} body={body.Length}B total={packet.Length}B (magic=CAFE)");
+        Send(packet, peer);
+    }
+
     private class PeerInfo
     {
         public IPEndPoint Remote { get; set; } = null!;
@@ -766,6 +528,7 @@ public class RawGameServer : IGameServer, IDisposable
         public int PacketCount { get; set; }
         public bool GameInitSent { get; set; }
         public ushort VerifySeqNo { get; set; } = 1;
+        public ushort ReliableSeqNo { get; set; } = 1;
         public uint ConnectToken { get; set; }
     }
 }

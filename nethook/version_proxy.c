@@ -52,6 +52,215 @@ __declspec(dllexport) BOOL WINAPI VerQueryValueW(LPCVOID b, LPCWSTR s, LPVOID *p
     return pVerQueryValueW ? pVerQueryValueW(b, s, p, l) : FALSE;
 }
 
+// Forward declaration for Log (defined later)
+static void Log(const char *fmt, ...);
+
+// === BLOWFISH + CRC FIXUP ===
+// Compact Blowfish implementation for CRC nonce fixup on server packets.
+// Key: 17BLOhi6KZsTtldTsizvHg== (base64) = D7B048862E9B4CB6D359BCAE239BF887 (hex, 16 bytes)
+
+// Blowfish initial P-array and S-boxes (pi hex digits)
+static const UINT32 bf_init_P[18] = {
+    0x243F6A88,0x85A308D3,0x13198A2E,0x03707344,0xA4093822,0x299F31D0,
+    0x082EFA98,0xEC4E6C89,0x452821E6,0x38D01377,0xBE5466CF,0x34E90C6C,
+    0xC0AC29B7,0xC97C50DD,0x3F84D5B5,0xB5470917,0x9216D5D9,0x8979FB1B
+};
+
+// S-box initial values (standard Blowfish, from pi)
+// These are 4 x 256 = 1024 uint32 values.
+// For brevity, we generate them at init time by including the standard values.
+// Actually, Blowfish S-boxes are fixed constants. We include them inline.
+#include "bf_sbox.h"  // will create this file with the 1024 uint32 S-box values
+
+// Our BF key schedule
+static UINT32 hook_P[18];
+static UINT32 hook_S[4][256];
+static int hookBfReady = 0;
+
+static void HookBF_Encrypt(UINT32 *xl, UINT32 *xr) {
+    UINT32 Xl = *xl, Xr = *xr, t;
+    for (int i = 0; i < 16; i++) {
+        Xl ^= hook_P[i];
+        UINT32 f = ((hook_S[0][(Xl>>24)&0xFF] + hook_S[1][(Xl>>16)&0xFF]) ^ hook_S[2][(Xl>>8)&0xFF]) + hook_S[3][Xl&0xFF];
+        Xr ^= f;
+        t = Xl; Xl = Xr; Xr = t;
+    }
+    t = Xl; Xl = Xr; Xr = t;
+    Xr ^= hook_P[16]; Xl ^= hook_P[17];
+    *xl = Xl; *xr = Xr;
+}
+
+static void HookBF_Decrypt(UINT32 *xl, UINT32 *xr) {
+    UINT32 Xl = *xl, Xr = *xr, t;
+    for (int i = 17; i > 1; i--) {
+        Xl ^= hook_P[i];
+        UINT32 f = ((hook_S[0][(Xl>>24)&0xFF] + hook_S[1][(Xl>>16)&0xFF]) ^ hook_S[2][(Xl>>8)&0xFF]) + hook_S[3][Xl&0xFF];
+        Xr ^= f;
+        t = Xl; Xl = Xr; Xr = t;
+    }
+    t = Xl; Xl = Xr; Xr = t;
+    Xr ^= hook_P[1]; Xl ^= hook_P[0];
+    *xl = Xl; *xr = Xr;
+}
+
+static void HookBF_Init(const BYTE *key, int keyLen) {
+    memcpy(hook_P, bf_init_P, sizeof(hook_P));
+    memcpy(hook_S, bf_init_S, sizeof(hook_S));
+    // XOR P-array with key
+    for (int i = 0, j = 0; i < 18; i++) {
+        UINT32 d = 0;
+        for (int k = 0; k < 4; k++) { d = (d << 8) | key[j]; j = (j + 1) % keyLen; }
+        hook_P[i] ^= d;
+    }
+    // Encrypt-and-replace P-array
+    UINT32 l = 0, r = 0;
+    for (int i = 0; i < 18; i += 2) {
+        HookBF_Encrypt(&l, &r);
+        hook_P[i] = l; hook_P[i+1] = r;
+    }
+    // Encrypt-and-replace S-boxes
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 256; j += 2) {
+            HookBF_Encrypt(&l, &r);
+            hook_S[i][j] = l; hook_S[i][j+1] = r;
+        }
+    hookBfReady = 1;
+}
+
+// CFB encrypt (one direction, IV=0)
+static void HookCFB_Encrypt(BYTE *data, int len) {
+    BYTE iv[8] = {0};
+    int num = 0;
+    for (int i = 0; i < len; i++) {
+        if (num == 0) {
+            UINT32 l = (iv[0]<<24)|(iv[1]<<16)|(iv[2]<<8)|iv[3];
+            UINT32 r = (iv[4]<<24)|(iv[5]<<16)|(iv[6]<<8)|iv[7];
+            HookBF_Encrypt(&l, &r);
+            iv[0]=l>>24; iv[1]=l>>16; iv[2]=l>>8; iv[3]=l;
+            iv[4]=r>>24; iv[5]=r>>16; iv[6]=r>>8; iv[7]=r;
+        }
+        data[i] ^= iv[num];
+        iv[num] = data[i];
+        num = (num + 1) & 7;
+    }
+}
+
+// CFB decrypt (one direction, IV=0)
+static void HookCFB_Decrypt(BYTE *data, int len) {
+    BYTE iv[8] = {0};
+    int num = 0;
+    for (int i = 0; i < len; i++) {
+        if (num == 0) {
+            UINT32 l = (iv[0]<<24)|(iv[1]<<16)|(iv[2]<<8)|iv[3];
+            UINT32 r = (iv[4]<<24)|(iv[5]<<16)|(iv[6]<<8)|iv[7];
+            HookBF_Encrypt(&l, &r);
+            iv[0]=l>>24; iv[1]=l>>16; iv[2]=l>>8; iv[3]=l;
+            iv[4]=r>>24; iv[5]=r>>16; iv[6]=r>>8; iv[7]=r;
+        }
+        BYTE cipher = data[i];
+        data[i] ^= iv[num];
+        iv[num] = cipher;
+        num = (num + 1) & 7;
+    }
+}
+
+static void ReverseBytes(BYTE *data, int len) {
+    for (int i = 0; i < len / 2; i++) {
+        BYTE t = data[i]; data[i] = data[len-1-i]; data[len-1-i] = t;
+    }
+}
+
+// Double CFB decrypt: CFB-decrypt → reverse → CFB-decrypt
+static void HookDoubleCFB_Decrypt(BYTE *data, int len) {
+    HookCFB_Decrypt(data, len);
+    ReverseBytes(data, len);
+    HookCFB_Decrypt(data, len);
+}
+
+// Double CFB encrypt: CFB-encrypt → reverse → CFB-encrypt
+static void HookDoubleCFB_Encrypt(BYTE *data, int len) {
+    HookCFB_Encrypt(data, len);
+    ReverseBytes(data, len);
+    HookCFB_Encrypt(data, len);
+}
+
+// CRC-32 table (poly 0x04C11DB7, unreflected)
+static UINT32 crc_table[256];
+static void InitCrcTable(void) {
+    for (int i = 0; i < 256; i++) {
+        UINT32 c = (UINT32)i << 24;
+        for (int j = 0; j < 8; j++)
+            c = (c & 0x80000000) ? ((c << 1) ^ 0x04C11DB7) : (c << 1);
+        crc_table[i] = c;
+    }
+}
+
+// LoL CRC byte: crc = ((crc << 8) | byte) ^ table[crc >> 24]
+static UINT32 LolCrcByte(UINT32 crc, BYTE b) {
+    return ((crc << 8) | b) ^ crc_table[(crc >> 24) & 0xFF];
+}
+
+// Compute CRC nonce for a decrypted packet
+// Decrypted format: [2B peerID LE][4B nonce][1B flags][payload...]
+// Returns the correct 4-byte nonce value (as stored in packet)
+static UINT32 ComputeCrcNonce(const BYTE *decrypted, int len) {
+    BYTE peerLo = decrypted[0];
+    BYTE peerHi = decrypted[1];
+    // Build CRC struct fields:
+    // param[0..7] = local_c8 = *(conn+0x138) = 1 as uint64 LE
+    BYTE local_c8[8] = {1, 0, 0, 0, 0, 0, 0, 0};
+    // param[8] = peerLo, param[9] = peerHi
+    // *(uint64*)(param+0x18) = 0xFFFFFFFFFFFFFFFF
+
+    // Init from peerLo (param[8]):
+    UINT32 crc = ((UINT32)peerLo | 0xFFFFFF00) ^ 0xB1F740B4;
+    // Feed peerHi (param[9]):
+    crc = LolCrcByte(crc, peerHi);
+    // Feed local_c8 (param[0..7]):
+    for (int i = 0; i < 8; i++) crc = LolCrcByte(crc, local_c8[i]);
+    // Feed *(uint64*)(param+0x18) = 0xFFFFFFFFFFFFFFFF LE bytes:
+    for (int i = 0; i < 8; i++) crc = LolCrcByte(crc, 0xFF);
+    // Feed payload (bytes after 7-byte header)
+    if (len > 7) {
+        for (int i = 7; i < len; i++) crc = LolCrcByte(crc, decrypted[i]);
+    }
+    UINT32 nonce = ~crc;
+    // htonl was working (PING didn't crash with it earlier)
+    return htonl(nonce);
+}
+
+// Fix CRC nonce in an encrypted server packet
+// Returns 1 if fixed, 0 if packet too small or BF not ready
+static int crcFixupLogCount = 0;
+static int FixCrcNonce(BYTE *buf, int len) {
+    if (!hookBfReady || len < 8) return 0;
+    // Make a working copy
+    BYTE *work = (BYTE*)_alloca(len);
+    memcpy(work, buf, len);
+    // Double CFB decrypt
+    HookDoubleCFB_Decrypt(work, len);
+    // Log decrypted header for debugging
+    if (crcFixupLogCount < 5) {
+        crcFixupLogCount++;
+        UINT32 oldNonce = *(UINT32*)(work + 2);
+        Log("CRC_DBG #%d: dec[0:8]=%02X%02X %02X%02X%02X%02X %02X%02X peer=%02X%02X flags=%02X old_nonce=0x%08X",
+            crcFixupLogCount, work[0],work[1], work[2],work[3],work[4],work[5], work[6],work[7],
+            work[0],work[1], work[6], oldNonce);
+    }
+    // Compute correct CRC nonce
+    UINT32 nonce = ComputeCrcNonce(work, len);
+    if (crcFixupLogCount <= 5) {
+        Log("CRC_DBG: new_nonce=0x%08X (htonl applied)", nonce);
+    }
+    // Patch nonce at bytes [2..5]
+    memcpy(work + 2, &nonce, 4);
+    // Double CFB re-encrypt
+    HookDoubleCFB_Encrypt(work, len);
+    // Copy back
+    memcpy(buf, work, len);
+    return 1;
+}
+
 // === Network Hook (same as nethook.c) ===
 typedef int (WINAPI *sendto_t)(SOCKET, const char*, int, int, const struct sockaddr*, int);
 typedef int (WINAPI *recvfrom_t)(SOCKET, char*, int, int, struct sockaddr*, int*);
@@ -369,6 +578,8 @@ static char lastSendBuf[1024];
 static int lastSendLen = 0;
 static int injectMode = 0;
 static volatile void *recvHostStruct = NULL;
+UINT64 g_x509Vtable = 0;
+UINT64 g_ourCertHandle = 0;
 static int injectCount = 0;
 static volatile BYTE *connStructAddr = NULL;  // RBX = connection struct address
 static volatile int crcDumpCount = 0;
@@ -865,6 +1076,10 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                                 Log("  CERT: ourCB struct: [%p, %llu, %p, %llu, %p, %p]",
                                     (void*)ourCB[0], ourCB[1], (void*)ourCB[2], ourCB[3],
                                     (void*)ourCB[4], (void*)ourCB[5]);
+                                // Capture vtable for background scan
+                                g_x509Vtable = ourCB[4];
+                                g_ourCertHandle = ourCtx[0];
+                                Log("  CERT: vtable=0x%llX handle=%p saved for thread", g_x509Vtable, (void*)g_ourCertHandle);
                                 // Check if ourCB[0] points to our DER data
                                 if ((void*)ourCB[0] != NULL && ourCB[1] > 0 && ourCB[1] < 4096) {
                                     BYTE *derCheck = (BYTE*)ourCB[0];
@@ -1323,15 +1538,50 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
         struct sockaddr_in *sin = (struct sockaddr_in*)from;
         int isLocalhost = (ntohl(sin->sin_addr.s_addr) == 0x7F000001); // 127.0.0.1
 
-        // INJECTION: Replace server response with echo of client's last sendto
-        if (isLocalhost && injectMode && lastSendLen > 8 && injectCount < 500) {
-            int echoLen = lastSendLen - 8;  // strip LNPBlob (8 bytes)
-            if (echoLen > 0 && echoLen <= len) {
-                memcpy(buf, lastSendBuf + 8, echoLen);
-                r = echoLen;
-                injectCount++;
-                if (injectCount <= 5) {
-                    Log("INJECT_ECHO #%d: replaced %dB server data with %dB echo", injectCount, r, echoLen);
+        // SMART HYBRID: echo small packets (pings), CRC-fix large ones (game data)
+        // During handshake: echo everything. After handshake: echo only pings.
+        if (isLocalhost && lastSendLen > 8) {
+            static int totalRecv = 0;
+            static int echoCount = 0;
+            static int fixupCount = 0;
+            static int handshakeDone = 0;
+            totalRecv++;
+
+            // Handshake phase: echo everything for first 30 packets
+            if (!handshakeDone && echoCount < 30) {
+                int echoLen = lastSendLen - 8;
+                if (echoLen > 0 && echoLen <= len) {
+                    memcpy(buf, lastSendBuf + 8, echoLen);
+                    r = echoLen;
+                    echoCount++;
+                    if (echoCount <= 5)
+                        Log("ECHO #%d: %dB (handshake)", echoCount, r);
+                    if (echoCount >= 30) {
+                        handshakeDone = 1;
+                        Log("=== HANDSHAKE DONE after %d echoes, entering smart mode ===", echoCount);
+                    }
+                }
+            }
+            // After handshake: check for CAFE magic (CRC-format packet from server)
+            else if (handshakeDone) {
+                if (r >= 4 && (BYTE)buf[0] == 0xCA && (BYTE)buf[1] == 0xFE) {
+                    // Server CRC-format packet: strip 2B magic, CRC-fix the rest
+                    int encLen = r - 2;
+                    memmove(buf, buf + 2, encLen);
+                    r = encLen;
+                    if (FixCrcNonce((BYTE*)buf, r)) {
+                        fixupCount++;
+                        if (fixupCount <= 20)
+                            Log("CRC_FIXUP #%d: fixed %dB server game packet (CAFE)", fixupCount, r);
+                    }
+                } else {
+                    // Normal server response = echo back for keep-alive
+                    int echoLen = lastSendLen - 8;
+                    if (echoLen > 0 && echoLen <= len) {
+                        memcpy(buf, lastSendBuf + 8, echoLen);
+                        r = echoLen;
+                        echoCount++;
+                    }
                 }
             }
         }
@@ -1528,7 +1778,7 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
 
                 static int rawKcDone = 0;
                 static int directDone = 0;
-                if (eCount == 80 && recvHostStruct && !directDone) {
+                if (0 && eCount == 80 && recvHostStruct && !directDone) { // DISABLED: causes crash
                     BYTE *hst = (BYTE*)recvHostStruct;
                     void *pv = *(void**)(hst + 0x20);
                     if (pv && !IsBadReadPtr((BYTE*)pv + 0x160, 8)) {
@@ -2409,109 +2659,128 @@ static DWORD WINAPI TlsBypassThread(LPVOID param) {
 }
 
 // Thread that adds our cert to BoringSSL trust store ASAP
+// Safe memory read: returns 0 if page is not readable
+static int SafeRead8(void *addr, UINT64 *out) {
+    MEMORY_BASIC_INFORMATION mi;
+    if (!VirtualQuery(addr, &mi, sizeof(mi))) return 0;
+    if (mi.State != MEM_COMMIT) return 0;
+    if (!(mi.Protect & (PAGE_READWRITE|PAGE_READONLY|PAGE_EXECUTE_READ|PAGE_EXECUTE_READWRITE))) return 0;
+    if (mi.Protect & (PAGE_GUARD|PAGE_NOACCESS)) return 0;
+    *out = *(UINT64*)addr;
+    return 1;
+}
+
 static DWORD WINAPI CertInjectionThread(LPVOID param) {
-    if (logfile) { fprintf(logfile, "[CertThread] STARTED (waiting 1s)!\n"); fflush(logfile); }
-    Sleep(1000);
+    if (logfile) { fprintf(logfile, "[CertThread] STARTED, waiting for vtable...\n"); fflush(logfile); }
     HMODULE hExe = GetModuleHandleA(NULL);
     if (!hExe) return 0;
-    BYTE *riotCA = (BYTE*)hExe + 0x19EEBD0;
-    if (logfile) { fprintf(logfile, "[CertThread] Starting scan...\n"); fflush(logfile); }
 
+    // Wait for sendto hook to capture the vtable (up to 60s - client takes ~20s)
+    for (int w = 0; w < 600 && g_x509Vtable == 0; w++) Sleep(100);
+    if (g_x509Vtable == 0) {
+        if (logfile) { fprintf(logfile, "[CertThread] No vtable after 60s, aborting\n"); fflush(logfile); }
+        return 0;
+    }
+    if (logfile) { fprintf(logfile, "[CertThread] vtable=0x%llX handle=%p, scanning heap...\n",
+        g_x509Vtable, (void*)g_ourCertHandle); fflush(logfile); }
+
+    // Search heap for arrays of pointers where entry+0x20 == g_x509Vtable
+    // This identifies X509 cert objects in the trust vector
     MEMORY_BASIC_INFORMATION mbi;
     BYTE *scan = NULL;
     int found = 0;
 
     while (VirtualQuery(scan, &mbi, sizeof(mbi)) && !found) {
-        if (mbi.State == MEM_COMMIT && (mbi.Protect & PAGE_READWRITE) && mbi.RegionSize >= 480) {
-            BYTE *base = (BYTE*)mbi.BaseAddress;
-            SIZE_T size = mbi.RegionSize;
-            // Skip binary image
-            if (base > (BYTE*)hExe && base < (BYTE*)hExe + 0x20000000) {
-                scan = base + mbi.RegionSize; continue;
+        if (mbi.State != MEM_COMMIT || !(mbi.Protect & PAGE_READWRITE) ||
+            (mbi.Protect & (PAGE_GUARD|PAGE_NOACCESS)) || mbi.RegionSize < 256) {
+            scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
+            continue;
+        }
+        BYTE *base = (BYTE*)mbi.BaseAddress;
+        SIZE_T size = mbi.RegionSize;
+        // Skip binary image
+        if (base >= (BYTE*)hExe && base < (BYTE*)hExe + 0x20000000) {
+            scan = base + size; continue;
+        }
+
+        // Look for arrays of 5+ consecutive heap pointers
+        for (SIZE_T j = 0; j + 40 <= size && !found; j += 8) {
+            UINT64 *arr = (UINT64*)(base + j);
+            // Quick check: 5 consecutive values look like heap pointers
+            int goodPtrs = 0;
+            for (int k = 0; k < 5; k++) {
+                if (arr[k] > 0x10000 && arr[k] < 0x7FFFFFFFFFFF &&
+                    !(arr[k] >= (UINT64)hExe && arr[k] < (UINT64)hExe + 0x20000000))
+                    goodPtrs++;
             }
-            // Search for vector-like patterns: 3 consecutive pointers
-            // where ptr[1] - ptr[0] = 10*8 to 50*8
-            for (SIZE_T j = 0; j + 24 <= size && !found; j += 8) {
-                UINT64 *v = (UINT64*)(base + j);
-                UINT64 begin = v[0], end = v[1], cap = v[2];
-                // Validate vector pattern
-                if (begin == 0 || end == 0 || cap == 0) continue;
-                if (end < begin || cap < end) continue;
-                UINT64 count = (end - begin) / 8;
-                if (count < 5 || count > 100) continue;
-                if ((end - begin) % 8 != 0) continue;
-                // begin should be a valid heap pointer (not in image)
-                if (begin > (UINT64)hExe && begin < (UINT64)hExe + 0x20000000) continue;
-                // All entries should look like heap pointers
-                UINT64 *arr = (UINT64*)begin;
-                if (IsBadReadPtr(arr, count * 8)) continue;
-                int validPtrs = 0;
-                for (UINT64 k = 0; k < count && k < 5; k++) {
-                    if (arr[k] > 0x10000 && arr[k] < 0x7FFFFFFFFFFF) validPtrs++;
+            if (goodPtrs < 4) continue;
+
+            // Verify: check if arr[0]+0x20 has the X509 vtable
+            UINT64 vtCheck = 0;
+            if (SafeRead8((void*)(arr[0] + 0x20), &vtCheck) && vtCheck == g_x509Vtable) {
+                // Count how many consecutive entries have the same vtable
+                int count = 0;
+                for (int k = 0; k < 60; k++) {
+                    UINT64 vt2 = 0;
+                    if (!SafeRead8((void*)(arr[k] + 0x20), &vt2) || vt2 != g_x509Vtable) break;
+                    count++;
                 }
-                if (validPtrs < 3) continue;
-                // Check if any entry's object contains Riot CA DER
-                for (UINT64 k = 0; k < count; k++) {
-                    BYTE *obj = (BYTE*)arr[k];
-                    if (IsBadReadPtr(obj, 48)) continue;
-                    // Check various offsets for a pointer to DER data
-                    for (int off = 0; off < 48; off += 8) {
-                        BYTE *dataPtr = *(BYTE**)(obj + off);
-                        if (IsBadReadPtr(dataPtr, 64)) continue;
-                        if (memcmp(dataPtr, riotCA, 32) == 0) {
-                            found = 1;
-                            Log("[CertThread] *** TRUST VECTOR FOUND at %p! ***", base + j);
-                            Log("[CertThread] count=%llu, entry[%llu]=%p has Riot CA DER at +%d",
-                                count, k, obj, off);
-                            // NOW: parse our cert and push_back to this vector!
-                            typedef void* (*ParseCert_t)(void*, void**, int);
-                            ParseCert_t ParseCert = (ParseCert_t)((BYTE*)hExe + 0x168A4F0);
-                            typedef void (*VecPush_t)(void*, void*, void*);
-                            VecPush_t VecPush = (VecPush_t)((BYTE*)hExe + 0x1E2190);
-
-                            // Read our cert from cert.pem
-                            FILE *cf = fopen("cert.pem", "r");
-                            if (cf) {
-                                char pm[4096]={0}; fread(pm,1,4095,cf); fclose(cf);
-                                static BYTE der[2048]; int dl=0;
-                                static const BYTE b64[256]={['A']=0,['B']=1,['C']=2,['D']=3,['E']=4,['F']=5,['G']=6,['H']=7,['I']=8,['J']=9,['K']=10,['L']=11,['M']=12,['N']=13,['O']=14,['P']=15,['Q']=16,['R']=17,['S']=18,['T']=19,['U']=20,['V']=21,['W']=22,['X']=23,['Y']=24,['Z']=25,['a']=26,['b']=27,['c']=28,['d']=29,['e']=30,['f']=31,['g']=32,['h']=33,['i']=34,['j']=35,['k']=36,['l']=37,['m']=38,['n']=39,['o']=40,['p']=41,['q']=42,['r']=43,['s']=44,['t']=45,['u']=46,['v']=47,['w']=48,['x']=49,['y']=50,['z']=51,['0']=52,['1']=53,['2']=54,['3']=55,['4']=56,['5']=57,['6']=58,['7']=59,['8']=60,['9']=61,['+']=62,['/']=63};
-                                char *p=pm; while(*p&&strncmp(p,"-----BEGIN",10)!=0)p++; while(*p&&*p!='\n')p++; if(*p)p++;
-                                int bits=0,nb=0;
-                                while(*p&&strncmp(p,"-----END",8)!=0){if(*p=='\n'||*p=='\r'||*p==' '||*p=='='){p++;continue;}bits=(bits<<6)|b64[(unsigned char)*p];nb+=6;if(nb>=8){nb-=8;der[dl++]=(BYTE)(bits>>nb);bits&=(1<<nb)-1;}p++;}
-
-                                if (dl > 0) {
-                                    static UINT64 ctx[4] = {0};
-                                    void *certPtr = der;
-                                    void *handle = ParseCert(ctx, &certPtr, dl);
-                                    Log("[CertThread] Parsed our cert: handle=%p", handle);
-                                    if (handle || ctx[0]) {
-                                        void *h = (void*)ctx[0];
-                                        // push_back to trust vector
-                                        UINT64 *vec = v;
-                                        void *endPtr = (void*)vec[1];
-                                        Log("[CertThread] push_back(%p, %p, %p)", base+j, endPtr, &h);
-                                        VecPush(base + j, endPtr, &h);
-                                        Log("[CertThread] *** CERT PUSHED TO TRUST VECTOR! ***");
-                                        Log("[CertThread] New count: %llu", (vec[1] - vec[0]) / 8);
-                                    }
-                                }
+                if (count >= 5) {
+                    found = 1;
+                    if (logfile) {
+                        fprintf(logfile, "[CertThread] *** TRUST VECTOR ARRAY at %p, %d entries! ***\n",
+                                base + j, count);
+                        fflush(logfile);
+                    }
+                    // Search backward for the vector struct: {begin, end, capacity}
+                    // begin should equal base+j, end = begin + count*8
+                    UINT64 arrAddr = (UINT64)(base + j);
+                    UINT64 endAddr = arrAddr + count * 8;
+                    // Search nearby for the vector header
+                    BYTE *searchBase = base;
+                    for (SIZE_T s = 0; s + 24 <= size; s += 8) {
+                        UINT64 *vec = (UINT64*)(searchBase + s);
+                        if (vec[0] == arrAddr && vec[1] >= arrAddr && vec[1] <= endAddr + 64) {
+                            if (logfile) {
+                                fprintf(logfile, "[CertThread] VECTOR STRUCT at %p: begin=%p end=%p cap=%p\n",
+                                        vec, (void*)vec[0], (void*)vec[1], (void*)vec[2]);
+                                fflush(logfile);
                             }
-                            break;
+                            // PUSH OUR CERT!
+                            if (g_ourCertHandle) {
+                                typedef void (*VecPush_t)(void*, void*, void*);
+                                VecPush_t VecPush = (VecPush_t)((BYTE*)hExe + 0x1E2190);
+                                void *h = (void*)g_ourCertHandle;
+                                if (logfile) { fprintf(logfile, "[CertThread] push_back(vec=%p, end=%p, &handle=%p)\n",
+                                    vec, (void*)vec[1], &h); fflush(logfile); }
+                                VecPush(vec, (void*)vec[1], &h);
+                                if (logfile) { fprintf(logfile, "[CertThread] *** CERT INJECTED! New count=%llu ***\n",
+                                    (vec[1] - vec[0]) / 8); fflush(logfile); }
+                            }
+                            goto scan_done;
                         }
                     }
-                    if (found) break;
                 }
             }
         }
         scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
     }
-    if (!found) Log("[CertThread] Trust vector NOT found after full scan");
+    scan_done:
+    if (!found && logfile) { fprintf(logfile, "[CertThread] Trust vector NOT found\n"); fflush(logfile); }
     return 0;
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(hinst);
+
+        // Init Blowfish key schedule and CRC table for CRC nonce fixup
+        {
+            // Key: 17BLOhi6KZsTtldTsizvHg== (base64) = 16 bytes
+            static const BYTE bfKey[] = {0xD7,0xB0,0x4B,0x3A,0x18,0xBA,0x29,0x9B,0x13,0xB6,0x57,0x53,0xB2,0x2C,0xEF,0x1E};
+            HookBF_Init(bfKey, 16);
+            InitCrcTable();
+        }
 
         // CRC bypass will be installed on first sendto (not in DllMain - too early)
 
@@ -2540,6 +2809,16 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
         Log("=== LoL NetHook (version.dll proxy) ===");
         Log("PID: %lu", GetCurrentProcessId());
         Log("Real version.dll: %s", sysDir);
+        {
+            // Verify BF: encrypt 8 zeros and check against known bf_enc_zeros
+            UINT32 tl = 0, tr = 0;
+            HookBF_Encrypt(&tl, &tr);
+            Log("BF P[0]=0x%08X (expect 0xBBCD2876) enc(0)=%02X%02X%02X%02X%02X%02X%02X%02X (expect F9ED26C0F22A52B4)",
+                hook_P[0],
+                (tl>>24)&0xFF,(tl>>16)&0xFF,(tl>>8)&0xFF,tl&0xFF,
+                (tr>>24)&0xFF,(tr>>16)&0xFF,(tr>>8)&0xFF,tr&0xFF);
+            Log("CRC[1]=0x%08X (expect 0x04C11DB7)", crc_table[1]);
+        }
 
         // Install network hooks
         InstallNetHooks();

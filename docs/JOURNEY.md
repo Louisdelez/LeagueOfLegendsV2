@@ -228,4 +228,49 @@ Sans ces args → "Failed to extract information from command line string" → e
 - Client CONNECTED via echo-all ✓
 - Real handler trouvé et appelé ✓
 - 35 certs DER identifiés, cert handles obtenus sur le heap ✓
-- TLS trust vector nearly cracked (heap scan + push_back = last step)
+- **CRC algorithm FULLY REVERSED** — non-standard byte mixing ✓
+- **Blowfish + CRC in hook DLL** — self-contained, P[0] verified ✓
+- **Hybrid echo+fixup** — handshake via echo, server data via CRC fixup ✓
+
+---
+
+## Jour 3 (suite) — 2 Avril 2026 (session 2)
+
+### Phase 12 : PERCÉE MAJEURE — Algorithme CRC cracké
+
+**Découverte via Ghidra headless + decompilation de FUN_140577f10 :**
+
+L'algorithme CRC-32 de LoL utilise un mélange de bytes **NON STANDARD** :
+```
+crc = ((crc << 8) | byte) ^ table[crc >> 24]
+```
+Au lieu du standard CRC-32/MPEG-2 : `crc = (crc << 8) ^ table[(crc >> 24) ^ byte]`
+
+- Table à `DAT_141947e80`, polynôme `0x04C11DB7`, entry[1]=`0x04C11DB7`
+- Init : `(peerLo | 0xFFFFFF00) ^ 0xB1F740B4`
+- Ordre : peerHi, local_c8[0..7]={1,0,...}, local_b0[0..7]={FF,...}, puis payload
+- Nonce vérifié : peerID=0, no payload → `~crc = 0x8DFE1964` ✅
+
+### Phase 13 : Blowfish + CRC implémentés dans le hook DLL
+
+- Implémentation complète de Blowfish en C (P-array, S-boxes, CFB encrypt/decrypt)
+- Clé : `17BLOhi6KZsTtldTsizvHg==` = `D7B04B3A18BA299B13B65753B22CEF1E`
+- P[0] = `0xBBCD2876` vérifié au runtime ✅
+- enc(zeros) = `F9ED26C0F22A52B4` vérifié ✅
+- Double CFB : encrypt→reverse→encrypt / decrypt→reverse→decrypt
+- CRC fixup : decrypt packet → compute nonce → patch bytes[2..5] → re-encrypt
+
+### Phase 14 : Mode hybride echo + CRC fixup
+
+- **Echo phase** (50 paquets) → handshake complet → Hard Connect ✅
+- **CRC fixup phase** → paquets serveur déchiffrés, nonce corrigé, re-chiffrés ✅
+- Le client reçoit les paquets serveur avec CRC correct
+- **MAIS** : le serveur n'envoie pas de paquets ENet valides (mauvais format)
+- Le client reste connecté mais ne progresse pas (pas de VERIFY_CONNECT valide)
+
+### Prochaine étape
+Le serveur doit envoyer des paquets ENet corrects :
+1. Parser le CONNECT du client
+2. Répondre avec VERIFY_CONNECT correct
+3. Envoyer KeyCheck (opcode 0x64)
+4. Données d'init du jeu
