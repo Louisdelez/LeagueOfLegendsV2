@@ -170,8 +170,9 @@ public class RawGameServer : IGameServer, IDisposable
             byte[] payload = new byte[payloadLen];
             Array.Copy(data, 12, payload, 0, payloadLen);
 
-            // Double CFB decrypt
+            // Try BOTH decrypt variants
             byte[] decrypted = DoubleCfbDecrypt(payload);
+            byte[] decryptedAlt = DoubleCfbDecryptAlt(payload);
 
             // Parse: [2B peerID LE][4B CRC nonce][1B flags][body...]
             if (decrypted.Length >= 7)
@@ -182,9 +183,14 @@ public class RawGameServer : IGameServer, IDisposable
                 byte cmdType = (byte)(flags & 0x7F);
                 bool hasSentTime = (flags & 0x80) != 0;
 
+                // Also parse alt decrypt
+                byte flagsAlt = decryptedAlt.Length >= 7 ? decryptedAlt[6] : (byte)0;
+                byte cmdAlt = (byte)(flagsAlt & 0x7F);
+                ushort peerIDAlt = decryptedAlt.Length >= 2 ? (ushort)(decryptedAlt[0] | (decryptedAlt[1] << 8)) : (ushort)0;
+
                 if (peer.PacketCount <= 30 || cmdType > 5)
                 {
-                    Log($"  [DECRYPT] peerID=0x{peerID:X4} nonce=0x{nonce:X8} flags=0x{flags:X2} cmd={cmdType} sentTime={hasSentTime}");
+                    Log($"  [DECRYPT] peerID=0x{peerID:X4} cmd={cmdType} | ALT: peerID=0x{peerIDAlt:X4} cmd={cmdAlt}");
                     if (decrypted.Length > 7)
                         Log($"  [BODY] {Hex(decrypted, 7, Math.Min(32, decrypted.Length - 7))}");
                 }
@@ -646,6 +652,34 @@ public class RawGameServer : IGameServer, IDisposable
         var result = CfbDecrypt(ciphertext);
         Array.Reverse(result);
         result = CfbDecrypt(result);
+        return result;
+    }
+
+    /// <summary>
+    /// Alternative Double CFB decrypt using BF_decrypt for keystream.
+    /// If the client's SEND path uses BF_decrypt instead of BF_encrypt.
+    /// </summary>
+    private byte[] DoubleCfbDecryptAlt(byte[] ciphertext)
+    {
+        var result = CfbDecryptAlt(ciphertext);
+        Array.Reverse(result);
+        result = CfbDecryptAlt(result);
+        return result;
+    }
+
+    private byte[] CfbDecryptAlt(byte[] ciphertext)
+    {
+        var result = (byte[])ciphertext.Clone();
+        var feedback = new byte[8];
+        int fullBlocks = ciphertext.Length / 8;
+        for (int block = 0; block < fullBlocks; block++)
+        {
+            int i = block * 8;
+            var keystream = _cipher.DecryptBlock(feedback); // BF_DECRYPT instead of BF_ENCRYPT
+            Array.Copy(ciphertext, i, feedback, 0, 8);
+            for (int j = 0; j < 8; j++)
+                result[i + j] = (byte)(ciphertext[i + j] ^ keystream[j]);
+        }
         return result;
     }
 

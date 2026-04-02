@@ -1088,15 +1088,108 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
             // FUN_1410f2a10(bf_ctx, data, len, mode=2) is BF_cfb64_decrypt
             // We call it on a COPY to see what the client would see after decryption
             if (lastSendLen > 8) {
-                // Echo mode: always return the client's own data
-                int echoLen = lastSendLen - 8;
-                if (echoLen > 0 && echoLen <= len) {
-                    memcpy(buf, lastSendBuf + 8, echoLen);
-                    r = echoLen;
-                    static int eCount = 0;
-                    eCount++;
-                    if (eCount <= 50)
-                        Log("  ECHO #%d: %dB (from %dB send)", eCount, r, lastSendLen);
+                static int eCount = 0;
+                static int keycheckSent = 0;
+                eCount++;
+
+                // Phase 1: Echo for first 20 packets (establish connection)
+                // Phase 2: After echo, inject KeyCheck
+                if (eCount <= 20 || keycheckSent >= 5) {
+                    // Echo mode
+                    int echoLen = lastSendLen - 8;
+                    if (echoLen > 0 && echoLen <= len) {
+                        memcpy(buf, lastSendBuf + 8, echoLen);
+                        r = echoLen;
+                        if (eCount <= 30)
+                            Log("  ECHO #%d: %dB", eCount, r);
+                    }
+                } else if (keycheckSent < 5) {
+                    // Inject KeyCheck using client's own encrypt functions
+                    HMODULE gameBase = GetModuleHandleA(NULL);
+                    typedef void (*bf_cfb_enc_t)(void* ctx, BYTE* data, USHORT len, int mode);
+                    typedef int (*crc_fn_t)(BYTE *param);
+                    bf_cfb_enc_t BfCfbEnc = (bf_cfb_enc_t)((BYTE*)gameBase + 0x10F41E0);
+                    crc_fn_t CrcFn = (crc_fn_t)((BYTE*)gameBase + 0x577f10);
+
+                    // Find BF context
+                    void *bfCtx = NULL;
+                    if (connStructAddr && !IsBadReadPtr((void*)(connStructAddr + 0x120), 16)) {
+                        BYTE *cryptoBase = (BYTE*)connStructAddr + 0x120;
+                        if (cryptoBase[0] != 0) {
+                            void **treePtr = (void**)(cryptoBase + 8);
+                            if (!IsBadReadPtr(treePtr, 8) && *treePtr) {
+                                BYTE *rootNode = (BYTE*)(*(void**)(*treePtr));
+                                if (!IsBadReadPtr(rootNode, 0x30)) {
+                                    UINT64 nodeKey = *(UINT64*)(rootNode + 0x20);
+                                    if (nodeKey == 1)
+                                        bfCtx = *(void**)(rootNode + 0x28);
+                                }
+                            }
+                        }
+                    }
+
+                    if (bfCtx) {
+                        keycheckSent++;
+                        // Build KeyCheck payload:
+                        // ENet SEND_RELIABLE body after CRC header
+                        BYTE kcPayload[22]; // channel(1)+seqNo(2)+dataLen(2)+keycheck(16)+pad(1)
+                        memset(kcPayload, 0, sizeof(kcPayload));
+                        kcPayload[0] = 0x00;  // channelID = 0
+                        kcPayload[1] = 0x00; kcPayload[2] = 0x01;  // reliableSeqNo = 1 (BE)
+                        kcPayload[3] = 0x00; kcPayload[4] = 0x10;  // dataLen = 16 (BE)
+                        // KeyCheck: [4B opcode LE][1B playerNo][3B pad][8B checksum]
+                        kcPayload[5] = 0x64; kcPayload[6] = 0x00; kcPayload[7] = 0x00; kcPayload[8] = 0x00; // opcode=100 LE
+                        kcPayload[9] = 0x00;   // playerNo = 0
+                        // rest is zeros (checksum)
+
+                        // Build CRC struct for nonce
+                        BYTE crcBuf[0x60];
+                        memset(crcBuf, 0, sizeof(crcBuf));
+                        *(UINT64*)(crcBuf + 0x00) = 1;
+                        *(UINT64*)(crcBuf + 0x18) = 0xFFFFFFFFFFFFFFFF;
+                        *(UINT16*)(crcBuf + 0x08) = 0;  // peerID
+
+                        // Include payload in CRC
+                        static BYTE payBuf[64];
+                        int payLen = 21; // 1+2+2+16 = channel+seq+len+data
+                        memcpy(payBuf, kcPayload, payLen);
+                        *(UINT64*)(crcBuf + 0x48) = (UINT64)payBuf;
+                        *(UINT16*)(crcBuf + 0x52) = (UINT16)payLen;
+
+                        int crcNonce = CrcFn(crcBuf);
+                        Log("  KEYCHECK CRC nonce = 0x%08X", (UINT32)crcNonce);
+
+                        // Build plaintext: [2B peerID][4B nonce][1B flags][payload]
+                        int ptLen = 2 + 4 + 1 + payLen; // 28 bytes
+                        BYTE pt[32];
+                        memset(pt, 0, 32);
+                        pt[0] = 0x00; pt[1] = 0x00;  // peerID = 0
+                        *(UINT32*)(pt + 2) = (UINT32)crcNonce;
+                        pt[6] = 0x06;  // flags = SEND_RELIABLE (cmd=6)
+                        memcpy(pt + 7, kcPayload, payLen);
+
+                        // Double CFB encrypt with client's function
+                        BYTE enc[32];
+                        memcpy(enc, pt, ptLen);
+                        BfCfbEnc(bfCtx, enc, (USHORT)ptLen, 2);
+                        for (int i = 0; i < ptLen/2; i++) {
+                            BYTE tmp = enc[i]; enc[i] = enc[ptLen-1-i]; enc[ptLen-1-i] = tmp;
+                        }
+                        BfCfbEnc(bfCtx, enc, (USHORT)ptLen, 2);
+
+                        // Inject: 4B preamble + encrypted
+                        memset(buf, 0, 4);
+                        memcpy(buf + 4, enc, ptLen);
+                        r = 4 + ptLen;
+                        Log("  INJECTED KeyCheck #%d: %dB (nonce=0x%08X)", keycheckSent, r, (UINT32)crcNonce);
+                    } else {
+                        // Fallback: echo
+                        int echoLen = lastSendLen - 8;
+                        if (echoLen > 0 && echoLen <= len) {
+                            memcpy(buf, lastSendBuf + 8, echoLen);
+                            r = echoLen;
+                        }
+                    }
                 }
             }
             if (0) {  // DISABLED: complex VC injection code below  // skip first few to let game init
