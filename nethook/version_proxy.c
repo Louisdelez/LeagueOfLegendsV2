@@ -1089,14 +1089,110 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
             // We call it on a COPY to see what the client would see after decryption
             if (lastSendLen > 8) {
                 static int eCount = 0;
+                static int kcSent = 0;
                 eCount++;
-                // Echo mode for first 30 packets, then alternate echo + KeyCheck
-                int echoLen = lastSendLen - 8;
-                if (echoLen > 0 && echoLen <= len) {
-                    memcpy(buf, lastSendBuf + 8, echoLen);
-                    r = echoLen;
-                    if (eCount <= 50)
-                        Log("  ECHO #%d: %dB", eCount, r);
+
+                if (eCount <= 25 || kcSent >= 10) {
+                    // Echo mode: return client's own data
+                    int echoLen = lastSendLen - 8;
+                    if (echoLen > 0 && echoLen <= len) {
+                        memcpy(buf, lastSendBuf + 8, echoLen);
+                        r = echoLen;
+                        if (eCount <= 30)
+                            Log("  ECHO #%d: %dB", eCount, r);
+                    }
+                } else {
+                    // KeyCheck injection using client's own crypto functions
+                    HMODULE gameBase = GetModuleHandleA(NULL);
+                    typedef void (*bf_cfb_enc_t)(void* ctx, BYTE* data, USHORT len, int mode);
+                    typedef int (*crc_fn_t)(BYTE *param);
+                    bf_cfb_enc_t BfCfbEnc = (bf_cfb_enc_t)((BYTE*)gameBase + 0x10F41E0);
+                    bf_cfb_enc_t BfCfbDec = (bf_cfb_enc_t)((BYTE*)gameBase + 0x10F2A10);
+                    crc_fn_t CrcFn = (crc_fn_t)((BYTE*)gameBase + 0x577f10);
+                    // BF block functions: 0x10F25C0 = reverse P-box (decrypt), 0x10F3D90 = forward (encrypt)
+                    typedef void (*bf_enc_block_t)(void* ctx, BYTE* data);
+                    bf_enc_block_t BfEncFwd = (bf_enc_block_t)((BYTE*)gameBase + 0x10F3D90); // forward = encrypt
+                    bf_enc_block_t BfEncRev = (bf_enc_block_t)((BYTE*)gameBase + 0x10F25C0); // reverse = decrypt
+
+                    // Find BF context
+                    void *bfCtx = NULL;
+                    if (connStructAddr && !IsBadReadPtr((void*)(connStructAddr + 0x120), 16)) {
+                        BYTE *cryptoBase = (BYTE*)connStructAddr + 0x120;
+                        if (cryptoBase[0] != 0) {
+                            void **treePtr = (void**)(cryptoBase + 8);
+                            if (!IsBadReadPtr(treePtr, 8) && *treePtr) {
+                                BYTE *rootNode = (BYTE*)(*(void**)(*treePtr));
+                                if (!IsBadReadPtr(rootNode, 0x30) && *(UINT64*)(rootNode + 0x20) == 1)
+                                    bfCtx = *(void**)(rootNode + 0x28);
+                            }
+                        }
+                    }
+
+                    if (bfCtx) {
+                        kcSent++;
+
+                        // Build KeyCheck game data (16 bytes):
+                        // [4B opcode=0x64 LE][1B playerNo=0][3B pad][8B checkId]
+                        BYTE keycheck[16];
+                        memset(keycheck, 0, 16);
+                        keycheck[0] = 0x64; // opcode 100 LE
+                        // checkId = BF_encrypt(playerNo as 8 bytes)
+                        // For playerNo=0: BF_encrypt(zeros)
+                        // Try BOTH BF directions for checkId
+                        BYTE checkFwd[8] = {0,0,0,0,0,0,0,0};
+                        BYTE checkRev[8] = {0,0,0,0,0,0,0,0};
+                        BfEncFwd(bfCtx, checkFwd);
+                        BfEncRev(bfCtx, checkRev);
+                        // Use forward (standard encrypt) for odd, reverse for even
+                        BYTE *checkBlock = (kcSent % 2 == 1) ? checkFwd : checkRev;
+                        memcpy(keycheck + 8, checkBlock, 8);
+
+                        // Build CRC layer: [2B peerID=0][4B nonce][1B flags=6][16B keycheck]
+                        // First compute CRC nonce including payload
+                        BYTE crcBuf[0x60];
+                        memset(crcBuf, 0, sizeof(crcBuf));
+                        *(UINT64*)(crcBuf + 0x00) = 1; // conn seq
+                        *(UINT64*)(crcBuf + 0x18) = 0xFFFFFFFFFFFFFFFF;
+                        // payload = keycheck data
+                        static BYTE payBuf[32];
+                        memcpy(payBuf, keycheck, 16);
+                        *(UINT64*)(crcBuf + 0x48) = (UINT64)payBuf;
+                        *(UINT16*)(crcBuf + 0x52) = 16;
+
+                        int crcNonce = CrcFn(crcBuf);
+
+                        // Plaintext: [2B peerID][4B nonce][1B flags][16B keycheck] = 23B
+                        BYTE pt[23];
+                        memset(pt, 0, 23);
+                        *(UINT32*)(pt + 2) = (UINT32)crcNonce;
+                        pt[6] = 0x06; // SEND_RELIABLE (cmd=6)
+                        memcpy(pt + 7, keycheck, 16);
+
+                        // Double CFB encrypt using client's function
+                        BYTE enc[23];
+                        memcpy(enc, pt, 23);
+                        BfCfbEnc(bfCtx, enc, 23, 2);
+                        for (int i = 0; i < 11; i++) {
+                            BYTE t = enc[i]; enc[i] = enc[22-i]; enc[22-i] = t;
+                        }
+                        BfCfbEnc(bfCtx, enc, 23, 2);
+
+                        // Inject: 4B preamble + 23B encrypted = 27B
+                        memset(buf, 0, 27);
+                        memcpy(buf + 4, enc, 23);
+                        r = 27;
+                        Log("  KC #%d: %s 27B nonce=0x%08X fwd=%02X%02X%02X%02X%02X%02X%02X%02X rev=%02X%02X%02X%02X%02X%02X%02X%02X",
+                            kcSent, (kcSent%2==1)?"FWD":"REV", (UINT32)crcNonce,
+                            checkFwd[0],checkFwd[1],checkFwd[2],checkFwd[3],checkFwd[4],checkFwd[5],checkFwd[6],checkFwd[7],
+                            checkRev[0],checkRev[1],checkRev[2],checkRev[3],checkRev[4],checkRev[5],checkRev[6],checkRev[7]);
+                    } else {
+                        // Fallback to echo
+                        int echoLen = lastSendLen - 8;
+                        if (echoLen > 0 && echoLen <= len) {
+                            memcpy(buf, lastSendBuf + 8, echoLen);
+                            r = echoLen;
+                        }
+                    }
                 }
             }
             if (0) {  // DISABLED: complex VC injection code below  // skip first few to let game init
