@@ -859,6 +859,21 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
 
                             Log("  CERT: ourHandle=%p riotHandle=%p", (void*)ourCtx[0], (void*)riotCtx[0]);
 
+                            // Examine CRYPTO_BUFFER structure of our handle
+                            UINT64 *ourCB = (UINT64*)ourCtx[0];
+                            if (ourCB) {
+                                Log("  CERT: ourCB struct: [%p, %llu, %p, %llu, %p, %p]",
+                                    (void*)ourCB[0], ourCB[1], (void*)ourCB[2], ourCB[3],
+                                    (void*)ourCB[4], (void*)ourCB[5]);
+                                // Check if ourCB[0] points to our DER data
+                                if ((void*)ourCB[0] != NULL && ourCB[1] > 0 && ourCB[1] < 4096) {
+                                    BYTE *derCheck = (BYTE*)ourCB[0];
+                                    if (derCheck[0] == 0x30 && derCheck[1] == 0x82) {
+                                        Log("  CERT: ourCB.data=%p len=%llu → DER valid (30 82)!", (void*)ourCB[0], ourCB[1]);
+                                    }
+                                }
+                            }
+
                             // Scan heap for a pointer to Riot CA DER in .rdata
                             // The original CRYPTO_BUFFER has data_ptr = riotCA (.rdata address)
                             BYTE *riotCAaddr = (BYTE*)hExe + 0x19EEBD0;
