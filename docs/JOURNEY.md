@@ -206,12 +206,26 @@ Sans ces args → "Failed to extract information from command line string" → e
 - +0x128 vtable INCHANGÉ après l'appel (stubs permanents)
 - **Prochaine étape** : trouver qui lit le std::map à +0x150 (game logic consumer)
 
+### Phase 6 : TLS cert pinning (le dernier mur)
+- Découverte : `-RiotClientPort` et `-RiotClientAuthToken` nécessaires pour le LCU
+- Le client contacte le FakeLCU mais TLS échoue (UnknownCA)
+- 35 certs DER trouvés dans le binaire (DigiCert + Riot CA à 0x19EEBD0)
+- BoringSSL embarqué statiquement (pas de secur32.dll/OpenSSL externe)
+- Patch mémoire (.rdata) bloqué par Vanguard, patch disque bloqué par stub.dll
+- CertVerifyCertificateChainPolicy patché → non utilisé par le client
+- **PERCÉE** : `FUN_14168a4f0` parse les certs DER en handles heap
+- `FUN_1410fbdc0` construit un `std::vector<handle>` = trust store
+- Handles obtenus pour notre cert ET le Riot CA
+- **Prochaine étape** : scanner le heap pour le trust vector, push_back notre handle
+
 ### Statistiques mises à jour
-- ~70 scripts Ghidra écrits et exécutés
-- ~20 variantes du hook DLL compilées et testées
+- ~80 scripts Ghidra écrits et exécutés
+- ~25 variantes du hook DLL compilées et testées
 - ~40 combinaisons IV/mode crypto testées
 - 12+ méthodes de bypass CRC tentées (TOUTES échouées, contourné par echo)
 - 67 MB de trafic réel capturé
 - Double CFB + CRC nonce + pipeline complet reverse-engineered
 - Client CONNECTED via echo-all ✓
-- Consumer dispatch identifié mais pas encore appelable ✗
+- Real handler trouvé et appelé ✓
+- 35 certs DER identifiés, cert handles obtenus sur le heap ✓
+- TLS trust vector nearly cracked (heap scan + push_back = last step)
