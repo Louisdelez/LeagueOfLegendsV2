@@ -1173,26 +1173,23 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                         Log("  QUEUE #%d: paused=%d cap=%llu count=%llu",
                             queueLogCount, qp[0x18], cap, cnt);
 
-                        // When count > 0, dump the first queue slot to see decoded packet
-                        if (cnt > 0 && cap > 0 && !IsBadReadPtr(*(void**)(qp + 0x78), 8)) {
-                            UINT64 wIdx = *(UINT64*)(qp + 0x88);
-                            UINT64 mask = cap - 1;
-                            // The latest written slot
-                            UINT64 slot = (wIdx + cnt - 1) & mask;
+                        // Dump slot 0 always
+                        if (cap > 0) {
                             BYTE **slotArray = *(BYTE***)(qp + 0x78);
-                            if (slotArray && !IsBadReadPtr(slotArray + slot, 8)) {
-                                BYTE *slotData = slotArray[slot];
-                                if (slotData && !IsBadReadPtr(slotData, 0x60)) {
-                                    // Dump the CRC struct stored in the slot
-                                    // Layout: [0x00] local_c8, [0x08] peerID, [0x0b] cmd, [0x18] local_b0
-                                    //         [0x48] payload ptr, [0x52] payload len
-                                    Log("  SLOT[%llu]: +0x00=%016llX +0x08=%04X cmd@0x0b=%02X",
-                                        slot,
-                                        *(UINT64*)slotData,
-                                        *(USHORT*)(slotData + 8),
-                                        slotData[0x0b]);
-                                    USHORT payLen = *(USHORT*)(slotData + 0x52);
-                                    Log("    payloadLen=%u flags@0x07=%02X", payLen, slotData[0x07]);
+                            UINT64 slot = 0;
+                            BYTE *slotData = NULL;
+                            if (slotArray && !IsBadReadPtr(slotArray, cap * 8))
+                                slotData = slotArray[0];
+                            if (slotData && !IsBadReadPtr(slotData, 0x60)) {
+                                    // Slot layout: [0x00] connID [0x0C] const=4 [0x10] CRC struct copy
+                                    // CRC struct: +0x00 local_c8, +0x08 peerID(2B), +0x0A flags>>7, +0x0B cmd
+                                    BYTE *crc = slotData + 0x10; // CRC struct starts at slot+0x10
+                                    USHORT peerID = *(USHORT*)(crc + 8);
+                                    BYTE sentTime = crc[0x0A];
+                                    BYTE cmd = crc[0x0B];
+                                    USHORT payLen = *(USHORT*)(crc + 0x52);
+                                    Log("  SLOT[%llu]: connID=%llu peerID=0x%04X cmd=%d sentTime=%d payLen=%d",
+                                        slot, *(UINT64*)slotData, peerID, cmd, sentTime, payLen);
                                     // Dump first 32 bytes of slot
                                     Log("    [0x00-0x1F]: %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X",
                                         slotData[0], slotData[1], slotData[2], slotData[3],
@@ -1203,13 +1200,14 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                                         slotData[20], slotData[21], slotData[22], slotData[23],
                                         slotData[24], slotData[25], slotData[26], slotData[27],
                                         slotData[28], slotData[29], slotData[30], slotData[31]);
-                                    // Also dump payload if available
-                                    BYTE *payPtr = *(BYTE**)(slotData + 0x48);
+                                    // Dump payload from CRC struct
+                                    BYTE *payPtr = *(BYTE**)(crc + 0x48);
                                     if (payLen > 0 && payPtr && !IsBadReadPtr(payPtr, payLen < 32 ? payLen : 32)) {
-                                        Log("    PAYLOAD[0:%d]: %02X %02X %02X %02X %02X %02X %02X %02X",
-                                            payLen > 8 ? 8 : payLen,
-                                            payPtr[0], payLen>1?payPtr[1]:0, payLen>2?payPtr[2]:0, payLen>3?payPtr[3]:0,
-                                            payLen>4?payPtr[4]:0, payLen>5?payPtr[5]:0, payLen>6?payPtr[6]:0, payLen>7?payPtr[7]:0);
+                                        int dumpLen = payLen < 16 ? payLen : 16;
+                                        char hex[128]; int hoff = 0;
+                                        for (int b = 0; b < dumpLen; b++)
+                                            hoff += snprintf(hex+hoff, sizeof(hex)-hoff, "%02X ", payPtr[b]);
+                                        Log("    PAYLOAD[%d]: %s", payLen, hex);
                                     }
                                 }
                             }
