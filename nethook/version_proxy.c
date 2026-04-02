@@ -967,6 +967,37 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
         EnsureHwBpOnThisThread();
     }
     int r = real_recvfrom(s, buf, len, flags, from, fromlen);
+    // Find host struct by scanning stack for *(ptr+0x38)==socket
+    if (!recvHostStruct) {
+        BYTE *stk;
+        __asm__ volatile("movq %%rsp, %0" : "=r"(stk));
+        for (int soff = 0; soff < 0x2000; soff += 8) {
+            BYTE *c = *(BYTE**)(stk + soff);
+            if (c && !IsBadReadPtr(c, 0x180) && !IsBadReadPtr(c + 0x38, 8)) {
+                if (*(UINT64*)(c + 0x38) == (UINT64)s && c[0x50] <= 2) {
+                    recvHostStruct = c;
+                    Log("  HOST: %p (stack+0x%X)", c, soff);
+                    // Dump all handler pointers
+                    void *pv = *(void**)(c + 0x20);
+                    if (pv && !IsBadReadPtr((BYTE*)pv + 0x180, 8)) {
+                        HMODULE gb = GetModuleHandleA(NULL);
+                        UINT64 base = (UINT64)gb;
+                        Log("  HANDLERS (plVar15=%p):", pv);
+                        for (int off = 0x100; off <= 0x180; off += 8) {
+                            UINT64 v = *(UINT64*)((BYTE*)pv + off);
+                            if (v > base && v < base + 0x20000000 && !IsBadReadPtr((void*)(v+0x10), 8)) {
+                                UINT64 fn2 = *(UINT64*)(v + 0x10);
+                                UINT64 rva = fn2 - base;
+                                Log("    +0x%03X fn[2]=RVA 0x%llX %s", off, rva,
+                                    rva==0x1D52B0?"STUB(ret)":rva==0x1D64F0?"STUB(ret1)":"<<< REAL");
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
     if (r > 0 && from && from->sa_family == AF_INET) {
         struct sockaddr_in *sinCheck = (struct sockaddr_in*)from;
         if (ntohl(sinCheck->sin_addr.s_addr) == 0x7F000001)
