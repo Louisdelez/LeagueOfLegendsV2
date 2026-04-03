@@ -161,19 +161,17 @@ public class RawGameServer : IGameServer, IDisposable
             Log($"[CLIENT] #{peer.PacketCount} {data.Length}B LNPBlob sessID=0x{sessIdLE:X8} token=0x{peer.ConnectToken:X8}");
         }
 
-        // Decrypt the payload: bytes after LNPBlob header (8B) are encrypted
-        // The 4B "connection token" at bytes 8-11 is part of the encrypted stream
+        // Decrypt: [8B LNPBlob][encrypted: [2B peerID][4B nonce][1B flags][body...]]
+        // Everything after LNPBlob is Double-CFB encrypted
         if (data.Length > 8)
         {
-            int payloadLen = data.Length - 8;
-            byte[] payload = new byte[payloadLen];
-            Array.Copy(data, 8, payload, 0, payloadLen);
+            int encLen = data.Length - 8;
+            byte[] payload = new byte[encLen];
+            Array.Copy(data, 8, payload, 0, encLen);
 
-            // Try BOTH decrypt variants
             byte[] decrypted = DoubleCfbDecrypt(payload);
-            byte[] decryptedAlt = DoubleCfbDecryptAlt(payload);
 
-            // Parse: [2B peerID LE][4B CRC nonce][1B flags][body...]
+            // After decrypt: [2B peerID][4B nonce][1B flags][body...]
             if (decrypted.Length >= 7)
             {
                 ushort peerID = (ushort)(decrypted[0] | (decrypted[1] << 8));
@@ -182,28 +180,12 @@ public class RawGameServer : IGameServer, IDisposable
                 byte cmdType = (byte)(flags & 0x7F);
                 bool hasSentTime = (flags & 0x80) != 0;
 
-                // Also parse alt decrypt
-                byte flagsAlt = decryptedAlt.Length >= 7 ? decryptedAlt[6] : (byte)0;
-                byte cmdAlt = (byte)(flagsAlt & 0x7F);
-                ushort peerIDAlt = decryptedAlt.Length >= 2 ? (ushort)(decryptedAlt[0] | (decryptedAlt[1] << 8)) : (ushort)0;
-
-                if (peer.PacketCount <= 100 || cmdType > 5)
+                if (peer.PacketCount <= 100 || cmdType > 10)
                 {
-                    Log($"  [DECRYPT] peerID=0x{peerID:X4} nonce=0x{nonce:X8} cmd={cmdType} sentTime={hasSentTime} bodyLen={decrypted.Length - 7}");
-                    if (decrypted.Length > 7)
-                        Log($"  [BODY] {Hex(decrypted, 7, Math.Min(48, decrypted.Length - 7))}");
-                }
-
-                // Detect KeyCheck: reliable command with game data
-                if (cmdType == 0x06 || cmdType == 0x86)  // SEND_RELIABLE
-                {
-                    Log($"  [RELIABLE] cmd=0x{cmdType:X2} bodyLen={decrypted.Length - 7}");
-                    if (decrypted.Length > 11)
-                    {
-                        // ENet SEND_RELIABLE body: [2B dataLen BE][data...]
-                        int dataLen = (decrypted[7] << 8) | decrypted[8];
-                        Log($"  [DATA] len={dataLen} first4={Hex(decrypted, 9, Math.Min(4, decrypted.Length - 9))}");
-                    }
+                    int bodyLen = decrypted.Length - 7;
+                    Log($"  [DECRYPT] peerID=0x{peerID:X4} nonce=0x{nonce:X8} cmd={cmdType}(0x{cmdType:X2}) sentTime={hasSentTime} bodyLen={bodyLen}");
+                    if (bodyLen > 0)
+                        Log($"  [BODY] {Hex(decrypted, 7, Math.Min(48, bodyLen))}");
                 }
             }
         }
@@ -277,7 +259,7 @@ public class RawGameServer : IGameServer, IDisposable
             WriteBE16(reliableBody, 3, (ushort)keyCheckData.Length); // dataLen = 32
             Array.Copy(keyCheckData, 0, reliableBody, 5, keyCheckData.Length);
 
-            SendCrcPacket(peer, 0x68, reliableBody); // 0x68 = SEND_RELIABLE (Riot 16.6, not standard 0x06)
+            SendCrcPacket(peer, 0x06, reliableBody); // 0x06 = SEND_RELIABLE (ENet standard, confirmed)
             Log($"  [KEYCHECK] sent via CAFE, {reliableBody.Length}B body");
 
             // After KeyCheck, send SynchVersion to trigger loading screen
@@ -294,7 +276,7 @@ public class RawGameServer : IGameServer, IDisposable
                 // mapId at offset 7 (LE)
                 WriteLE32(synchBody, 7, 11); // mapId = 11 (Summoner's Rift)
                 // Rest = zeros (player list, version string, etc.)
-                SendCrcPacket(peer, 0x68, synchBody); // 0x68 = SEND_RELIABLE (Riot 16.6)
+                SendCrcPacket(peer, 0x06, synchBody); // 0x06 = SEND_RELIABLE (ENet standard)
                 Log($"  [SYNCH] sent SynchVersionS2C");
             }
         }
@@ -520,15 +502,15 @@ public class RawGameServer : IGameServer, IDisposable
     /// </summary>
     private void SendCrcPacket(PeerInfo peer, byte cmdType, byte[] body)
     {
-        // Build plaintext: [2B peerID LE][4B nonce (any)][1B flags][body...]
+        // Format: Double-CFB encrypted entire packet: [2B peerID][4B nonce][1B flags][body...]
+        // Everything is encrypted including peerID
         var plaintext = new byte[2 + 4 + 1 + body.Length];
-        WriteLE16(plaintext, 0, 0); // peerID = 0 (server)
+        WriteLE16(plaintext, 0, 0); // peerID = 0
         WriteLE32(plaintext, 2, 0xDEADBEEF); // placeholder nonce (hook will fix)
         plaintext[6] = cmdType;
         if (body.Length > 0)
             Array.Copy(body, 0, plaintext, 7, body.Length);
 
-        // Double-CFB encrypt
         var encrypted = DoubleCfbEncrypt(plaintext);
 
         // Prefix with magic marker 0xCAFE so hook can distinguish from echo

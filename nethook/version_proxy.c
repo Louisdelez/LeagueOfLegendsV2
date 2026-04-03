@@ -243,59 +243,43 @@ static int FixCrcNonce(BYTE *buf, int len) {
     HMODULE hExe = GetModuleHandleA(NULL);
     if (!hExe) return 0;
 
-    // Decrypt
+    // Format: entire packet is Double-CFB encrypted: [2B peerID][4B nonce][1B flags][body...]
     BYTE *work = (BYTE*)_alloca(len);
     memcpy(work, buf, len);
     HookDoubleCFB_Decrypt(work, len);
 
-    // Log decrypted content
+    // After decrypt: work[0..1]=peerID, work[2..5]=CRC nonce, work[6]=flags, work[7+]=body
     if (crcFixupLogCount < 10) {
         crcFixupLogCount++;
-        // Log first 16 bytes of decrypted data
         char hexdump[128] = {0};
         int hoff = 0;
-        for (int i = 0; i < len && i < 24 && hoff < 100; i++)
+        for (int i = 0; i < len && i < 20 && hoff < 100; i++)
             hoff += snprintf(hexdump + hoff, sizeof(hexdump) - hoff, "%02X ", work[i]);
         Log("CRC_DBG #%d: len=%d dec: %s", crcFixupLogCount, len, hexdump);
     }
 
-    // Build the CRC struct that FUN_140577f10 expects
-    // Layout: param[0..7]=local_c8, param[8..9]=peerID, *(param+0x18)=local_b0
-    //         *(param+0x48)=payload_ptr, *(param+0x52)=payload_len
+    // Build CRC struct for game's CRC function
     BYTE crcStruct[0x60];
     memset(crcStruct, 0, sizeof(crcStruct));
-    // param[0..7] = local_c8 = *(conn+0x138) — read ACTUAL value from connection struct
-    UINT64 local_c8_val = 1; // default
-    if (connStructAddr && !IsBadReadPtr((void*)(connStructAddr + 0x138), 8)) {
+    UINT64 local_c8_val = 1;
+    if (connStructAddr && !IsBadReadPtr((void*)(connStructAddr + 0x138), 8))
         local_c8_val = *(UINT64*)(connStructAddr + 0x138);
-    }
     *(UINT64*)(crcStruct + 0x00) = local_c8_val;
-    if (crcFixupLogCount <= 5) {
-        Log("CRC_DBG: conn+0x138=%llu (local_c8)", (unsigned long long)local_c8_val);
-    }
-    // param[8..9] = peerID from packet
     crcStruct[0x08] = work[0]; // peerLo
     crcStruct[0x09] = work[1]; // peerHi
-    // *(param+0x18) = local_b0 = 0xFFFFFFFFFFFFFFFF
     *(UINT64*)(crcStruct + 0x18) = 0xFFFFFFFFFFFFFFFF;
-    // Payload = bytes after 7-byte header
     int payloadLen = (len > 7) ? (len - 7) : 0;
-    *(UINT64*)(crcStruct + 0x48) = (UINT64)(work + 7); // pointer to payload
+    *(UINT64*)(crcStruct + 0x48) = (UINT64)(work + 7);
     *(UINT16*)(crcStruct + 0x52) = (UINT16)payloadLen;
 
-    // Call FUN_140577f10 — returns the CRC nonce via (*DAT_1418dfd10)(~crc)
     typedef int (__fastcall *crc_fn_t)(BYTE*);
     crc_fn_t CrcFn = (crc_fn_t)((BYTE*)hExe + 0x577F10);
     int nonce = CrcFn(crcStruct);
 
-    if (crcFixupLogCount <= 5) {
-        Log("CRC_DBG: game_nonce=0x%08X", (UINT32)nonce);
-    }
+    if (crcFixupLogCount <= 10)
+        Log("CRC_DBG: peer=%02X%02X flags=0x%02X nonce=0x%08X", work[0], work[1], work[6], (UINT32)nonce);
 
-    // Patch nonce into decrypted packet at bytes [2..5]
     *(int*)(work + 2) = nonce;
-
-    // Re-encrypt
     HookDoubleCFB_Encrypt(work, len);
     memcpy(buf, work, len);
     return 1;
@@ -1259,21 +1243,25 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
             memcpy(lastSendBuf, buf, len);
             lastSendLen = len;
         }
-        // Decrypt and log non-ping client packets (> 27B, after LNPBlob)
+        // Decrypt and log non-ping client packets
+        // Format: [8B LNPBlob][encrypted: [2B peerID][4B nonce][1B flags][body...]]
         if (len > 27 && hookBfReady) {
             static int clientDecLog = 0;
             if (clientDecLog < 10) {
                 clientDecLog++;
-                int encLen = len - 8; // strip LNPBlob
+                int encLen = len - 8; // skip LNPBlob
                 if (encLen > 0 && encLen < 1024) {
                     BYTE *dec = (BYTE*)_alloca(encLen);
                     memcpy(dec, buf + 8, encLen);
                     HookDoubleCFB_Decrypt(dec, encLen);
+                    // dec[0..1]=peerID, dec[2..5]=nonce, dec[6]=flags, dec[7+]=body
+                    BYTE flags = (encLen >= 7) ? dec[6] : 0;
                     char hexdump[200] = {0};
                     int hoff = 0;
-                    for (int i = 0; i < encLen && i < 24 && hoff < 180; i++)
+                    for (int i = 0; i < encLen && i < 20 && hoff < 180; i++)
                         hoff += snprintf(hexdump + hoff, sizeof(hexdump) - hoff, "%02X ", dec[i]);
-                    Log("CLIENT_DEC #%d: %dB (enc=%dB) → %s", clientDecLog, len, encLen, hexdump);
+                    Log("CLIENT_DEC #%d: %dB peer=%02X%02X flags=0x%02X(cmd=%d) dec: %s",
+                        clientDecLog, len, dec[0], dec[1], flags, flags & 0x7F, hexdump);
                 }
             }
         }
