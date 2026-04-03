@@ -218,29 +218,44 @@ public class RawGameServer : IGameServer, IDisposable
         // =================================================================
         // Send a CAFE response for EVERY packet (no echo!)
         // This ensures every recvfrom gets a properly encrypted response
+        // Send VERIFY_CONNECT for first 3 packets, then ACK + PING for the rest
         if (peer.PacketCount <= 3)
         {
-            // First few packets: send VERIFY_CONNECT via CAFE
+            // VERIFY_CONNECT with 8 channels
             var vcBody = new byte[36];
-            WriteBE16(vcBody, 0, 0);      // outPeerID
-            vcBody[2] = 0xFF;             // incomingSessionID
-            vcBody[3] = 0xFF;             // outgoingSessionID
+            WriteBE16(vcBody, 0, 1);      // outPeerID = 1 (not 0!)
+            vcBody[2] = 0x00;             // incomingSessionID = 0
+            vcBody[3] = 0x00;             // outgoingSessionID = 0
             WriteBE32(vcBody, 4, 996);    // MTU
             WriteBE32(vcBody, 8, 32768);  // windowSize
-            WriteBE32(vcBody, 12, 8);     // channelCount (LoL uses 8 channels)
+            WriteBE32(vcBody, 12, 8);     // channelCount = 8
             WriteBE32(vcBody, 16, 0);     // inBandwidth
             WriteBE32(vcBody, 20, 0);     // outBandwidth
             WriteBE32(vcBody, 24, 5000);  // throttleInterval
             WriteBE32(vcBody, 28, 2);     // throttleAccel
             WriteBE32(vcBody, 32, 2);     // throttleDecel
-            SendCrcPacket(peer, 0x03, vcBody); // VERIFY_CONNECT
+            SendCrcPacket(peer, 0x03, vcBody); // cmd=3 VERIFY_CONNECT
+        }
+        else if (peer.PacketCount <= 6)
+        {
+            // Send ACK for client's packets (cmd=1)
+            // ACK body: [2B seqNo BE][2B sentTime BE]
+            var ackBody = new byte[4];
+            WriteBE16(ackBody, 0, (ushort)(peer.PacketCount - 1)); // seqNo
+            WriteBE16(ackBody, 2, 0); // sentTime = 0
+            SendCrcPacket(peer, 0x01, ackBody); // cmd=1 ACKNOWLEDGE
         }
         else
         {
-            // After handshake: send CAFE echo (client data through CAFE)
-            // This keeps recvfrom unblocked with valid encrypted data
-            // Use a simple PING as keepalive
-            SendCrcPacket(peer, 0x05, new byte[0]); // PING
+            // Keepalive: alternate between PING and ACK
+            if (peer.PacketCount % 2 == 0)
+                SendCrcPacket(peer, 0x05, new byte[0]); // PING
+            else {
+                var ackBody = new byte[4];
+                WriteBE16(ackBody, 0, (ushort)(peer.PacketCount / 2));
+                WriteBE16(ackBody, 2, 0);
+                SendCrcPacket(peer, 0x01, ackBody); // ACK
+            }
         }
 
         // Send CAFE packets early (packet 5+, during echo phase)
