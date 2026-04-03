@@ -2831,10 +2831,10 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
         g_x509Vtable, (void*)g_ourCertHandle); fflush(logfile); }
 
     // Search heap for arrays of pointers where entry+0x20 == g_x509Vtable
-    // This identifies X509 cert objects in the trust vector
     MEMORY_BASIC_INFORMATION mbi;
     BYTE *scan = NULL;
     int found = 0;
+    int regionsScanned = 0, vtableHits = 0;
 
     while (VirtualQuery(scan, &mbi, sizeof(mbi)) && !found) {
         if (mbi.State != MEM_COMMIT || !(mbi.Protect & PAGE_READWRITE) ||
@@ -2844,34 +2844,45 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
         }
         BYTE *base = (BYTE*)mbi.BaseAddress;
         SIZE_T size = mbi.RegionSize;
-        // Skip binary image
         if (base >= (BYTE*)hExe && base < (BYTE*)hExe + 0x20000000) {
             scan = base + size; continue;
         }
+        regionsScanned++;
 
-        // Look for arrays of 5+ consecutive heap pointers
-        for (SIZE_T j = 0; j + 40 <= size && !found; j += 8) {
-            UINT64 *arr = (UINT64*)(base + j);
-            // Quick check: 5 consecutive values look like heap pointers
-            int goodPtrs = 0;
-            for (int k = 0; k < 5; k++) {
-                if (arr[k] > 0x10000 && arr[k] < 0x7FFFFFFFFFFF &&
-                    !(arr[k] >= (UINT64)hExe && arr[k] < (UINT64)hExe + 0x20000000))
-                    goodPtrs++;
-            }
-            if (goodPtrs < 4) continue;
+        // Scan for ANY pointer whose target has vtable at +0x20
+        for (SIZE_T j = 0; j + 8 <= size && !found; j += 8) {
+            UINT64 val = *(UINT64*)(base + j);
+            if (val < 0x10000 || val > 0x7FFFFFFFFFFF) continue;
+            if (val >= (UINT64)hExe && val < (UINT64)hExe + 0x20000000) continue;
 
-            // Verify: check if arr[0]+0x20 has the X509 vtable
             UINT64 vtCheck = 0;
-            if (SafeRead8((void*)(arr[0] + 0x20), &vtCheck) && vtCheck == g_x509Vtable) {
-                // Count how many consecutive entries have the same vtable
+            if (SafeRead8((void*)(val + 0x20), &vtCheck) && vtCheck == g_x509Vtable) {
+                vtableHits++;
+                // Found a cert handle! Count consecutive ones
                 int count = 0;
                 for (int k = 0; k < 60; k++) {
+                    UINT64 next = 0;
+                    if (j + (k+1)*8 > size) break;
+                    next = *(UINT64*)(base + j + k*8);
                     UINT64 vt2 = 0;
-                    if (!SafeRead8((void*)(arr[k] + 0x20), &vt2) || vt2 != g_x509Vtable) break;
+                    if (!SafeRead8((void*)(next + 0x20), &vt2) || vt2 != g_x509Vtable) break;
                     count++;
                 }
-                if (count >= 5) {
+                if (vtableHits <= 10 && logfile) {
+                    fprintf(logfile, "[CertThread] vtable hit #%d at %p: val=%p count=%d\n",
+                        vtableHits, base+j, (void*)val, count);
+                    fflush(logfile);
+                }
+                // Replace Riot cert with ours IMMEDIATELY on first non-self hit
+                if (val != g_ourCertHandle && g_ourCertHandle && !found) {
+                    *(UINT64*)(base + j) = g_ourCertHandle;
+                    found = 1;
+                    if (logfile) { fprintf(logfile,
+                        "[CertThread] *** EARLY REPLACE at %p: old=%p → new=%p ***\n",
+                        base+j, (void*)val, (void*)g_ourCertHandle); fflush(logfile); }
+                    goto scan_done;
+                }
+                if (count >= 3) { // lowered from 5 to 3
                     found = 1;
                     if (logfile) {
                         fprintf(logfile, "[CertThread] *** TRUST VECTOR ARRAY at %p, %d entries! ***\n",
@@ -2912,7 +2923,112 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
         scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
     }
     scan_done:
-    if (!found && logfile) { fprintf(logfile, "[CertThread] Trust vector NOT found\n"); fflush(logfile); }
+    if (logfile) {
+        fprintf(logfile, "[CertThread] Scan #1: %d regions, %d vtable hits, found=%d\n",
+            regionsScanned, vtableHits, found);
+        fflush(logfile);
+    }
+    // Retry scan every 5s for up to 60s (TLS may init later)
+    if (!found) {
+        for (int retry = 0; retry < 12 && !found; retry++) {
+            Sleep(5000);
+            scan = NULL;
+            vtableHits = 0; regionsScanned = 0;
+            while (VirtualQuery(scan, &mbi, sizeof(mbi)) && !found) {
+                if (mbi.State != MEM_COMMIT || !(mbi.Protect & PAGE_READWRITE) ||
+                    (mbi.Protect & (PAGE_GUARD|PAGE_NOACCESS)) || mbi.RegionSize < 256) {
+                    scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize; continue;
+                }
+                BYTE *base2 = (BYTE*)mbi.BaseAddress;
+                SIZE_T size2 = mbi.RegionSize;
+                if (base2 >= (BYTE*)hExe && base2 < (BYTE*)hExe + 0x20000000) {
+                    scan = base2 + size2; continue;
+                }
+                regionsScanned++;
+                for (SIZE_T j = 0; j + 8 <= size2 && !found; j += 8) {
+                    UINT64 val = *(UINT64*)(base2 + j);
+                    if (val < 0x10000 || val > 0x7FFFFFFFFFFF) continue;
+                    UINT64 vtc = 0;
+                    if (SafeRead8((void*)(val + 0x20), &vtc) && vtc == g_x509Vtable) {
+                        vtableHits++;
+                        int count = 0;
+                        for (int k = 0; k < 60; k++) {
+                            if (j + (k+1)*8 > size2) break;
+                            UINT64 next = *(UINT64*)(base2 + j + k*8);
+                            UINT64 vt2 = 0;
+                            if (!SafeRead8((void*)(next + 0x20), &vt2) || vt2 != g_x509Vtable) break;
+                            count++;
+                        }
+                        if (count >= 3) {
+                            found = 1;
+                            if (logfile) { fprintf(logfile, "[CertThread] RETRY #%d: TRUST ARRAY at %p, %d entries!\n",
+                                retry+1, base2+j, count); fflush(logfile); }
+                            UINT64 arrAddr = (UINT64)(base2 + j);
+                            UINT64 endAddr = arrAddr + count * 8;
+                            for (SIZE_T s = 0; s + 24 <= size2; s += 8) {
+                                UINT64 *vec = (UINT64*)(base2 + s);
+                                if (vec[0] == arrAddr && vec[1] >= arrAddr && vec[1] <= endAddr + 64) {
+                                    if (g_ourCertHandle) {
+                                        typedef void (*VecPush_t)(void*, void*, void*);
+                                        VecPush_t VP = (VecPush_t)((BYTE*)hExe + 0x1E2190);
+                                        void *h = (void*)g_ourCertHandle;
+                                        VP(vec, (void*)vec[1], &h);
+                                        if (logfile) { fprintf(logfile, "[CertThread] *** CERT INJECTED! count=%llu ***\n",
+                                            (vec[1]-vec[0])/8); fflush(logfile); }
+                                    }
+                                    goto retry_done;
+                                }
+                            }
+                            // Array found but no vector struct — try direct write
+                            if (logfile) { fprintf(logfile, "[CertThread] Array found but no vector struct. Trying direct write.\n"); fflush(logfile); }
+                            // Write our handle at the end of the array
+                            *(UINT64*)(base2 + j + count*8) = g_ourCertHandle;
+                            if (logfile) { fprintf(logfile, "[CertThread] *** DIRECT WRITE at arr[%d]=%p ***\n",
+                                count, (void*)g_ourCertHandle); fflush(logfile); }
+                            goto retry_done;
+                        }
+                    }
+                }
+                scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
+            }
+            if (logfile) { fprintf(logfile, "[CertThread] Retry #%d: %d regions, %d hits, found=%d\n",
+                retry+1, regionsScanned, vtableHits, found); fflush(logfile); }
+
+            // If we found exactly 1 cert handle (Riot CA), replace it with ours
+            if (!found && vtableHits >= 1 && g_ourCertHandle) {
+                // Rescan to find the single Riot cert handle and replace it
+                BYTE *rescan = NULL;
+                MEMORY_BASIC_INFORMATION mbi2;
+                while (VirtualQuery(rescan, &mbi2, sizeof(mbi2))) {
+                    if (mbi2.State == MEM_COMMIT && (mbi2.Protect & PAGE_READWRITE) &&
+                        !(mbi2.Protect & (PAGE_GUARD|PAGE_NOACCESS)) && mbi2.RegionSize >= 8) {
+                        BYTE *rb = (BYTE*)mbi2.BaseAddress;
+                        SIZE_T rs = mbi2.RegionSize;
+                        if (!(rb >= (BYTE*)hExe && rb < (BYTE*)hExe + 0x20000000)) {
+                            for (SIZE_T rj = 0; rj + 8 <= rs; rj += 8) {
+                                UINT64 rv = *(UINT64*)(rb + rj);
+                                if (rv < 0x10000 || rv > 0x7FFFFFFFFFFF) continue;
+                                if (rv == g_ourCertHandle) continue; // skip our own handle
+                                UINT64 rvt = 0;
+                                if (SafeRead8((void*)(rv + 0x20), &rvt) && rvt == g_x509Vtable) {
+                                    // Found a Riot cert handle - REPLACE it with ours
+                                    UINT64 oldHandle = rv;
+                                    *(UINT64*)(rb + rj) = g_ourCertHandle;
+                                    found = 1;
+                                    if (logfile) { fprintf(logfile,
+                                        "[CertThread] *** REPLACED cert at %p: old=%p → new=%p ***\n",
+                                        rb+rj, (void*)oldHandle, (void*)g_ourCertHandle); fflush(logfile); }
+                                    goto retry_done;
+                                }
+                            }
+                        }
+                    }
+                    rescan = (BYTE*)mbi2.BaseAddress + mbi2.RegionSize;
+                }
+            }
+        }
+    }
+    retry_done:
     return 0;
 }
 
