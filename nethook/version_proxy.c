@@ -2836,11 +2836,8 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
     HMODULE hExe = GetModuleHandleA(NULL);
     if (!hExe) return 0;
 
-    // === PHASE 0: Patch SSL_CTX verify_mode BEFORE first TLS attempt ===
-    // The parent SSL object has vtable at hExe + 0x19658D0
-    // Scan heap for this vtable to find the SSL parent, then patch verify_mode
-    Sleep(200); // tiny delay for heap init
-    {
+    // === PHASE 0: SSL vtable scan DISABLED (wastes 10s, never finds target) ===
+    if (0) { // DISABLED — entire SSL vtable scan block
         UINT64 sslVtable = (UINT64)hExe + 0x19658D0;
         if (logfile) { fprintf(logfile, "[CertThread] Scanning for SSL vtable 0x%llX...\n",
             (unsigned long long)sslVtable); fflush(logfile); }
@@ -2957,10 +2954,8 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
         }
     }
 
-    // === PHASE 0: Replace Riot CA DER bytes on HEAP ===
-    // .rdata is protected by Vanguard. But CRYPTO_BUFFER objects on the heap
-    // contain POINTERS to DER data. If we allocate our CA DER on heap and
-    // modify the CRYPTO_BUFFER to point to it, BoringSSL will use our CA.
+    // === PHASE 0 heap DER scan + SSL vtable scan: BOTH DISABLED ===
+    if (0) { // DISABLED — both scans are too slow and don't find targets
     {
         // Read our CA cert
         char caPath[MAX_PATH];
@@ -3038,6 +3033,8 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
         }
     }
 
+    } // end of DISABLED DER scan block
+
     // === PHASE 0.5: Patch FLOW state to bypass LCU timeout ===
     // DAT_141da5228 + 8 must be 1 for FLOW to proceed
     // RVA = 0x1DA5228 + 8 = 0x1DA5230
@@ -3048,7 +3045,7 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
         // DAT_141da5228 is a POINTER to connection object. Read ptr, then ptr+8
         UINT64 *flowPtrAddr = (UINT64*)((BYTE*)hExe + 0x1DA5228);
         UINT64 *lcuPtrAddr = (UINT64*)((BYTE*)hExe + 0x1DA1480);
-        for (int fw = 0; fw < 20; fw++) {
+        for (int fw = 0; fw < 8; fw++) { // reduced from 20 to let PHASE 1 run faster
             Sleep(2000);
             UINT64 flowPtr = *flowPtrAddr;
             UINT64 lcuPtr = *lcuPtrAddr;
@@ -3367,14 +3364,50 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
                         vtableHits, base+j, (void*)val, count);
                     fflush(logfile);
                 }
-                // Replace Riot cert with ours IMMEDIATELY on first non-self hit
-                if (val != g_ourCertHandle && g_ourCertHandle && !found) {
-                    *(UINT64*)(base + j) = g_ourCertHandle;
-                    found = 1;
-                    if (logfile) { fprintf(logfile,
-                        "[CertThread] *** EARLY REPLACE at %p: old=%p → new=%p ***\n",
-                        base+j, (void*)val, (void*)g_ourCertHandle); fflush(logfile); }
-                    goto scan_done;
+                // Found Riot cert handle. Dump its CRYPTO_BUFFER structure to find DER data.
+                if (val != g_ourCertHandle && !found) {
+                    if (logfile && !IsBadReadPtr((void*)val, 0x40)) {
+                        UINT64 *cb = (UINT64*)val;
+                        fprintf(logfile, "[CertThread] CRYPTO_BUFFER at %p:\n", (void*)val);
+                        for (int d = 0; d < 8; d++)
+                            fprintf(logfile, "  [%d] +0x%02X = %p (%llu)\n", d, d*8, (void*)cb[d], (unsigned long long)cb[d]);
+                        // Check each pointer field - follow it and see if it starts with 30 82 (DER SEQUENCE)
+                        for (int d = 0; d < 8; d++) {
+                            if (cb[d] > 0x10000 && cb[d] < 0x7FFFFFFFFFFF && !IsBadReadPtr((void*)cb[d], 4)) {
+                                BYTE *p = (BYTE*)cb[d];
+                                if (p[0] == 0x30 && p[1] == 0x82) {
+                                    int derLen = (p[2] << 8) | p[3];
+                                    fprintf(logfile, "  *** CB[%d] points to DER data! len=%d (30 82 %02X %02X) ***\n",
+                                        d, derLen + 4, p[2], p[3]);
+                                    // THIS IS THE DER DATA! Overwrite with our myCA DER
+                                    char cp3[MAX_PATH]; GetModuleFileNameA(NULL, cp3, MAX_PATH);
+                                    char *s3 = strrchr(cp3, '\\'); if (s3) strcpy(s3+1, "myCA.der");
+                                    FILE *cf3 = fopen(cp3, "rb");
+                                    if (!cf3) cf3 = fopen("D:\\LeagueOfLegendsV2\\myCA.der", "rb");
+                                    if (cf3) {
+                                        fseek(cf3, 0, SEEK_END); long sz3 = ftell(cf3); fseek(cf3, 0, SEEK_SET);
+                                        if (sz3 > 0 && sz3 <= derLen + 4) {
+                                            // Overwrite DER in-place
+                                            fread(p, 1, sz3, cf3);
+                                            fclose(cf3);
+                                            // Zero-pad remaining bytes
+                                            if (sz3 < (long)(derLen + 4))
+                                                memset(p + sz3, 0, (derLen + 4) - sz3);
+                                            // Fix the outer SEQUENCE length to match our cert
+                                            // Our cert DER already has correct length at bytes 2-3
+                                            fprintf(logfile, "  *** OVERWROTE DER with myCA (%ld bytes)! ***\n", sz3);
+                                            found = 1;
+                                        } else {
+                                            fclose(cf3);
+                                            fprintf(logfile, "  myCA too large (%ld > %d)\n", sz3, derLen+4);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        fflush(logfile);
+                    }
+                    if (!found) goto scan_done; // continue scanning
                 }
                 if (count >= 3) { // lowered from 5 to 3
                     found = 1;
