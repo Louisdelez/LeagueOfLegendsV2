@@ -231,8 +231,8 @@ public class RawGameServer : IGameServer, IDisposable
             Send(echo, peer);
         }
 
-        // DISABLED: test without CAFE to see if timeout is from our packets or internal
-        if (false && !peer.GameInitSent && peer.PacketCount >= 10)
+        // Send CAFE packets early (packet 5+, during echo phase)
+        if (!peer.GameInitSent && peer.PacketCount >= 5)
         {
             peer.GameInitSent = true;
             Log($"  [GAME] Sending KeyCheck via CRC-format packet");

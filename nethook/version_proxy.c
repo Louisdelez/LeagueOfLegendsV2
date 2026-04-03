@@ -1630,26 +1630,24 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
             static int handshakeDone = 0;
             totalRecv++;
 
-            // Check for CAFE FIRST (even during handshake phase)
+            // ALL packets go through CRC fixup (no more echo!)
+            // The server sends CAFE-prefixed packets with proper ENet responses
             int isCafe = (r >= 4 && (BYTE)buf[0] == 0xCA && (BYTE)buf[1] == 0xFE);
-
-            // Handshake phase: echo non-CAFE packets for first 30 packets
-            if (!isCafe && !handshakeDone && echoCount < 30) {
+            if (!isCafe) {
+                // Non-CAFE: echo for keepalive (server's raw echo)
                 int echoLen = lastSendLen - 8;
                 if (echoLen > 0 && echoLen <= len) {
                     memcpy(buf, lastSendBuf + 8, echoLen);
                     r = echoLen;
                     echoCount++;
-                    if (echoCount <= 5)
-                        Log("ECHO #%d: %dB (handshake)", echoCount, r);
-                    if (echoCount >= 30) {
+                    if (echoCount == 30) {
                         handshakeDone = 1;
-                        Log("=== HANDSHAKE DONE after %d echoes, entering smart mode ===", echoCount);
+                        Log("=== HANDSHAKE DONE after %d echoes ===", echoCount);
                     }
                 }
             }
-            // After handshake OR for CAFE packets (isCafe works during echo too)
-            else if (handshakeDone || isCafe) {
+            // CAFE packets: CRC fixup and deliver
+            if (isCafe) {
                 static int postHsLog = 0;
                 if (postHsLog < 30) {
                     postHsLog++;
