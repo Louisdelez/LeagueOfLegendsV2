@@ -216,13 +216,22 @@ public class RawGameServer : IGameServer, IDisposable
         //
         // We try BOTH to determine which is correct.
         // =================================================================
-        // HYBRID: Echo + CAFE. Echo keeps ENet alive, CAFE sends game data.
+        // HYBRID: Echo + CAFE ACK + CAFE game data
+        // Echo: returns client's own data (ENet state machine)
         if (data.Length > 12)
         {
             int echoLen = data.Length - 8;
             var echo = new byte[echoLen];
             Array.Copy(data, 8, echo, 0, echoLen);
-            Send(echo, peer); // echo for ENet keepalive
+            Send(echo, peer);
+        }
+        // Send ACK for every client packet (incrementing seqNo)
+        // This tells ENet "I received your reliable packet N"
+        {
+            var ackBody = new byte[4];
+            WriteBE16(ackBody, 0, peer.AckSeqNo++); // seqNo to ACK
+            WriteBE16(ackBody, 2, (ushort)(peer.PacketCount & 0xFFFF)); // sentTime
+            SendCrcPacket(peer, 0x01, ackBody); // cmd=1 ACKNOWLEDGE
         }
         // Also send CAFE responses
         if (peer.PacketCount <= 3)
@@ -674,5 +683,6 @@ public class RawGameServer : IGameServer, IDisposable
         public ushort ReliableSeqNo { get; set; } = 1;
         public uint ConnectToken { get; set; }
         public byte[]? LastPayload { get; set; }
+        public ushort AckSeqNo { get; set; } = 0;
     }
 }
