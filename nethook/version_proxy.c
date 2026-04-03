@@ -52,8 +52,9 @@ __declspec(dllexport) BOOL WINAPI VerQueryValueW(LPCVOID b, LPCWSTR s, LPVOID *p
     return pVerQueryValueW ? pVerQueryValueW(b, s, p, l) : FALSE;
 }
 
-// Forward declaration for Log (defined later)
+// Forward declarations (defined later in the file)
 static void Log(const char *fmt, ...);
+static volatile BYTE *connStructAddr = NULL;  // connection struct address, captured in sendto hook
 
 // === BLOWFISH + CRC FIXUP ===
 // Compact Blowfish implementation for CRC nonce fixup on server packets.
@@ -244,11 +245,15 @@ static int FixCrcNonce(BYTE *buf, int len) {
     memcpy(work, buf, len);
     HookDoubleCFB_Decrypt(work, len);
 
-    // Log
-    if (crcFixupLogCount < 5) {
+    // Log decrypted content
+    if (crcFixupLogCount < 10) {
         crcFixupLogCount++;
-        Log("CRC_DBG #%d: dec peer=%02X%02X flags=%02X len=%d",
-            crcFixupLogCount, work[0], work[1], work[6], len);
+        // Log first 16 bytes of decrypted data
+        char hexdump[128] = {0};
+        int hoff = 0;
+        for (int i = 0; i < len && i < 24 && hoff < 100; i++)
+            hoff += snprintf(hexdump + hoff, sizeof(hexdump) - hoff, "%02X ", work[i]);
+        Log("CRC_DBG #%d: len=%d dec: %s", crcFixupLogCount, len, hexdump);
     }
 
     // Build the CRC struct that FUN_140577f10 expects
@@ -256,8 +261,15 @@ static int FixCrcNonce(BYTE *buf, int len) {
     //         *(param+0x48)=payload_ptr, *(param+0x52)=payload_len
     BYTE crcStruct[0x60];
     memset(crcStruct, 0, sizeof(crcStruct));
-    // param[0..7] = local_c8 = *(conn+0x138) = 1 as uint64 LE
-    *(UINT64*)(crcStruct + 0x00) = 1;
+    // param[0..7] = local_c8 = *(conn+0x138) — read ACTUAL value from connection struct
+    UINT64 local_c8_val = 1; // default
+    if (connStructAddr && !IsBadReadPtr((void*)(connStructAddr + 0x138), 8)) {
+        local_c8_val = *(UINT64*)(connStructAddr + 0x138);
+    }
+    *(UINT64*)(crcStruct + 0x00) = local_c8_val;
+    if (crcFixupLogCount <= 5) {
+        Log("CRC_DBG: conn+0x138=%llu (local_c8)", (unsigned long long)local_c8_val);
+    }
     // param[8..9] = peerID from packet
     crcStruct[0x08] = work[0]; // peerLo
     crcStruct[0x09] = work[1]; // peerHi
@@ -606,7 +618,7 @@ static volatile void *recvHostStruct = NULL;
 UINT64 g_x509Vtable = 0;
 UINT64 g_ourCertHandle = 0;
 static int injectCount = 0;
-static volatile BYTE *connStructAddr = NULL;  // RBX = connection struct address
+// connStructAddr declared earlier (forward declaration)
 static volatile int crcDumpCount = 0;
 
 // CRC BYPASS via Hardware Breakpoint + Vectored Exception Handler
@@ -1243,6 +1255,24 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
         if (len > 0 && len <= 1024) {
             memcpy(lastSendBuf, buf, len);
             lastSendLen = len;
+        }
+        // Decrypt and log non-ping client packets (> 27B, after LNPBlob)
+        if (len > 27 && hookBfReady) {
+            static int clientDecLog = 0;
+            if (clientDecLog < 10) {
+                clientDecLog++;
+                int encLen = len - 8; // strip LNPBlob
+                if (encLen > 0 && encLen < 1024) {
+                    BYTE *dec = (BYTE*)_alloca(encLen);
+                    memcpy(dec, buf + 8, encLen);
+                    HookDoubleCFB_Decrypt(dec, encLen);
+                    char hexdump[200] = {0};
+                    int hoff = 0;
+                    for (int i = 0; i < encLen && i < 24 && hoff < 180; i++)
+                        hoff += snprintf(hexdump + hoff, sizeof(hexdump) - hoff, "%02X ", dec[i]);
+                    Log("CLIENT_DEC #%d: %dB (enc=%dB) → %s", clientDecLog, len, encLen, hexdump);
+                }
+            }
         }
         // Log 36B packets (potential KeyCheck from client)
         if (len == 36) {

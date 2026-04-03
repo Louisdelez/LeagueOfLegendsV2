@@ -257,19 +257,26 @@ public class RawGameServer : IGameServer, IDisposable
             // ===== SEND RELIABLE KeyCheck =====
             // ENet SEND_RELIABLE body after CRC flags byte:
             //   [1B channelID][2B reliableSeqNo BE][2B dataLen BE][data...]
-            // KeyCheck: opcode=0x00, then playerNo, padding, clientID, checksum
-            // Total data = 12 bytes: [1B opcode][1B playerNo][6B pad][4B clientID]
-            var reliableBody = new byte[1 + 2 + 2 + 12]; // channel(1) + seq(2) + len(2) + KeyCheck(12)
-            reliableBody[0] = 0x00; // channel 0
-            WriteBE16(reliableBody, 1, peer.ReliableSeqNo++); // seqNo
-            WriteBE16(reliableBody, 3, 12); // dataLen = 12
+            // KeyCheck: 32 bytes packet on handshake channel
+            // [1B action=0][3B pad][4B clientID LE][8B playerID LE][4B versionNo LE][8B checksum LE][4B pad]
+            // Checksum = BF_encrypt(playerID bytes)
+            var keyCheckData = new byte[32];
+            keyCheckData[0] = 0x00; // action = 0 (response)
+            // pad [1-3] = 0
+            WriteLE32(keyCheckData, 4, 0); // clientID = 0
+            // playerID at offset 8 (8 bytes LE) = 1
+            keyCheckData[8] = 0x01;
+            // versionNo at offset 16 = 0
+            // checksum at offset 20 = BF_encrypt(playerID)
+            var playerIdBytes = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+            var encrypted = _cipher.EncryptBlock(playerIdBytes);
+            Array.Copy(encrypted, 0, keyCheckData, 20, 8);
 
-            // KeyCheck payload at offset 5
-            reliableBody[5] = 0x00; // opcode 0x00 = KeyCheck
-            reliableBody[6] = 0x00; // playerNo = 0
-            // bytes 7-12: padding (zeros)
-            // bytes 13-16: clientID (LE) = 1
-            WriteLE32(reliableBody, 13, 1);
+            var reliableBody = new byte[1 + 2 + 2 + keyCheckData.Length]; // channel(1) + seq(2) + len(2) + data
+            reliableBody[0] = 0x00; // channel 0 = handshake
+            WriteBE16(reliableBody, 1, peer.ReliableSeqNo++); // seqNo
+            WriteBE16(reliableBody, 3, (ushort)keyCheckData.Length); // dataLen = 32
+            Array.Copy(keyCheckData, 0, reliableBody, 5, keyCheckData.Length);
 
             SendCrcPacket(peer, 0x06, reliableBody); // 0x06 = SEND_RELIABLE
             Log($"  [KEYCHECK] sent via CAFE, {reliableBody.Length}B body");
