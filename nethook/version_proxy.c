@@ -3105,10 +3105,50 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
                         if (logfile) { fprintf(logfile, "[CertThread] *** PATCHED dba0c0+0x2c to 3 ***\n"); fflush(logfile); }
                     }
                 }
-                // Patch evt422 to something the game expects (try 0 = no event)
+                // Patch evt422
                 if (lcuPtr != 0 && !IsBadReadPtr((void*)(lcuPtr + 0x422), 1)) {
                     *(BYTE*)(lcuPtr + 0x422) = 0;
-                    if (logfile) { fprintf(logfile, "[CertThread] *** PATCHED evt422 to 0 ***\n"); fflush(logfile); }
+                }
+                // LATE DER SWAP: scan heap for Riot CA DER bytes and replace with myCA
+                {
+                    static int derSwapDone = 0;
+                    if (!derSwapDone) {
+                        BYTE *riotDER2 = (BYTE*)hExe + 0x19EEBD0;
+                        UINT64 riotFirst8_2 = *(UINT64*)riotDER2;
+                        // Read myCA.der
+                        char cp2[MAX_PATH]; GetModuleFileNameA(NULL, cp2, MAX_PATH);
+                        char *s2 = strrchr(cp2, '\\'); if (s2) strcpy(s2+1, "myCA.der");
+                        FILE *cf2 = fopen(cp2, "rb");
+                        if (!cf2) cf2 = fopen("D:\\LeagueOfLegendsV2\\myCA.der", "rb");
+                        if (cf2) {
+                            fseek(cf2, 0, SEEK_END); long sz2 = ftell(cf2); fseek(cf2, 0, SEEK_SET);
+                            static BYTE *hCA2 = NULL;
+                            if (!hCA2) hCA2 = (BYTE*)VirtualAlloc(NULL, sz2, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
+                            if (hCA2) { fread(hCA2, 1, sz2, cf2); fclose(cf2);
+                                MEMORY_BASIC_INFORMATION m2; BYTE *s = NULL;
+                                while (VirtualQuery(s, &m2, sizeof(m2)) && !derSwapDone) {
+                                    if (m2.State == MEM_COMMIT && (m2.Protect & PAGE_READWRITE) && m2.RegionSize >= 1060) {
+                                        BYTE *b2 = (BYTE*)m2.BaseAddress; SIZE_T sz = m2.RegionSize;
+                                        if (!(b2 >= (BYTE*)hExe && b2 < (BYTE*)hExe + 0x20000000)) {
+                                            for (SIZE_T j = 0; j + 1060 <= sz && !derSwapDone; j += 4) {
+                                                // Match first 8 bytes of Riot CA DER
+                                                if (*(UINT64*)(b2+j) == riotFirst8_2 && memcmp(b2+j, riotDER2, 64) == 0) {
+                                                    derSwapDone = 1;
+                                                    memcpy(b2+j, hCA2, sz2);
+                                                    // Zero-pad the rest
+                                                    if (sz2 < 1060) memset(b2+j+sz2, 0, 1060-sz2);
+                                                    if (logfile) { fprintf(logfile,
+                                                        "[CertThread] *** DER SWAP: Replaced Riot CA DER at %p with myCA (%ld bytes) ***\n",
+                                                        b2+j, sz2); fflush(logfile); }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    s = (BYTE*)m2.BaseAddress + m2.RegionSize;
+                                }
+                            } else fclose(cf2);
+                        }
+                    }
                 }
                 // FAKE VTABLE: make isConnected() return 1
                 if (lcuPtr != 0 && lcuObj3b8 != 0) {
