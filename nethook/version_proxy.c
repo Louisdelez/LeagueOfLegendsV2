@@ -3106,8 +3106,8 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
                 if (lcuPtr != 0 && !IsBadReadPtr((void*)(lcuPtr + 0x422), 1)) {
                     *(BYTE*)(lcuPtr + 0x422) = 0;
                 }
-                // LATE DER SWAP: scan heap for Riot CA DER bytes and replace with myCA
-                {
+                // LATE DER SWAP: DISABLED (blocks thread with full heap scan)
+                if (0) {
                     static int derSwapDone = 0;
                     if (!derSwapDone) {
                         BYTE *riotDER2 = (BYTE*)hExe + 0x19EEBD0;
