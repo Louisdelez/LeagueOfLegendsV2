@@ -3001,12 +3001,33 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
                 }
                 fflush(logfile);
             }
-            // Patch flowVal to 1 AND make the vtable call return 1
+            // Patch ALL flow-related fields aggressively
             if (fw == 5 && flowPtr != 0) {
                 // Patch connection state to 1
                 if (flowVal == 0) {
                     *(int*)(flowPtr + 8) = 1;
                     if (logfile) { fprintf(logfile, "[CertThread] *** PATCHED flowPtr+8 to 1 ***\n"); fflush(logfile); }
+                }
+                // Patch flag33 and flag19 in DAT_141dba0c0 struct
+                if (dba0c0 != 0) {
+                    if (!IsBadReadPtr((void*)(dba0c0 + 0x33), 1)) {
+                        *(BYTE*)(dba0c0 + 0x33) = 1;
+                        if (logfile) { fprintf(logfile, "[CertThread] *** PATCHED dba0c0+0x33 to 1 ***\n"); fflush(logfile); }
+                    }
+                    if (!IsBadReadPtr((void*)(dba0c0 + 0x19), 1)) {
+                        *(BYTE*)(dba0c0 + 0x19) = 1;
+                        if (logfile) { fprintf(logfile, "[CertThread] *** PATCHED dba0c0+0x19 to 1 ***\n"); fflush(logfile); }
+                    }
+                    // Also try patching +0x2c to 3 (GAME_COMPLETED check)
+                    if (!IsBadReadPtr((void*)(dba0c0 + 0x2c), 4)) {
+                        *(int*)(dba0c0 + 0x2c) = 3;
+                        if (logfile) { fprintf(logfile, "[CertThread] *** PATCHED dba0c0+0x2c to 3 ***\n"); fflush(logfile); }
+                    }
+                }
+                // Patch evt422 to something the game expects (try 0 = no event)
+                if (lcuPtr != 0 && !IsBadReadPtr((void*)(lcuPtr + 0x422), 1)) {
+                    *(BYTE*)(lcuPtr + 0x422) = 0;
+                    if (logfile) { fprintf(logfile, "[CertThread] *** PATCHED evt422 to 0 ***\n"); fflush(logfile); }
                 }
                 // FAKE VTABLE: make isConnected() return 1
                 if (lcuPtr != 0 && lcuObj3b8 != 0) {
