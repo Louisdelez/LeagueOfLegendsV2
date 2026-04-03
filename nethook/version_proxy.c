@@ -1274,11 +1274,11 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                     memcpy(dec, buf + 8, encLen);
 
                     // Use GAME's BF decrypt function
-                    typedef void (*bf_cfb_t)(void*, BYTE*, unsigned short, int);
+                    typedef void (*bf_cfb_t)(void*, BYTE*, UINT64, int);
                     bf_cfb_t BfDec = (bf_cfb_t)((BYTE*)gBase + 0x10F2A10);
-                    BfDec(bfCtxSend, dec, (unsigned short)encLen, 2); // pass 1
+                    BfDec(bfCtxSend, dec, (UINT64)encLen, 2); // pass 1
                     ReverseBytes(dec, encLen);
-                    BfDec(bfCtxSend, dec, (unsigned short)encLen, 2); // pass 2
+                    BfDec(bfCtxSend, dec, (UINT64)encLen, 2); // pass 2
 
                     BYTE flags = (encLen >= 7) ? dec[6] : 0;
                     char hexdump[200] = {0};
@@ -1711,12 +1711,12 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                             // VERIFY: decrypt our own encrypted packet and check CRC
                             BYTE *verify = (BYTE*)_alloca(encLen);
                             memcpy(verify, encPart, encLen);
-                            typedef void (*bf_cfb_dec_t)(void*, BYTE*, unsigned short, int);
+                            typedef void (*bf_cfb_dec_t)(void*, BYTE*, UINT64, int);
                             bf_cfb_dec_t BfDec2 = (bf_cfb_dec_t)((BYTE*)gameBase + 0x10F2A10);
                             // DO NOT modify bfCtx+8/0xC - they are P[2]/P[3], not IV!
-                            BfDec2(bfCtx, verify, (unsigned short)encLen, 2);
+                            BfDec2(bfCtx, verify, (UINT64)encLen, 2);
                             ReverseBytes(verify, encLen);
-                            BfDec2(bfCtx, verify, (unsigned short)encLen, 2);
+                            BfDec2(bfCtx, verify, (UINT64)encLen, 2);
                             // verify[0..3]=nonce, verify[4]=flags, verify[5+]=body
                             int storedNonce = *(int*)(verify + 0);
                             // Recompute CRC on the decrypted data
@@ -1738,16 +1738,40 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                         // NOTE: bfCtx+8/0xC are P[2]/P[3] of the key schedule, NOT IV!
                         // The CFB functions read them as initial feedback but they're actually
                         // P-array values. DO NOT modify them!
-                        typedef void (*bf_cfb_t)(void*, BYTE*, unsigned short, int);
+                        typedef void (*bf_cfb_t)(void*, BYTE*, UINT64, int);
                         bf_cfb_t BfEnc = (bf_cfb_t)((BYTE*)gameBase + 0x10F41E0);
-                        UINT32 pre_p2 = *(UINT32*)((BYTE*)bfCtx+8);
-                        BfEnc(bfCtx, encPart, (unsigned short)encLen, 2); // pass 1
-                        UINT32 mid_p2 = *(UINT32*)((BYTE*)bfCtx+8);
+                        // ROUNDTRIP TEST: 16B (2 blocks) and double-CFB 16B
+                        if (fixupCount <= 2) {
+                            typedef void (*bfd_t)(void*, BYTE*, UINT64, int);
+                            bfd_t BD = (bfd_t)((BYTE*)gameBase + 0x10F2A10);
+                            // Test 16B single CFB
+                            BYTE t16[16] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+                            BYTE orig16[16]; memcpy(orig16, t16, 16);
+                            BfEnc(bfCtx, t16, 16, 2); // encrypt 16B
+                            BD(bfCtx, t16, 16, 2);    // decrypt 16B
+                            int ok16 = (memcmp(t16, orig16, 16) == 0);
+                            Log("  16B single CFB roundtrip: %s", ok16 ? "OK" : "FAIL");
+                            // Test double-CFB 16B
+                            BYTE t16d[16] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+                            BYTE orig16d[16]; memcpy(orig16d, t16d, 16);
+                            BfEnc(bfCtx, t16d, 16, 2);
+                            ReverseBytes(t16d, 16);
+                            BfEnc(bfCtx, t16d, 16, 2);
+                            // Now decrypt
+                            BD(bfCtx, t16d, 16, 2);
+                            ReverseBytes(t16d, 16);
+                            BD(bfCtx, t16d, 16, 2);
+                            int okD16 = (memcmp(t16d, orig16d, 16) == 0);
+                            Log("  16B double CFB roundtrip: %s", okD16 ? "OK" : "FAIL");
+                            if (!okD16) {
+                                Log("    got: %02X%02X%02X%02X%02X%02X%02X%02X %02X%02X%02X%02X%02X%02X%02X%02X",
+                                    t16d[0],t16d[1],t16d[2],t16d[3],t16d[4],t16d[5],t16d[6],t16d[7],
+                                    t16d[8],t16d[9],t16d[10],t16d[11],t16d[12],t16d[13],t16d[14],t16d[15]);
+                            }
+                        }
+                        BfEnc(bfCtx, encPart, (UINT64)encLen, 2); // pass 1
                         ReverseBytes(encPart, encLen);
-                        BfEnc(bfCtx, encPart, (unsigned short)encLen, 2); // pass 2
-                        UINT32 post_p2 = *(UINT32*)((BYTE*)bfCtx+8);
-                        if (fixupCount <= 3)
-                            Log("  IV track: pre=0x%08X mid=0x%08X post=0x%08X", pre_p2, mid_p2, post_p2);
+                        BfEnc(bfCtx, encPart, (UINT64)encLen, 2); // pass 2
 
                         // Return: [4B header][re-encrypted]
                         memcpy(buf, pkt, totalLen);
