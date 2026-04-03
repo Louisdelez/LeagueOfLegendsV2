@@ -257,13 +257,16 @@ public class RawGameServer : IGameServer, IDisposable
             WriteBE16(reliableBody, 3, (ushort)keyCheckData.Length); // dataLen = 32
             Array.Copy(keyCheckData, 0, reliableBody, 5, keyCheckData.Length);
 
-            // cmd=0x30 is what the client uses for its 36B KeyCheck packet!
-            SendCrcPacket(peer, 0x30, reliableBody);
-            Log($"  [KC-30] sent cmd=0x30 (client's KeyCheck cmd), {reliableBody.Length}B");
-
-            // Also cmd=0x06 (standard SEND_RELIABLE)
+            // Send the KeyCheck with various cmd types
+            // From client analysis: 36B has cmd that varies (CRC-dependent)
+            // Try cmd=0x06 (standard SEND_RELIABLE)
             SendCrcPacket(peer, 0x06, reliableBody);
-            Log($"  [KC-06] sent cmd=0x06 (SEND_RELIABLE)");
+            Log($"  [KC] cmd=0x06, {reliableBody.Length}B body");
+
+            // Also try sending JUST the 32B KeyCheck data directly (no ENet wrapping)
+            // The game might expect raw data, not SEND_RELIABLE wrapped
+            SendCrcPacket(peer, 0x06, keyCheckData);
+            Log($"  [KC-RAW] cmd=0x06, raw 32B KeyCheck");
         }
     }
 
