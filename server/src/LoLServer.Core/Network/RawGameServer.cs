@@ -288,18 +288,19 @@ public class RawGameServer : IGameServer, IDisposable
             var encrypted = _cipher.EncryptBlock(playerIdBytes);
             Array.Copy(encrypted, 0, keyCheckData, 20, 8);
 
-            // Batch framing (from Ghidra agent analysis):
-            // [0x02][u32 LE count][sub-packets...][0x18]
-            // Each sub-packet is read by FUN_14055b9a0 as a 16-byte buffer record
-            // For now, try with count=1 and the KeyCheck as the sub-packet data
+            // Batch framing (from Ghidra analysis of FUN_14055b9a0):
+            // Outer: [0x02][u32 LE sub_count][sub-packets...][0x18]
+            // Each sub-packet: [u32 LE dword_count][u32 data_0][u32 data_1]...
+            // KeyCheck = 32 bytes = 8 DWORDs
             var batchStream = new System.IO.MemoryStream();
             batchStream.WriteByte(0x02); // batch start marker
-            // u32 LE count = 1
-            batchStream.Write(BitConverter.GetBytes((uint)1), 0, 4);
-            // Sub-packet: the KeyCheck data (will be read by FUN_14055b9a0)
+            batchStream.Write(BitConverter.GetBytes((uint)1), 0, 4); // 1 sub-packet
+            // Sub-packet: [u32 dword_count=8][8 x u32 data]
+            batchStream.Write(BitConverter.GetBytes((uint)(keyCheckData.Length / 4)), 0, 4);
             batchStream.Write(keyCheckData, 0, keyCheckData.Length);
             batchStream.WriteByte(0x18); // batch end marker
             var batchData = batchStream.ToArray();
+            Log($"  [BATCH] format: 02 | count=1 | dwords={keyCheckData.Length/4} | data={keyCheckData.Length}B | 18 = {batchData.Length}B total");
 
             // SEND_RELIABLE with batch-framed KeyCheck
             var reliableBody = new byte[1 + 2 + 2 + batchData.Length];
@@ -315,14 +316,33 @@ public class RawGameServer : IGameServer, IDisposable
             WriteBE16(reliableRaw, 3, (ushort)keyCheckData.Length);
             Array.Copy(keyCheckData, 0, reliableRaw, 5, keyCheckData.Length);
 
-            // cmd=2 is the GAME DATA batch type (goes to handler +0x168)
-            // cmd=6 goes to STUB handler +0x128 (does nothing!)
+            // Send batch with KeyCheck data
             SendCrcPacket(peer, 0x02, batchData);
-            Log($"  [BATCH] cmd=0x02 batch-framed, {batchData.Length}B");
+            Log($"  [BATCH-KC] cmd=0x02, {batchData.Length}B");
 
-            // Also send raw KeyCheck via cmd=6 (in case some handler reads it)
-            SendCrcPacket(peer, 0x06, reliableRaw);
-            Log($"  [RELIABLE] cmd=0x06 raw, {reliableRaw.Length}B");
+            // Also try: batch with a KNOWN OPCODE (0x000A is first known opcode)
+            // The game dispatcher reads u16 opcode from the deserialized struct
+            // The sub-packet DWORDs become fields of the struct
+            // Try putting opcode in the first few bytes
+            {
+                var opcodeData = new byte[16]; // 4 DWORDs
+                // DWORD[0] might map to struct fields. Opcode is at struct+0x08 (u16)
+                // The struct is built from the sub-packet DWORDs
+                // Try: first DWORD = 0, second DWORD contains opcode 0x000A at right offset
+                WriteLE32(opcodeData, 0, 0);         // DWORD 0
+                WriteLE32(opcodeData, 4, 0x000A);    // DWORD 1 = opcode 0x000A?
+                WriteLE32(opcodeData, 8, 0);         // DWORD 2
+                WriteLE32(opcodeData, 12, 0);        // DWORD 3
+
+                var batch2 = new System.IO.MemoryStream();
+                batch2.WriteByte(0x02);
+                batch2.Write(BitConverter.GetBytes((uint)1), 0, 4);
+                batch2.Write(BitConverter.GetBytes((uint)(opcodeData.Length / 4)), 0, 4);
+                batch2.Write(opcodeData, 0, opcodeData.Length);
+                batch2.WriteByte(0x18);
+                SendCrcPacket(peer, 0x02, batch2.ToArray());
+                Log($"  [BATCH-OP] cmd=0x02 with opcode 0x000A, {batch2.Length}B");
+            }
 
             // DISABLED: capture client's data and echo it back via CAFE
             // The server stores raw client payloads and sends them back
