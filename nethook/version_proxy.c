@@ -1267,20 +1267,25 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                     }
                 }
 
-                int encLen = len - 8;
+                // Match game's decrypt: skip 4B header (conn+0x144=4), decrypt rest
+                int headerSkip = 4; // conn+0x144
+                int totalPayload = len - 8; // after LNPBlob
+                int encLen = totalPayload - headerSkip; // after header skip
                 if (encLen > 0 && encLen < 1024 && bfCtxSend && gBase) {
                     clientDecLog++;
+                    BYTE header[4];
+                    memcpy(header, buf + 8, 4); // save 4B header (unencrypted)
                     BYTE *dec = (BYTE*)_alloca(encLen);
-                    memcpy(dec, buf + 8, encLen);
+                    memcpy(dec, buf + 8 + headerSkip, encLen); // copy encrypted part
 
-                    // Use GAME's BF decrypt function
                     typedef void (*bf_cfb_t)(void*, BYTE*, UINT64, int);
                     bf_cfb_t BfDec = (bf_cfb_t)((BYTE*)gBase + 0x10F2A10);
                     BfDec(bfCtxSend, dec, (UINT64)encLen, 2); // pass 1
                     ReverseBytes(dec, encLen);
                     BfDec(bfCtxSend, dec, (UINT64)encLen, 2); // pass 2
 
-                    BYTE flags = (encLen >= 7) ? dec[6] : 0;
+                    // dec[0..3]=CRC nonce, dec[4]=flags, dec[5+]=body
+                    BYTE flags = (encLen >= 5) ? dec[4] : 0;
                     char hexdump[200] = {0};
                     int hoff = 0;
                     for (int i = 0; i < encLen && i < 32 && hoff < 180; i++)
@@ -1291,8 +1296,9 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                         c144 = *(UINT16*)(connStructAddr + 0x144);
                         c146 = *(UINT16*)(connStructAddr + 0x146);
                     }
-                    Log("CLIENT_GAMEDEC #%d: %dB c144=%d c146=%d flags=0x%02X(cmd=%d) %s",
-                        clientDecLog, len, c144, c146, flags, flags & 0x7F, hexdump);
+                    Log("CLIENT_GAMEDEC #%d: %dB hdr=%02X%02X%02X%02X flags=0x%02X(cmd=%d) enc=%dB %s",
+                        clientDecLog, len, header[0],header[1],header[2],header[3],
+                        flags, flags & 0x7F, encLen, hexdump);
                 }
             }
         }
