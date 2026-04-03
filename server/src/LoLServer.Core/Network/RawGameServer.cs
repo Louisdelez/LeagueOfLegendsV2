@@ -277,7 +277,7 @@ public class RawGameServer : IGameServer, IDisposable
             WriteBE16(reliableBody, 3, (ushort)keyCheckData.Length); // dataLen = 32
             Array.Copy(keyCheckData, 0, reliableBody, 5, keyCheckData.Length);
 
-            SendCrcPacket(peer, 0x06, reliableBody); // 0x06 = SEND_RELIABLE
+            SendCrcPacket(peer, 0x68, reliableBody); // 0x68 = SEND_RELIABLE (Riot 16.6, not standard 0x06)
             Log($"  [KEYCHECK] sent via CAFE, {reliableBody.Length}B body");
 
             // After KeyCheck, send SynchVersion to trigger loading screen
@@ -294,7 +294,7 @@ public class RawGameServer : IGameServer, IDisposable
                 // mapId at offset 7 (LE)
                 WriteLE32(synchBody, 7, 11); // mapId = 11 (Summoner's Rift)
                 // Rest = zeros (player list, version string, etc.)
-                SendCrcPacket(peer, 0x06, synchBody);
+                SendCrcPacket(peer, 0x68, synchBody); // 0x68 = SEND_RELIABLE (Riot 16.6)
                 Log($"  [SYNCH] sent SynchVersionS2C");
             }
         }
