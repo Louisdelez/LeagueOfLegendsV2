@@ -340,23 +340,34 @@ public class RawGameServer : IGameServer, IDisposable
             // arg3 (base+16): channel/flags qword
             // arg4 (base+40): data pointer/value
 
-            // Send multiple records with different opcodes in ONE batch
-            var batchMulti = new System.IO.MemoryStream();
-            batchMulti.WriteByte(0x02);
-            // Multiple opcodes to try
-            ushort[] opcodes = { 0x000A, 0x000C, 0x0033, 0x0056, 0x0071, 0x00D5, 0x0086 };
-            // count = total DWORDs for ALL records
-            batchMulti.Write(BitConverter.GetBytes((uint)(14 * opcodes.Length)), 0, 4);
-            foreach (var opc in opcodes)
+            // Send ALL confirmed opcodes (0x0A to 0x10B) in batches
+            // Split into chunks to avoid oversized packets
+            ushort[] allOpcodes = {
+                0x000A, 0x000C, 0x0016, 0x0019, 0x002A, 0x0033, 0x0038,
+                0x004F, 0x0056, 0x0071, 0x0086, 0x008B, 0x00AA, 0x00AD,
+                0x00AE, 0x00B4, 0x00C7, 0x00CB, 0x010A, 0x010B
+            };
+            // Send in batches of 5 opcodes each
+            for (int batchStart = 0; batchStart < allOpcodes.Length; batchStart += 5)
             {
-                var rec = new byte[56];
-                rec[50] = (byte)(opc & 0xFF);
-                rec[51] = (byte)(opc >> 8);
-                batchMulti.Write(rec, 0, rec.Length);
+                int batchSize = Math.Min(5, allOpcodes.Length - batchStart);
+                var batchM = new System.IO.MemoryStream();
+                batchM.WriteByte(0x02);
+                batchM.Write(BitConverter.GetBytes((uint)(14 * batchSize)), 0, 4);
+                for (int i = 0; i < batchSize; i++)
+                {
+                    var rec = new byte[56];
+                    var opc = allOpcodes[batchStart + i];
+                    rec[50] = (byte)(opc & 0xFF);
+                    rec[51] = (byte)(opc >> 8);
+                    // Fill arg1 with a player/entity ID
+                    WriteLE32(rec, 0, 0x40000001); // common LoL netID for player 1
+                    batchM.Write(rec, 0, rec.Length);
+                }
+                batchM.WriteByte(0x18);
+                SendCrcPacket(peer, 0x02, batchM.ToArray());
             }
-            batchMulti.WriteByte(0x18);
-            SendCrcPacket(peer, 0x02, batchMulti.ToArray());
-            Log($"  [BATCH-MULTI] {opcodes.Length} opcodes in one batch, total={batchMulti.Length}B");
+            Log($"  [BATCH-ALL] sent {allOpcodes.Length} opcodes in {(allOpcodes.Length+4)/5} batches");
 
             // DISABLED: capture client's data and echo it back via CAFE
             // The server stores raw client payloads and sends them back
