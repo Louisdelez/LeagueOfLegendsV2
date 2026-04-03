@@ -227,7 +227,7 @@ public class RawGameServer : IGameServer, IDisposable
             vcBody[3] = 0xFF;             // outgoingSessionID
             WriteBE32(vcBody, 4, 996);    // MTU
             WriteBE32(vcBody, 8, 32768);  // windowSize
-            WriteBE32(vcBody, 12, 1);     // channelCount
+            WriteBE32(vcBody, 12, 8);     // channelCount (LoL uses 8 channels)
             WriteBE32(vcBody, 16, 0);     // inBandwidth
             WriteBE32(vcBody, 20, 0);     // outBandwidth
             WriteBE32(vcBody, 24, 5000);  // throttleInterval
@@ -283,7 +283,7 @@ public class RawGameServer : IGameServer, IDisposable
                 vcBody[3] = 0xFF;             // outgoingSessionID
                 WriteBE32(vcBody, 4, 996);    // MTU
                 WriteBE32(vcBody, 8, 32768);  // windowSize
-                WriteBE32(vcBody, 12, 1);     // channelCount
+                WriteBE32(vcBody, 12, 8);     // channelCount (LoL uses 8 channels)
                 WriteBE32(vcBody, 16, 0);     // inBandwidth
                 WriteBE32(vcBody, 20, 0);     // outBandwidth
                 WriteBE32(vcBody, 24, 5000);  // throttleInterval
