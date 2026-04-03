@@ -2961,21 +2961,60 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
     // DAT_141da5228 + 8 must be 1 for FLOW to proceed
     // RVA = 0x1DA5228 + 8 = 0x1DA5230
     {
-        BYTE *flowState = (BYTE*)hExe + 0x1DA5230;
-        // Wait for the state to be initialized, then patch
-        for (int fw = 0; fw < 30; fw++) {
-            Sleep(1000);
-            if (!IsBadReadPtr(flowState, 4)) {
-                int val = *(int*)flowState;
-                if (logfile) { fprintf(logfile, "[CertThread] FLOW state at %p = %d (attempt %d)\n",
-                    flowState, val, fw+1); fflush(logfile); }
-                if (val == 0) {
-                    *(int*)flowState = 1;
-                    if (logfile) { fprintf(logfile, "[CertThread] *** PATCHED FLOW state to 1! ***\n"); fflush(logfile); }
-                    break;
-                } else if (val == 1) {
-                    if (logfile) { fprintf(logfile, "[CertThread] FLOW state already 1, OK\n"); fflush(logfile); }
-                    break;
+        // Monitor FLOW-related globals every second
+        // DAT_141da5228 + 8 (RVA 0x1DA5230) = connection state
+        // DAT_141da1480 + 0x3b8 (RVA 0x1DA1838) = LCU connection object ptr
+        // DAT_141da5228 is a POINTER to connection object. Read ptr, then ptr+8
+        UINT64 *flowPtrAddr = (UINT64*)((BYTE*)hExe + 0x1DA5228);
+        UINT64 *lcuPtrAddr = (UINT64*)((BYTE*)hExe + 0x1DA1480);
+        for (int fw = 0; fw < 20; fw++) {
+            Sleep(2000);
+            UINT64 flowPtr = *flowPtrAddr;
+            UINT64 lcuPtr = *lcuPtrAddr;
+            int flowVal = 0;
+            if (flowPtr != 0 && !IsBadReadPtr((void*)(flowPtr + 8), 4))
+                flowVal = *(int*)(flowPtr + 8);
+            UINT64 lcuObj3b8 = 0;
+            if (lcuPtr != 0 && !IsBadReadPtr((void*)(lcuPtr + 0x3b8), 8))
+                lcuObj3b8 = *(UINT64*)(lcuPtr + 0x3b8);
+            if (logfile) { fprintf(logfile, "[CertThread] FLOW #%d: ptr=%p val=%d lcuPtr=%p lcu3b8=%p\n",
+                fw+1, (void*)flowPtr, flowVal, (void*)lcuPtr, (void*)lcuObj3b8); fflush(logfile); }
+            // Patch flowVal to 1 AND make the vtable call return 1
+            if (fw == 5 && flowPtr != 0) {
+                // Patch connection state to 1
+                if (flowVal == 0) {
+                    *(int*)(flowPtr + 8) = 1;
+                    if (logfile) { fprintf(logfile, "[CertThread] *** PATCHED flowPtr+8 to 1 ***\n"); fflush(logfile); }
+                }
+                // Patch the LCU connection object to make isConnected() return 1
+                // The vtable call is: *(*(*(lcuPtr+0x3b8)))[0x48/8]()
+                // We need: the function at vtable[9] to return 1
+                // Strategy: find a "return 1" gadget in the binary and point vtable[9] to it
+                if (lcuPtr != 0 && lcuObj3b8 != 0) {
+                    // The vtable is at *(*(lcuObj3b8)) - first deref = object ptr, second = vtable
+                    UINT64 objPtr = 0;
+                    if (!IsBadReadPtr((void*)lcuObj3b8, 8))
+                        objPtr = *(UINT64*)lcuObj3b8;
+                    if (objPtr != 0 && !IsBadReadPtr((void*)objPtr, 8)) {
+                        UINT64 vtable = *(UINT64*)objPtr;
+                        UINT64 func48 = 0;
+                        if (!IsBadReadPtr((void*)(vtable + 0x48), 8))
+                            func48 = *(UINT64*)(vtable + 0x48);
+                        if (logfile) { fprintf(logfile, "[CertThread] LCU vtable=%p func48=%p\n",
+                            (void*)vtable, (void*)func48); fflush(logfile); }
+
+                        // Instead of replacing the vtable, let's check if there's a "connected" flag
+                        // in the object that controls the return value
+                        // Dump first 64 bytes of the object
+                        if (logfile) {
+                            fprintf(logfile, "[CertThread] LCU obj dump: ");
+                            for (int d = 0; d < 64; d += 4) {
+                                if (!IsBadReadPtr((void*)(objPtr + d), 4))
+                                    fprintf(logfile, "[+%02X]=%08X ", d, *(UINT32*)(objPtr + d));
+                            }
+                            fprintf(logfile, "\n"); fflush(logfile);
+                        }
+                    }
                 }
             }
         }
