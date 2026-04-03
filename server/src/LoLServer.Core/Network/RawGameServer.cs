@@ -161,14 +161,13 @@ public class RawGameServer : IGameServer, IDisposable
             Log($"[CLIENT] #{peer.PacketCount} {data.Length}B LNPBlob sessID=0x{sessIdLE:X8} token=0x{peer.ConnectToken:X8}");
         }
 
-        // Decrypt the payload: bytes after LNPBlob header (12B) are encrypted
-        // The encrypted data includes 4B preamble (not encrypted) + encrypted CRC layer
-        // But for < 8B payload, it's plaintext (0 CFB blocks)
-        if (data.Length > 12)
+        // Decrypt the payload: bytes after LNPBlob header (8B) are encrypted
+        // The 4B "connection token" at bytes 8-11 is part of the encrypted stream
+        if (data.Length > 8)
         {
-            int payloadLen = data.Length - 12;
+            int payloadLen = data.Length - 8;
             byte[] payload = new byte[payloadLen];
-            Array.Copy(data, 12, payload, 0, payloadLen);
+            Array.Copy(data, 8, payload, 0, payloadLen);
 
             // Try BOTH decrypt variants
             byte[] decrypted = DoubleCfbDecrypt(payload);
@@ -188,11 +187,11 @@ public class RawGameServer : IGameServer, IDisposable
                 byte cmdAlt = (byte)(flagsAlt & 0x7F);
                 ushort peerIDAlt = decryptedAlt.Length >= 2 ? (ushort)(decryptedAlt[0] | (decryptedAlt[1] << 8)) : (ushort)0;
 
-                if (peer.PacketCount <= 30 || cmdType > 5)
+                if (peer.PacketCount <= 100 || cmdType > 5)
                 {
-                    Log($"  [DECRYPT] peerID=0x{peerID:X4} cmd={cmdType} | ALT: peerID=0x{peerIDAlt:X4} cmd={cmdAlt}");
+                    Log($"  [DECRYPT] peerID=0x{peerID:X4} nonce=0x{nonce:X8} cmd={cmdType} sentTime={hasSentTime} bodyLen={decrypted.Length - 7}");
                     if (decrypted.Length > 7)
-                        Log($"  [BODY] {Hex(decrypted, 7, Math.Min(32, decrypted.Length - 7))}");
+                        Log($"  [BODY] {Hex(decrypted, 7, Math.Min(48, decrypted.Length - 7))}");
                 }
 
                 // Detect KeyCheck: reliable command with game data
@@ -376,19 +375,18 @@ public class RawGameServer : IGameServer, IDisposable
     {
         var result = (byte[])plaintext.Clone();
         var feedback = new byte[8]; // IV = zeros
-        int num = 0;
+        int fullBlocks = plaintext.Length / 8;
 
-        for (int i = 0; i < plaintext.Length; i++)
+        for (int block = 0; block < fullBlocks; block++)
         {
-            if (num == 0)
-            {
-                var keystream = _cipher.EncryptBlock(feedback);
-                Array.Copy(keystream, feedback, 8);
-            }
-            result[i] = (byte)(plaintext[i] ^ feedback[num]);
-            feedback[num] = result[i];
-            num = (num + 1) & 7;
+            int i = block * 8;
+            var keystream = _cipher.EncryptBlock(feedback);
+            for (int j = 0; j < 8; j++)
+                result[i + j] = (byte)(plaintext[i + j] ^ keystream[j]);
+            // Feedback = ciphertext block (for encrypt: result)
+            Array.Copy(result, i, feedback, 0, 8);
         }
+        // Remaining bytes are NOT encrypted (sent in cleartext per Ghidra analysis)
 
         return result;
     }
@@ -455,20 +453,18 @@ public class RawGameServer : IGameServer, IDisposable
     {
         var result = (byte[])ciphertext.Clone();
         var feedback = new byte[8]; // IV = zeros
-        int num = 0;
+        int fullBlocks = ciphertext.Length / 8;
 
-        for (int i = 0; i < ciphertext.Length; i++)
+        for (int block = 0; block < fullBlocks; block++)
         {
-            if (num == 0)
-            {
-                var keystream = _cipher.EncryptBlock(feedback);
-                Array.Copy(keystream, feedback, 8);
-            }
-            byte cipher = ciphertext[i];
-            result[i] = (byte)(cipher ^ feedback[num]);
-            feedback[num] = cipher;
-            num = (num + 1) & 7;
+            int i = block * 8;
+            var keystream = _cipher.EncryptBlock(feedback);
+            // Save ciphertext block for feedback BEFORE XOR
+            Array.Copy(ciphertext, i, feedback, 0, 8);
+            for (int j = 0; j < 8; j++)
+                result[i + j] = (byte)(ciphertext[i + j] ^ keystream[j]);
         }
+        // Remaining bytes are NOT encrypted (pass through per Ghidra analysis)
 
         return result;
     }

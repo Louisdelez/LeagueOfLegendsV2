@@ -128,41 +128,44 @@ static void HookBF_Init(const BYTE *key, int keyLen) {
     hookBfReady = 1;
 }
 
-// CFB encrypt (one direction, IV=0)
+// CFB encrypt (block-by-block, IV=0, only full 8-byte blocks)
+// Matches game's FUN_1410f41e0 mode=2: remaining bytes are NOT encrypted
 static void HookCFB_Encrypt(BYTE *data, int len) {
     BYTE iv[8] = {0};
-    int num = 0;
-    for (int i = 0; i < len; i++) {
-        if (num == 0) {
-            UINT32 l = (iv[0]<<24)|(iv[1]<<16)|(iv[2]<<8)|iv[3];
-            UINT32 r = (iv[4]<<24)|(iv[5]<<16)|(iv[6]<<8)|iv[7];
-            HookBF_Encrypt(&l, &r);
-            iv[0]=l>>24; iv[1]=l>>16; iv[2]=l>>8; iv[3]=l;
-            iv[4]=r>>24; iv[5]=r>>16; iv[6]=r>>8; iv[7]=r;
-        }
-        data[i] ^= iv[num];
-        iv[num] = data[i];
-        num = (num + 1) & 7;
+    int fullBlocks = len / 8;
+    for (int b = 0; b < fullBlocks; b++) {
+        int i = b * 8;
+        UINT32 l = (iv[0]<<24)|(iv[1]<<16)|(iv[2]<<8)|iv[3];
+        UINT32 r = (iv[4]<<24)|(iv[5]<<16)|(iv[6]<<8)|iv[7];
+        HookBF_Encrypt(&l, &r);
+        BYTE ks[8] = {l>>24,l>>16,l>>8,l, r>>24,r>>16,r>>8,r};
+        for (int j = 0; j < 8; j++)
+            data[i+j] ^= ks[j];
+        // Feedback = ciphertext (after XOR)
+        memcpy(iv, data + i, 8);
     }
+    // Remaining bytes (len % 8) are NOT encrypted
 }
 
-// CFB decrypt (one direction, IV=0)
+// CFB decrypt (block-by-block, IV=0, only full 8-byte blocks)
 static void HookCFB_Decrypt(BYTE *data, int len) {
     BYTE iv[8] = {0};
-    int num = 0;
-    for (int i = 0; i < len; i++) {
-        if (num == 0) {
-            UINT32 l = (iv[0]<<24)|(iv[1]<<16)|(iv[2]<<8)|iv[3];
-            UINT32 r = (iv[4]<<24)|(iv[5]<<16)|(iv[6]<<8)|iv[7];
-            HookBF_Encrypt(&l, &r);
-            iv[0]=l>>24; iv[1]=l>>16; iv[2]=l>>8; iv[3]=l;
-            iv[4]=r>>24; iv[5]=r>>16; iv[6]=r>>8; iv[7]=r;
-        }
-        BYTE cipher = data[i];
-        data[i] ^= iv[num];
-        iv[num] = cipher;
-        num = (num + 1) & 7;
+    int fullBlocks = len / 8;
+    for (int b = 0; b < fullBlocks; b++) {
+        int i = b * 8;
+        // Save ciphertext for feedback BEFORE XOR
+        BYTE ct[8];
+        memcpy(ct, data + i, 8);
+        UINT32 l = (iv[0]<<24)|(iv[1]<<16)|(iv[2]<<8)|iv[3];
+        UINT32 r = (iv[4]<<24)|(iv[5]<<16)|(iv[6]<<8)|iv[7];
+        HookBF_Encrypt(&l, &r);
+        BYTE ks[8] = {l>>24,l>>16,l>>8,l, r>>24,r>>16,r>>8,r};
+        for (int j = 0; j < 8; j++)
+            data[i+j] ^= ks[j];
+        // Feedback = original ciphertext
+        memcpy(iv, ct, 8);
     }
+    // Remaining bytes pass through unmodified
 }
 
 static void ReverseBytes(BYTE *data, int len) {
