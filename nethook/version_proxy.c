@@ -55,6 +55,7 @@ __declspec(dllexport) BOOL WINAPI VerQueryValueW(LPCVOID b, LPCWSTR s, LPVOID *p
 // Forward declarations (defined later in the file)
 static void Log(const char *fmt, ...);
 static volatile BYTE *connStructAddr = NULL;  // connection struct address, captured in sendto hook
+static volatile UINT32 g_connToken = 0;       // connection token from first 519B packet
 
 // === BLOWFISH + CRC FIXUP ===
 // Compact Blowfish implementation for CRC nonce fixup on server packets.
@@ -1243,6 +1244,11 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
             memcpy(lastSendBuf, buf, len);
             lastSendLen = len;
         }
+        // Capture connection token from first 519B packet (bytes 8-11)
+        if (len == 519 && g_connToken == 0) {
+            g_connToken = *(UINT32*)(buf + 8);
+            Log("CONN_TOKEN captured: 0x%08X", g_connToken);
+        }
         // Decrypt client packets using GAME's own BF context (not ours)
         if (len > 27) {
             static int clientDecLog = 0;
@@ -1643,11 +1649,14 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                 }
                 if (r >= 4 && (BYTE)buf[0] == 0xCA && (BYTE)buf[1] == 0xFE) {
                     // Server packet: [2B CAFE][4B header][encrypted: [4B nonce][1B flags][body]]
-                    // Strip CAFE, keep 4B header unencrypted, fix CRC in encrypted part
+                    // Strip CAFE, replace header with connection token, fix CRC
                     int totalLen = r - 2; // after CAFE strip
                     BYTE *pkt = (BYTE*)_alloca(totalLen);
                     memcpy(pkt, buf + 2, totalLen);
-                    // pkt[0..3] = 4B header (unencrypted, kept as-is)
+                    // Replace header with connection token (what echo uses)
+                    if (g_connToken != 0)
+                        *(UINT32*)(pkt) = g_connToken;
+                    // pkt[0..3] = connection token (matches echo format)
                     // pkt[4+]  = encrypted data
 
                     int encLen = totalLen - 4;
@@ -1695,8 +1704,8 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
 
                         fixupCount++;
                         if (fixupCount <= 20)
-                            Log("CRC_FIXUP #%d: total=%dB enc=%dB flags=0x%02X nonce=0x%08X",
-                                fixupCount, totalLen, encLen, encPart[4], (UINT32)nonce);
+                            Log("CRC_FIXUP #%d: total=%dB enc=%dB flags=0x%02X nonce=0x%08X token=0x%08X",
+                                fixupCount, totalLen, encLen, encPart[4], (UINT32)nonce, g_connToken);
 
                         // Re-encrypt with GAME's BF
                         typedef void (*bf_cfb_t)(void*, BYTE*, unsigned short, int);
