@@ -330,3 +330,114 @@ Le pipeline UDP fonctionne à 100%, mais le jeu attend le LCU AVANT de démarrer
 - ~30 variantes du hook DLL compilées et testées
 - 81 opcodes game identifiés
 - **Prochain objectif : TLS cert injection dans le trust store BoringSSL**
+
+---
+
+## Jour 4 — 3 Avril 2026 (suite)
+
+### Phase 20 : Protocole client-driven (recherche)
+
+Recherche approfondie du protocole LoL via LeagueSandbox (open source, Season 4) :
+- Le protocole est **CLIENT-DRIVEN** : le client envoie des requêtes, le serveur répond
+- Séquence d'init : KeyCheck → QueryStatusAns → SynchVersionS2C → CharSelected → TeamRosterUpdate → StartSpawn → CreateHero → StartGame
+- Opcodes Season 4 : QueryStatusReq=0x14, QueryStatusAns=0x88, SynchVersion=0xBD/0x54
+- Format GamePacket : `[1B opcode][4B netID][body]` ou extended `[0xFE][4B netID][2B opcode][body]`
+- **Les opcodes modernes (16.6) sont différents** — 81 opcodes de 0x000A à 0x0479
+
+### Phase 21 : Fix du parsing client côté serveur
+
+Bug critique trouvé : le serveur ne skipait pas le header 4B non-chiffré avant le decrypt.
+- Corrigé : `Array.Copy(data, 8 + headerSkip, encPayload, 0, encLen)` (skip 4B conn token)
+- Ajouté parsing batch (cmd=2) et reliable (cmd=6) des paquets client
+- Ajouté extraction d'opcodes game depuis les records batch
+- **Mais** : le BF du serveur C# ne match pas le BF du jeu → decrypt client incorrect
+- Le hook (utilisant le BF du jeu) donne les bons résultats
+
+### Phase 22 : PERCÉE MAJEURE — Le heap scan crashait le jeu !
+
+**Le "timer de 17 secondes" n'existait pas.** C'était le heap scan du CertThread qui corrompait la mémoire du jeu.
+
+Test diagnostic :
+1. ❌ Avec heap scan : jeu meurt après ~15 secondes
+2. ✅ Sans heap scan : **jeu tourne indéfiniment** (2+ minutes confirmé)
+3. ✅ Avec données game (ACK, VERIFY_CONNECT, opcodes) : pas de crash
+
+Le heap scan itérait `VirtualQuery()` sur TOUTES les pages mémoire du processus, cherchant le trust store BoringSSL. Cette itération massive corrompait les structures internes du jeu.
+
+### Phase 23 : FLOW timeout = warning, pas fatal
+
+```
+000000.786| ALWAYS|  CONN| Hard Connect at LocalSimTime(0.000)
+000030.743| ALWAYS|  FLOW| Timeout waiting to connect to: FLOW
+000060.736|  ERROR| ClientWebSocketTransport: certificate verify failed
+000120.745|  ERROR| ClientWebSocketTransport: certificate verify failed
+```
+
+- `flowPtr+8 = 1` patch fonctionne (val passe de 0 à 1)
+- Le timeout FLOW à 30s est un **warning**, le jeu continue
+- Le client retente la connexion LCU toutes les 60 secondes
+- Le processus game reste actif avec 192-208 MB de mémoire
+
+### Phase 24 : Paquets game envoyés — CRC PASS, pas de crash
+
+Envoyé via CAFE (cmd=0x02, game data path) :
+- QueryStatusAns (opcode 0x88, format Season 4)
+- SynchVersionS2C (opcode 0x54, 512B)
+- Extended opcodes (0xFE prefix) : 0x0088, 0x0054, 0x005C, 0x0062, 0x0011, 0x00C1
+- StartGame (opcode 0x5C), KeyCheck response (32B)
+- **Tous CRC PASS, aucun crash** — mais pas de réaction visible (opcodes modernes différents)
+
+### Phase 25 : Tentatives de bypass TLS (Vanguard bloque)
+
+Le dernier bloqueur : BoringSSL rejette notre certificat TLS pour le FakeLCU.
+
+**Tentative 1 : Patch .text (VirtualProtect)**
+- 13 sites `MOV EDX, 0x86` (SSL_R_CERTIFICATE_VERIFY_FAILED) trouvés
+- 3 avec JNZ/JZ en amont : RVA 0x16EEA0E, 0x172E3CA, 0x1848C99
+- ❌ `VirtualProtect` retourne ERROR_ACCESS_DENIED (err=5) — Vanguard protège .text
+
+**Tentative 2 : Hardware breakpoints via SetThreadContext**
+- ❌ 0/66 threads modifiés — Vanguard bloque aussi les registres debug
+
+**Tentative 3 : Hardware breakpoints via VEH (CrcBypassVEH pattern)**
+- DR1/DR2 ajoutés dans le handler VEH existant (même pattern que CRC bypass)
+- Mais le TLS se passe AVANT que les breakpoints soient installés (0.1s vs 4s)
+
+**Tentative 4 : DLL_THREAD_ATTACH avec TF flag**
+- ❌ Le TF flag dans DllMain crashe les threads
+
+### Analyse des paquets client 37B périodiques
+
+Le client envoie un paquet de 37B (25B chiffrés) toutes les 2 secondes :
+```
+[2B seq LE][4B CRC nonce][1B cmd][body]
+  bytes 8-9:   00 04 (constant)
+  bytes 10-11: compteur incrémental
+  bytes 12-14: FE 2C A6 (constant — possible extended opcode marker)
+  byte 17:     A3 (constant)
+```
+
+### État actuel — Progression 9.8/11
+
+| Étape | État | Détails |
+|-------|------|---------|
+| 1. Client launch | ✅ | Assets chargés, fenêtre game rendue |
+| 2. Blowfish Double-CFB | ✅ | Block-based, game functions |
+| 3. CRC reversed | ✅ | Poly 0x04C11DB7, non-standard byte mixing |
+| 4. CRC fixup via CAFE | ✅ | Game's own CRC function + BF context |
+| 5. Client CONNECTED | ✅ | Echo handshake, Hard Connect |
+| 6. CAFE delivery | ✅ | Server packets delivered via hook |
+| 7. Packet format | ✅ | [4B hdr][DoubleCFB: [4B nonce][1B flags][body]] |
+| 8. FLOW bypass | ✅ | flowPtr+8=1, timeout non-fatal |
+| 9. Game data delivery | ✅ | 20+ opcodes envoyés, CRC PASS, 0 crash |
+| 9.5 Heap scan fix | ✅ | Jeu tourne 2+ minutes (crash résolu) |
+| 10. TLS cert bypass | ⏳ | **Vanguard bloque — approche alternative requise** |
+| 11. Loading screen | ❌ | Nécessite TLS bypass ou opcodes modernes |
+
+### Statistiques Jour 4
+- ~100 variantes du hook DLL compilées et testées
+- ~100 scripts Ghidra
+- 13 sites cert verify identifiés dans le binaire
+- 4 approches TLS bypass tentées (toutes bloquées par Vanguard)
+- Jeu stable en mode echo + CAFE ACK (2+ minutes)
+- **Prochain objectif : bypass TLS via SSL_CTX en heap, ou protocole game sans LCU**

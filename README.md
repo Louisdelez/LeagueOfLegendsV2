@@ -2,55 +2,75 @@
 
 A private server emulator for League of Legends (patch 16.6), compatible with the real modern LoL client.
 
-> **Status:** Encryption cracked, CRC nonce computed, pending runtime patch for full connection
+> **Status:** Game runs indefinitely (2+ min). Full crypto pipeline working. TLS cert bypass is the last blocker to loading screen.
 
 ## What Works
 
-- Client launches and connects to our server (reaches "Hard Connect" state)
-- Full Blowfish Double CFB encryption/decryption (verified byte-for-byte)
-- Echo handshake completes (519 -> 119 -> 64 -> 34 -> 27 -> 19B sequence)
-- CRC-32/MPEG-2 nonce computation reverse-engineered from Ghidra
-- Network packet capture via custom DLL hook (`version.dll` proxy)
-- Game logic ready: 165 champions, 138 items, spells, jungle, vision, buffs
+- Client launches, connects, and **stays alive indefinitely** (2+ minutes confirmed)
+- Full Blowfish Double CFB encryption/decryption (game's own BF context)
+- CRC-32 nonce computed by game's own function — **CRC PASS on every packet**
+- Echo handshake + CAFE delivery (server→client game data)
+- FLOW state machine bypassed (`flowPtr+8 = 1`)
+- Game data sent via cmd=2 (game handler path): QueryStatusAns, SynchVersion, opcodes
+- 20+ game opcodes delivered to dispatcher, 0 crashes
+- Hardware breakpoint CRC bypass via VEH (Vanguard-compatible)
 
-## What's In Progress
+## What's Left
 
-- Runtime CRC bypass via Cheat Engine kernel driver (pending reboot)
-- Once CRC bypassed: game initialization packets (KeyCheck, StartGame, etc.)
+| Blocker | Status | Details |
+|---------|--------|---------|
+| TLS cert verify | **Last blocker** | BoringSSL rejects our FakeLCU cert. Vanguard blocks .text patches (err=5) and debug registers. Need SSL_CTX heap patch or skip LCU entirely. |
+| Game opcodes | Pending | Modern client (16.6) uses different opcodes than Season 4. Need to identify QueryStatusReq/SynchVersion equivalents. |
+| Loading screen | Blocked by TLS | Once LCU WebSocket connects, game gets roster/map/config → loading screen. |
 
 ## Protocol (Fully Reverse-Engineered)
 
 | Layer | Description |
 |-------|-------------|
 | Transport | UDP via `sendto` in `ws2_32.dll` |
-| Framing | LENet (ENet fork), big-endian, 519-byte client packets |
-| Encryption | **Blowfish Double CFB** (encrypt -> reverse ALL bytes -> encrypt), IV=0 |
-| Key | From `gameconfig.json`: `17BLOhi6KZsTtldTsizvHg==` (base64, 16 bytes) |
-| Integrity | CRC-32/MPEG-2 nonce in packet header, polynomial `0x04C11DB7` |
-| Anti-cheat | `stub.dll` sets guard pages on `.text`, blocks all ring-3 memory writes |
+| Framing | Modified ENet, 519-byte client packets with LNPBlob header |
+| Encryption | **Blowfish Double CFB** (encrypt → reverse ALL bytes → encrypt), IV=0, block-based (full 8B blocks only) |
+| Key | `17BLOhi6KZsTtldTsizvHg==` (base64, 16 bytes) |
+| Integrity | CRC-32 nonce, polynomial `0x04C11DB7`, non-standard byte mixing: `(crc << 8 \| byte) ^ table[crc >> 24]` |
+| Game data | cmd=2 → handler +0x168 (real), cmd=6 → handler +0x128 (stub) |
+| Dispatcher | 81 opcodes (16-bit), 0x000A–0x0479, jump table at 0x140957120 |
+| Anti-cheat | Vanguard: guard pages on `.text`, blocks VirtualProtect + debug registers |
 
 ### Packet Format
 
-**Client -> Server:**
+**Client → Server (519B):**
 ```
-[4B magic 0x37AA0014][4B sessionID LE][encrypted payload][2B footer EDF9]
+[4B magic 0x37AA0014][4B sessionID LE][4B connToken (unencrypted)][Double-CFB encrypted: [4B CRC nonce][1B flags/cmd][body...]]
 ```
 
-**Server -> Client:**
+**Server → Client (via CAFE hook):**
 ```
-Plaintext: [2B peerID LE][4B CRC_NONCE BE][1B flags][ENet commands...]
-Encrypted: DoubleCfbEncrypt(plaintext)
-Sent:      [4B connectToken BE (skipped by client)][encrypted bytes]
+Hook receives: [2B 0xCAFE][4B header][plaintext: [4B nonce placeholder][1B cmd][body...]]
+Hook strips CAFE, computes CRC with game's function, encrypts with game's BF
+Client sees:   [4B connToken][Double-CFB encrypted: [4B CRC nonce][1B cmd][body...]]
 ```
 
 ### CRC Nonce Computation
 
-The CRC is computed over a **stack struct** (NOT the packet payload):
+Computed by game function at RVA 0x577F10 over a stack struct:
+```
+crcStruct+0x00: local_c8 (from connStruct+0x138)
+crcStruct+0x08: peerID_lo (from header byte 0)
+crcStruct+0x09: peerID_hi (from header byte 1)
+crcStruct+0x18: timestamp (0xFFFFFFFFFFFFFFFF)
+crcStruct+0x48: pointer to payload (after flags byte)
+crcStruct+0x52: payload length
+```
+
+### Game Init Sequence (Season 4 reference)
 
 ```
-Init:  (byte[8] | 0xFFFFFF00) ^ 0xB1F740B4   (byte[8] = 0)
-Feed:  byte[9]=0, bytes[0..7]=1 as int64 LE, 8x 0xFF
-Nonce: ~crc = 0x8DFE1964
+1. KeyCheck (channel 0, 32B)
+2. QueryStatusReq (0x14) → QueryStatusAns (0x88)
+3. SynchVersionC2S (0xBD) → SynchVersionS2C (0x54)
+4. CharSelected (0xBE) → TeamRosterUpdate (0x67, channel 7)
+5. ClientReady (0x52) → StartSpawn (0x62) + CreateHero (0x4C) + EndSpawn (0x11)
+6. StartGame (0x5C) + SynchSimTime (0xC1)
 ```
 
 ## Architecture
@@ -59,26 +79,28 @@ Nonce: ~crc = 0x8DFE1964
 D:\LeagueOfLegendsV2\
 |-- server/src/
 |   |-- LoLServer.Console/     Game server + analysis tools
-|   |-- LoLServer.Core/        Network, protocol, game logic
-|   |-- LoLServer.Launcher/    Client launcher
+|   |-- LoLServer.Core/        Network (RawGameServer), protocol, game logic
 |
-|-- nethook/                   C hook DLLs (version.dll proxy)
-|   |-- version_proxy.c        sendto/recvfrom hooks, CRC struct dump, HW BP attempts
-|   |-- fake_stub.c            Dummy anti-cheat (blocked by integrity check)
+|-- nethook/                   C hook DLL (version.dll proxy)
+|   |-- version_proxy.c        sendto/recvfrom hooks, CAFE CRC fixup, VEH HW breakpoint,
+|   |                          FLOW patch, cert thread, client packet decryption
 |
-|-- ghidra_scripts/            Ghidra analysis scripts (Java)
-|-- ce_kernel_patch.lua        Cheat Engine CRC bypass script
-|-- start-client.bat           Client launcher with full arguments
-|-- launch-game.bat            Simple client launcher
+|-- docs/
+|   |-- JOURNEY.md             Full reverse engineering journal (Phases 1-25)
+|   |-- PROTOCOL_ANALYSIS.md   Protocol documentation
+|
+|-- launch-game.bat            Client launcher (without LCU)
+|-- launch-game-lcu.bat        Client launcher (with FakeLCU port)
+|-- start-server.bat           Server launcher
 |
 |-- client-private/Game/       Private copy of LoL client (not in repo)
 ```
 
 ## Tech Stack
 
-- **Server:** C# .NET 8, Blowfish, CRC-32/MPEG-2
-- **Hooks:** C (MinGW-w64), inline hooking on ws2_32.dll, VEH handler
-- **Analysis:** Ghidra 11.3.2, Cheat Engine (kernel driver)
+- **Server:** C# .NET 8, Blowfish, CRC-32, Raw UDP + CAFE protocol
+- **Hooks:** C (MinGW-w64), VEH handler, HW breakpoints, CAFE CRC fixup
+- **Analysis:** Ghidra 11.3.2, ~100 scripts, binary pattern scanning
 - **Client:** LoL 16.6 (private copy, separate from official install)
 
 ## Quick Start
@@ -86,51 +108,52 @@ D:\LeagueOfLegendsV2\
 ### Prerequisites
 - Windows 10/11
 - .NET 8 SDK
+- MinGW-w64 (MSYS2 mingw64)
 - A copy of LoL client (patch 16.6) in `client-private/`
-- MinGW-w64 (for compiling hook DLLs)
-- Cheat Engine (for runtime CRC bypass)
 
 ### 1. Compile the hook DLL
 ```bash
 cd nethook
-gcc -shared -o version.dll version_proxy.c -lws2_32 -O2
+PATH="/c/msys64/mingw64/bin:$PATH" gcc -shared -o version.dll version_proxy.c -lws2_32 -ldbghelp
 cp version.dll ../client-private/Game/version.dll
 ```
 
 ### 2. Start the server
 ```bash
-cd server/src/LoLServer.Console
-dotnet run -- --rawudp
+cd server
+dotnet run --project src/LoLServer.Console --configuration Release -- --rawudp
 ```
 
 ### 3. Launch the client
-```powershell
-cd client-private\Game
-Start-Process -FilePath '.\League of Legends.exe' -ArgumentList '"127.0.0.1 5119 17BLOhi6KZsTtldTsizvHg== 1" "-Product=LoL" "-PlayerID=1" "-GameID=1" "-LNPBlob=N6oAFO++rd4=" "-GameBaseDir=D:\LeagueOfLegendsV2\client-private" "-Region=EUW" "-Locale=fr_FR" "-SkipBuild" "-EnableCrashpad=false"'
+```batch
+launch-game-lcu.bat
 ```
 
-### 4. Patch CRC (Cheat Engine)
-1. Open CE as admin, attach to `League of Legends.exe`
-2. Settings -> Extra -> check "Read/Write Process Memory"
-3. Table -> Show Cheat Table Lua Script
-4. Paste `ce_kernel_patch.lua` content, click Execute
+Or manually:
+```powershell
+cd client-private\Game
+Start-Process "League of Legends.exe" '"127.0.0.1 5119 17BLOhi6KZsTtldTsizvHg== 1" "-Product=LoL" "-PlayerID=1" "-GameID=1" "-LNPBlob=N6oAFO++rd4=" "-GameBaseDir=D:\LeagueOfLegendsV2\client-private" "-Region=EUW" "-Locale=fr_FR" "-SkipBuild" "-EnableCrashpad=false"'
+```
 
 ## Key Ghidra Functions
 
 | Function | RVA | Role |
 |----------|-----|------|
-| `FUN_1405725f0` | 0x5725F0 | Recv decrypt + CRC validate |
-| `FUN_140577f10` | 0x577F10 | CRC nonce computation |
-| `FUN_140588f70` | 0x588F70 | Packet dispatcher (builds CRC stack struct) |
-| `FUN_1410f2a10` | 0x10F2A10 | Double CFB decrypt (recv) |
-| `FUN_1410f41e0` | 0x10F41E0 | Double CFB encrypt (send) |
-| `FUN_14058ef90` | 0x58EF90 | Send wrapper (double CFB + byte reversal) |
+| CRC nonce | 0x577F10 | CRC-32 computation over stack struct |
+| CRC check | 0x5725F0 | Recv decrypt + CRC validate |
+| Packet handler | 0x588F70 | Dequeue + dispatch |
+| Consumer | 0x5883D0 | Batch record → 56B internal struct |
+| **Dispatcher** | **0x955C20** | **81 game opcodes (16-bit switch)** |
+| CFB decrypt | 0x10F2A10 | Double CFB decrypt (recv path) |
+| CFB encrypt | 0x10F41E0 | Double CFB encrypt (send path) |
+| ParseCert | 0x168A4F0 | BoringSSL d2i_X509 |
+| flowPtr | 0x1DA5228 | FLOW state machine global |
 
 ## Important Notes
 
 - **DO NOT** modify the official LoL installation or Vanguard
-- The private client (`client-private/`) must be completely separate from the official install
-- Cheat Engine's kernel driver requires disabling the Windows vulnerable driver blocklist
+- The private client (`client-private/`) must be completely separate
+- Vanguard runs alongside — we coexist, never interfere
 - This project is for educational/research purposes only
 
 ## License
