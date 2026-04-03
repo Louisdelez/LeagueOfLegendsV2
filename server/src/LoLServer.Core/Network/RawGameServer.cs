@@ -503,13 +503,18 @@ public class RawGameServer : IGameServer, IDisposable
     private void SendCrcPacket(PeerInfo peer, byte cmdType, byte[] body)
     {
         // Format: Double-CFB encrypted entire packet: [2B peerID][4B nonce][1B flags][body...]
-        // Everything is encrypted including peerID
-        var plaintext = new byte[2 + 4 + 1 + body.Length];
+        // IMPORTANT: pad to multiple of 8 bytes! CFB only processes full blocks.
+        // Non-multiple sizes cause tail bytes to pass through unencrypted,
+        // which corrupts the Double-CFB reverse step.
+        int rawLen = 2 + 4 + 1 + body.Length;
+        int paddedLen = (rawLen + 7) & ~7; // round up to next multiple of 8
+        var plaintext = new byte[paddedLen];
         WriteLE16(plaintext, 0, 0); // peerID = 0
         WriteLE32(plaintext, 2, 0xDEADBEEF); // placeholder nonce (hook will fix)
         plaintext[6] = cmdType;
         if (body.Length > 0)
             Array.Copy(body, 0, plaintext, 7, body.Length);
+        // Remaining bytes are zero-padded (already 0 from new byte[])
 
         var encrypted = DoubleCfbEncrypt(plaintext);
 

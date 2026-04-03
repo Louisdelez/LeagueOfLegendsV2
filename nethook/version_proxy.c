@@ -1617,14 +1617,74 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                         r >= 1 ? (BYTE)buf[0] : 0, r >= 2 ? (BYTE)buf[1] : 0);
                 }
                 if (r >= 4 && (BYTE)buf[0] == 0xCA && (BYTE)buf[1] == 0xFE) {
-                    // Server CRC-format packet: strip 2B magic, CRC-fix the rest
-                    int encLen = r - 2;
-                    memmove(buf, buf + 2, encLen);
-                    r = encLen;
-                    if (FixCrcNonce((BYTE*)buf, r)) {
+                    // Server CRC-format packet: strip CAFE, decode plaintext, re-encrypt with GAME's BF
+                    int cafeLen = r - 2;
+                    BYTE *cafeData = (BYTE*)_alloca(cafeLen);
+                    memcpy(cafeData, buf + 2, cafeLen);
+
+                    // Decrypt with OUR BF to get plaintext
+                    HookDoubleCFB_Decrypt(cafeData, cafeLen);
+                    // cafeData now = [2B peer][4B nonce][1B flags][body...]
+
+                    // Now re-encrypt with GAME's BF function
+                    HMODULE gameBase = GetModuleHandleA(NULL);
+                    void *bfCtx = NULL;
+                    if (connStructAddr && !IsBadReadPtr((void*)(connStructAddr + 0x120), 16)) {
+                        BYTE *cryptoBase = (BYTE*)connStructAddr + 0x120;
+                        if (cryptoBase[0] != 0) {
+                            void **treePtr = (void**)(cryptoBase + 8);
+                            if (!IsBadReadPtr(treePtr, 8) && *treePtr) {
+                                BYTE *rootNode = (BYTE*)(*(void**)(*treePtr));
+                                if (!IsBadReadPtr(rootNode, 0x30)) {
+                                    UINT64 nodeKey = *(UINT64*)(rootNode + 0x20);
+                                    void *nodeVal = *(void**)(rootNode + 0x28);
+                                    if (nodeKey == 1 && nodeVal) bfCtx = nodeVal;
+                                }
+                            }
+                        }
+                    }
+
+                    if (bfCtx && gameBase) {
+                        // Compute CRC nonce using game's function
+                        BYTE crcStruct[0x60];
+                        memset(crcStruct, 0, sizeof(crcStruct));
+                        UINT64 lc8 = 1;
+                        if (connStructAddr && !IsBadReadPtr((void*)(connStructAddr + 0x138), 8))
+                            lc8 = *(UINT64*)(connStructAddr + 0x138);
+                        *(UINT64*)(crcStruct + 0x00) = lc8;
+                        crcStruct[0x08] = cafeData[0]; crcStruct[0x09] = cafeData[1];
+                        *(UINT64*)(crcStruct + 0x18) = 0xFFFFFFFFFFFFFFFF;
+                        int payloadLen = (cafeLen > 7) ? (cafeLen - 7) : 0;
+                        *(UINT64*)(crcStruct + 0x48) = (UINT64)(cafeData + 7);
+                        *(UINT16*)(crcStruct + 0x52) = (UINT16)payloadLen;
+
+                        typedef int (__fastcall *crc_fn_t)(BYTE*);
+                        crc_fn_t CrcFn = (crc_fn_t)((BYTE*)gameBase + 0x577F10);
+                        int nonce = CrcFn(crcStruct);
+                        *(int*)(cafeData + 2) = nonce;
+
+                        // Double-CFB encrypt with GAME's BF context
+                        typedef void (*bf_cfb_t)(void*, BYTE*, unsigned short, int);
+                        bf_cfb_t BfCfbEnc = (bf_cfb_t)((BYTE*)gameBase + 0x10F41E0);
+                        BfCfbEnc(bfCtx, cafeData, (unsigned short)cafeLen, 2); // pass 1
+                        ReverseBytes(cafeData, cafeLen);
+                        BfCfbEnc(bfCtx, cafeData, (unsigned short)cafeLen, 2); // pass 2
+
+                        memcpy(buf, cafeData, cafeLen);
+                        r = cafeLen;
                         fixupCount++;
                         if (fixupCount <= 20)
-                            Log("CRC_FIXUP #%d: fixed %dB server game packet (CAFE)", fixupCount, r);
+                            Log("CRC_FIXUP #%d: %dB via GAME BF (bfCtx=%p nonce=0x%08X flags=0x%02X)",
+                                fixupCount, r, bfCtx, (UINT32)nonce, cafeData[6]); // note: cafeData now encrypted
+                    } else {
+                        // Fallback: use our own BF
+                        if (FixCrcNonce(cafeData, cafeLen)) {
+                            memcpy(buf, cafeData, cafeLen);
+                            r = cafeLen;
+                            fixupCount++;
+                            if (fixupCount <= 20)
+                                Log("CRC_FIXUP #%d: %dB via OUR BF (fallback)", fixupCount, r);
+                        }
                     }
                 } else {
                     // Normal server response = echo back for keep-alive
