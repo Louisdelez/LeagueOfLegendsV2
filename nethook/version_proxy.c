@@ -3421,7 +3421,52 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
                         }
                         fflush(logfile);
                     }
-                    if (!found) goto scan_done; // continue scanning
+                    // Even if DER not found directly, search for the VECTOR that contains this handle
+                    // base+j is where the handle pointer sits. If this is in a vector's data array,
+                    // the vector header {begin=base+j, end=base+j+8, capacity} is elsewhere
+                    if (!found && logfile) {
+                        UINT64 handleAddr = (UINT64)(base + j);
+                        fprintf(logfile, "[CertThread] Searching for vector with begin=%p...\n", (void*)handleAddr);
+                        fflush(logfile);
+                        // Scan heap for a QWORD == handleAddr (the vector's begin pointer)
+                        MEMORY_BASIC_INFORMATION vm;
+                        BYTE *vs = NULL;
+                        int vecFound = 0;
+                        while (VirtualQuery(vs, &vm, sizeof(vm)) && !vecFound) {
+                            if (vm.State == MEM_COMMIT && (vm.Protect & PAGE_READWRITE) && vm.RegionSize >= 24) {
+                                BYTE *vb = (BYTE*)vm.BaseAddress;
+                                SIZE_T vz = vm.RegionSize;
+                                if (!(vb >= (BYTE*)hExe && vb < (BYTE*)hExe + 0x20000000)) {
+                                    for (SIZE_T vj = 0; vj + 24 <= vz && !vecFound; vj += 8) {
+                                        UINT64 *vec = (UINT64*)(vb + vj);
+                                        if (vec[0] == handleAddr && vec[1] > handleAddr && vec[1] <= handleAddr + 8*60) {
+                                            vecFound = 1;
+                                            int vecCount = (int)((vec[1] - vec[0]) / 8);
+                                            fprintf(logfile, "[CertThread] *** VECTOR at %p: begin=%p end=%p count=%d ***\n",
+                                                vec, (void*)vec[0], (void*)vec[1], vecCount);
+                                            // PUSH OUR CERT into this vector!
+                                            if (g_ourCertHandle) {
+                                                typedef void (*VecPush_t)(void*, void*, void*);
+                                                VecPush_t VP = (VecPush_t)((BYTE*)hExe + 0x1E2190);
+                                                void *h = (void*)g_ourCertHandle;
+                                                VP(vec, (void*)vec[1], &h);
+                                                fprintf(logfile, "[CertThread] *** PUSHED our cert! new count=%d ***\n",
+                                                    (int)((vec[1] - vec[0]) / 8));
+                                                found = 1;
+                                            }
+                                            fflush(logfile);
+                                        }
+                                    }
+                                }
+                            }
+                            vs = (BYTE*)vm.BaseAddress + vm.RegionSize;
+                        }
+                        if (!vecFound && logfile) {
+                            fprintf(logfile, "[CertThread] Vector not found for handle at %p\n", (void*)handleAddr);
+                            fflush(logfile);
+                        }
+                    }
+                    if (!found) goto scan_done;
                 }
                 if (count >= 3) { // lowered from 5 to 3
                     found = 1;
