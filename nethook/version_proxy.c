@@ -2957,6 +2957,87 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
         }
     }
 
+    // === PHASE 0: Replace Riot CA DER bytes on HEAP ===
+    // .rdata is protected by Vanguard. But CRYPTO_BUFFER objects on the heap
+    // contain POINTERS to DER data. If we allocate our CA DER on heap and
+    // modify the CRYPTO_BUFFER to point to it, BoringSSL will use our CA.
+    {
+        // Read our CA cert
+        char caPath[MAX_PATH];
+        GetModuleFileNameA(NULL, caPath, MAX_PATH);
+        char *sl = strrchr(caPath, '\\');
+        if (sl) strcpy(sl + 1, "myCA.der");
+
+        FILE *caf = fopen(caPath, "rb");
+        if (!caf) caf = fopen("D:\\LeagueOfLegendsV2\\myCA.der", "rb");
+        if (caf) {
+            fseek(caf, 0, SEEK_END);
+            long caSize = ftell(caf);
+            fseek(caf, 0, SEEK_SET);
+            if (caSize > 0 && caSize < 4096) {
+                static BYTE *heapCA = NULL;
+                heapCA = (BYTE*)VirtualAlloc(NULL, caSize, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
+                if (heapCA) {
+                    fread(heapCA, 1, caSize, caf);
+                    if (logfile) { fprintf(logfile, "[CertThread] Loaded myCA.der: %ld bytes at %p\n", caSize, heapCA); fflush(logfile); }
+
+                    // Now scan heap for CRYPTO_BUFFER objects with Riot CA DER
+                    // The Riot CA DER starts with specific bytes at hExe+0x19EEBD0
+                    BYTE *riotDER = (BYTE*)hExe + 0x19EEBD0;
+                    BYTE riotFirst8[8];
+                    memcpy(riotFirst8, riotDER, 8); // save first 8 bytes for matching
+
+                    MEMORY_BASIC_INFORMATION mbi;
+                    BYTE *scan = NULL;
+                    int replaced = 0;
+                    while (VirtualQuery(scan, &mbi, sizeof(mbi)) && !replaced) {
+                        if (mbi.State == MEM_COMMIT && (mbi.Protect & PAGE_READWRITE) && mbi.RegionSize >= 8) {
+                            BYTE *base = (BYTE*)mbi.BaseAddress;
+                            SIZE_T size = mbi.RegionSize;
+                            if (!(base >= (BYTE*)hExe && base < (BYTE*)hExe + 0x20000000)) {
+                                for (SIZE_T j = 0; j + 8 <= size && !replaced; j += 8) {
+                                    UINT64 val = *(UINT64*)(base + j);
+                                    // Look for pointers to Riot CA DER:
+                                    // 1. Direct pointer to .rdata
+                                    // 2. Pointer to heap copy of DER (match first 8 bytes)
+                                    int isDERptr = (val == (UINT64)riotDER);
+                                    if (!isDERptr && val > 0x10000 && val < 0x7FFFFFFFFFFF &&
+                                        !(val >= (UINT64)hExe && val < (UINT64)hExe + 0x20000000)) {
+                                        // Check if this pointer leads to a copy of Riot CA DER
+                                        UINT64 check8 = 0;
+                                        if (SafeRead8((void*)val, &check8) && check8 == *(UINT64*)riotFirst8) {
+                                            isDERptr = 1;
+                                        }
+                                    }
+                                    if (isDERptr) {
+                                        if (logfile) { fprintf(logfile, "[CertThread] Found ptr to Riot DER at %p\n", base+j); fflush(logfile); }
+                                        // Replace the pointer with our heap CA
+                                        *(UINT64*)(base + j) = (UINT64)heapCA;
+                                        // Also check if the next field is the length (1060)
+                                        if (j + 16 <= size) {
+                                            UINT64 nextVal = *(UINT64*)(base + j + 8);
+                                            if (nextVal == 1060 || (nextVal & 0xFFFF) == 1060) {
+                                                *(UINT64*)(base + j + 8) = (UINT64)caSize;
+                                                if (logfile) { fprintf(logfile, "[CertThread] Fixed length: 1060 → %ld\n", caSize); fflush(logfile); }
+                                            }
+                                        }
+                                        replaced = 1;
+                                        if (logfile) { fprintf(logfile, "[CertThread] *** REPLACED Riot CA DER pointer → myCA heap! ***\n"); fflush(logfile); }
+                                    }
+                                }
+                            }
+                        }
+                        scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
+                    }
+                    if (!replaced && logfile) { fprintf(logfile, "[CertThread] Riot CA DER pointer not found on heap\n"); fflush(logfile); }
+                }
+            }
+            fclose(caf);
+        } else {
+            if (logfile) { fprintf(logfile, "[CertThread] myCA.der not found\n"); fflush(logfile); }
+        }
+    }
+
     // === PHASE 0.5: Patch FLOW state to bypass LCU timeout ===
     // DAT_141da5228 + 8 must be 1 for FLOW to proceed
     // RVA = 0x1DA5228 + 8 = 0x1DA5230
