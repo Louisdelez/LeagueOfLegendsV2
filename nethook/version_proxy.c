@@ -1702,76 +1702,32 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                         *(int*)(encPart + 0) = nonce; // patch nonce in plaintext
 
                         fixupCount++;
-                        if (fixupCount <= 20) {
-                            // Log P[2]/P[3] which serve as initial CFB feedback
-                            UINT32 p2 = *(UINT32*)((BYTE*)bfCtx + 8);
-                            UINT32 p3 = *(UINT32*)((BYTE*)bfCtx + 0xC);
-                            Log("CRC_FIXUP #%d: total=%dB enc=%dB nonce=0x%08X P2=0x%08X P3=0x%08X",
-                                fixupCount, totalLen, encLen, (UINT32)nonce, p2, p3);
-                            // VERIFY: decrypt our own encrypted packet and check CRC
-                            BYTE *verify = (BYTE*)_alloca(encLen);
-                            memcpy(verify, encPart, encLen);
-                            typedef void (*bf_cfb_dec_t)(void*, BYTE*, UINT64, int);
-                            bf_cfb_dec_t BfDec2 = (bf_cfb_dec_t)((BYTE*)gameBase + 0x10F2A10);
-                            // DO NOT modify bfCtx+8/0xC - they are P[2]/P[3], not IV!
-                            BfDec2(bfCtx, verify, (UINT64)encLen, 2);
-                            ReverseBytes(verify, encLen);
-                            BfDec2(bfCtx, verify, (UINT64)encLen, 2);
-                            // verify[0..3]=nonce, verify[4]=flags, verify[5+]=body
-                            int storedNonce = *(int*)(verify + 0);
-                            // Recompute CRC on the decrypted data
-                            BYTE crcV[0x60]; memset(crcV, 0, sizeof(crcV));
-                            *(UINT64*)(crcV + 0x00) = lc8;
-                            crcV[0x08] = pkt[0]; crcV[0x09] = pkt[1];
-                            *(UINT64*)(crcV + 0x18) = 0xFFFFFFFFFFFFFFFF;
-                            int vpLen = (encLen > 5) ? (encLen - 5) : 0;
-                            *(UINT64*)(crcV + 0x48) = (UINT64)(verify + 5);
-                            *(UINT16*)(crcV + 0x52) = (UINT16)vpLen;
-                            int verifyNonce = CrcFn(crcV);
-                            int match = (storedNonce == verifyNonce);
-                            Log("  VERIFY: stored=0x%08X computed=0x%08X flags=0x%02X %s",
-                                (UINT32)storedNonce, (UINT32)verifyNonce, verify[4],
-                                match ? "CRC OK!" : "CRC MISMATCH!");
-                        }
+                        if (fixupCount <= 20)
+                            Log("CRC_FIXUP #%d: total=%dB enc=%dB nonce=0x%08X flags=0x%02X",
+                                fixupCount, totalLen, encLen, (UINT32)nonce, encPart[4]);
 
-                        // Re-encrypt with GAME's BF
-                        // NOTE: bfCtx+8/0xC are P[2]/P[3] of the key schedule, NOT IV!
-                        // The CFB functions read them as initial feedback but they're actually
-                        // P-array values. DO NOT modify them!
+                        // Encrypt with GAME's BF
                         typedef void (*bf_cfb_t)(void*, BYTE*, UINT64, int);
                         bf_cfb_t BfEnc = (bf_cfb_t)((BYTE*)gameBase + 0x10F41E0);
-                        // ROUNDTRIP TEST: 16B (2 blocks) and double-CFB 16B
-                        if (fixupCount <= 2) {
-                            typedef void (*bfd_t)(void*, BYTE*, UINT64, int);
-                            bfd_t BD = (bfd_t)((BYTE*)gameBase + 0x10F2A10);
-                            // Test 16B single CFB
-                            BYTE t16[16] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
-                            BYTE orig16[16]; memcpy(orig16, t16, 16);
-                            BfEnc(bfCtx, t16, 16, 2); // encrypt 16B
-                            BD(bfCtx, t16, 16, 2);    // decrypt 16B
-                            int ok16 = (memcmp(t16, orig16, 16) == 0);
-                            Log("  16B single CFB roundtrip: %s", ok16 ? "OK" : "FAIL");
-                            // Test double-CFB 16B
-                            BYTE t16d[16] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
-                            BYTE orig16d[16]; memcpy(orig16d, t16d, 16);
-                            BfEnc(bfCtx, t16d, 16, 2);
-                            ReverseBytes(t16d, 16);
-                            BfEnc(bfCtx, t16d, 16, 2);
-                            // Now decrypt
-                            BD(bfCtx, t16d, 16, 2);
-                            ReverseBytes(t16d, 16);
-                            BD(bfCtx, t16d, 16, 2);
-                            int okD16 = (memcmp(t16d, orig16d, 16) == 0);
-                            Log("  16B double CFB roundtrip: %s", okD16 ? "OK" : "FAIL");
-                            if (!okD16) {
-                                Log("    got: %02X%02X%02X%02X%02X%02X%02X%02X %02X%02X%02X%02X%02X%02X%02X%02X",
-                                    t16d[0],t16d[1],t16d[2],t16d[3],t16d[4],t16d[5],t16d[6],t16d[7],
-                                    t16d[8],t16d[9],t16d[10],t16d[11],t16d[12],t16d[13],t16d[14],t16d[15]);
-                            }
-                        }
                         BfEnc(bfCtx, encPart, (UINT64)encLen, 2); // pass 1
                         ReverseBytes(encPart, encLen);
                         BfEnc(bfCtx, encPart, (UINT64)encLen, 2); // pass 2
+
+                        // VERIFY after encrypt: decrypt and check CRC matches
+                        if (fixupCount <= 5) {
+                            BYTE *verify = (BYTE*)_alloca(encLen);
+                            memcpy(verify, encPart, encLen); // copy CIPHERTEXT
+                            typedef void (*bf_cfb_dec_t)(void*, BYTE*, UINT64, int);
+                            bf_cfb_dec_t BfDec2 = (bf_cfb_dec_t)((BYTE*)gameBase + 0x10F2A10);
+                            BfDec2(bfCtx, verify, (UINT64)encLen, 2);
+                            ReverseBytes(verify, encLen);
+                            BfDec2(bfCtx, verify, (UINT64)encLen, 2);
+                            int storedNonce = *(int*)(verify + 0);
+                            int match = (storedNonce == nonce);
+                            Log("  VERIFY: dec_nonce=0x%08X orig_nonce=0x%08X flags=0x%02X %s",
+                                (UINT32)storedNonce, (UINT32)nonce, verify[4],
+                                match ? "CRC PASS!" : "CRC MISMATCH!");
+                        }
 
                         // Return: [4B header][re-encrypted]
                         memcpy(buf, pkt, totalLen);
