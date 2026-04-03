@@ -3051,8 +3051,8 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
         // DAT_141da5228 is a POINTER to connection object. Read ptr, then ptr+8
         UINT64 *flowPtrAddr = (UINT64*)((BYTE*)hExe + 0x1DA5228);
         UINT64 *lcuPtrAddr = (UINT64*)((BYTE*)hExe + 0x1DA1480);
-        for (int fw = 0; fw < 8; fw++) { // reduced from 20 to let PHASE 1 run faster
-            Sleep(2000);
+        for (int fw = 0; fw < 30; fw++) {
+            Sleep(500); // poll every 500ms for fast patching
             UINT64 flowPtr = *flowPtrAddr;
             UINT64 lcuPtr = *lcuPtrAddr;
             int flowVal = 0;
@@ -3085,33 +3085,15 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
                 }
                 fflush(logfile);
             }
-            // Patch ALL flow-related fields aggressively
-            if (fw == 5 && flowPtr != 0) {
+            // Patch at fw==8 (4 seconds) - fast but not too early
+            if (fw == 8 && flowPtr != 0) {
                 // Patch connection state to 1
                 if (flowVal == 0) {
                     *(int*)(flowPtr + 8) = 1;
                     if (logfile) { fprintf(logfile, "[CertThread] *** PATCHED flowPtr+8 to 1 ***\n"); fflush(logfile); }
                 }
-                // Patch flag33 and flag19 in DAT_141dba0c0 struct
-                if (dba0c0 != 0) {
-                    if (!IsBadReadPtr((void*)(dba0c0 + 0x33), 1)) {
-                        *(BYTE*)(dba0c0 + 0x33) = 1;
-                        if (logfile) { fprintf(logfile, "[CertThread] *** PATCHED dba0c0+0x33 to 1 ***\n"); fflush(logfile); }
-                    }
-                    if (!IsBadReadPtr((void*)(dba0c0 + 0x19), 1)) {
-                        *(BYTE*)(dba0c0 + 0x19) = 1;
-                        if (logfile) { fprintf(logfile, "[CertThread] *** PATCHED dba0c0+0x19 to 1 ***\n"); fflush(logfile); }
-                    }
-                    // Also try patching +0x2c to 3 (GAME_COMPLETED check)
-                    if (!IsBadReadPtr((void*)(dba0c0 + 0x2c), 4)) {
-                        *(int*)(dba0c0 + 0x2c) = 3;
-                        if (logfile) { fprintf(logfile, "[CertThread] *** PATCHED dba0c0+0x2c to 3 ***\n"); fflush(logfile); }
-                    }
-                }
-                // Patch evt422
-                if (lcuPtr != 0 && !IsBadReadPtr((void*)(lcuPtr + 0x422), 1)) {
-                    *(BYTE*)(lcuPtr + 0x422) = 0;
-                }
+                // DON'T patch anything else - only flowPtr+8
+                // Fake vtable and flag patches cause crashes
                 // LATE DER SWAP: DISABLED (blocks thread with full heap scan)
                 if (0) {
                     static int derSwapDone = 0;
@@ -3153,8 +3135,8 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
                         }
                     }
                 }
-                // FAKE VTABLE: make isConnected() return 1
-                if (lcuPtr != 0 && lcuObj3b8 != 0) {
+                // FAKE VTABLE: DISABLED (causes crash when other methods are called)
+                if (0 && lcuPtr != 0 && lcuObj3b8 != 0) {
                     // The slot at *lcu3b8 is NULL (LCU never connected).
                     // Create a FAKE chain: lcu3b8 → fakePtr → fakeObj → fakeVtable → return1
                     if (logfile) { fprintf(logfile, "[CertThread] Attempting fake LCU: lcu3b8=%p val=%p\n",
