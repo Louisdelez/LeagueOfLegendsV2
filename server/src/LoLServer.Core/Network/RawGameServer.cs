@@ -502,29 +502,38 @@ public class RawGameServer : IGameServer, IDisposable
     /// </summary>
     private void SendCrcPacket(PeerInfo peer, byte cmdType, byte[] body)
     {
-        // Format: Double-CFB encrypted entire packet: [2B peerID][4B nonce][1B flags][body...]
-        // IMPORTANT: pad to multiple of 8 bytes! CFB only processes full blocks.
-        // Non-multiple sizes cause tail bytes to pass through unencrypted,
-        // which corrupts the Double-CFB reverse step.
-        int rawLen = 2 + 4 + 1 + body.Length;
-        int paddedLen = (rawLen + 7) & ~7; // round up to next multiple of 8
-        var plaintext = new byte[paddedLen];
-        WriteLE16(plaintext, 0, 0); // peerID = 0
-        WriteLE32(plaintext, 2, 0xDEADBEEF); // placeholder nonce (hook will fix)
-        plaintext[6] = cmdType;
+        // Format discovered from Ghidra analysis of FUN_140588f70:
+        // [4B header (unencrypted, skipped by conn+0x144=4)]
+        // [Double-CFB encrypted: [4B CRC nonce][1B flags][body...]]
+        //
+        // The hook will:
+        // 1. Strip CAFE prefix
+        // 2. Skip 4B header
+        // 3. Decrypt bytes 4+ with game's BF
+        // 4. Compute CRC, patch nonce
+        // 5. Re-encrypt bytes 4+
+
+        // Encrypted part: [4B nonce placeholder][1B flags][body]
+        int encRawLen = 4 + 1 + body.Length;
+        int encPaddedLen = (encRawLen + 7) & ~7; // pad to multiple of 8
+        var encPlain = new byte[encPaddedLen];
+        WriteLE32(encPlain, 0, 0xDEADBEEF); // placeholder nonce
+        encPlain[4] = cmdType;
         if (body.Length > 0)
-            Array.Copy(body, 0, plaintext, 7, body.Length);
-        // Remaining bytes are zero-padded (already 0 from new byte[])
+            Array.Copy(body, 0, encPlain, 5, body.Length);
 
-        var encrypted = DoubleCfbEncrypt(plaintext);
+        var encrypted = DoubleCfbEncrypt(encPlain);
 
-        // Prefix with magic marker 0xCAFE so hook can distinguish from echo
-        var packet = new byte[2 + encrypted.Length];
+        // Build full packet: [2B CAFE][4B header][encrypted]
+        var packet = new byte[2 + 4 + encrypted.Length];
         packet[0] = 0xCA;
         packet[1] = 0xFE;
-        Array.Copy(encrypted, 0, packet, 2, encrypted.Length);
+        // Header bytes (non-encrypted): [2B peerID LE][2B padding]
+        WriteLE16(packet, 2, 0); // peerID = 0
+        packet[4] = 0; packet[5] = 0; // padding
+        Array.Copy(encrypted, 0, packet, 6, encrypted.Length);
 
-        Log($"  [CRC-PKT] cmd=0x{cmdType:X2} body={body.Length}B total={packet.Length}B (magic=CAFE)");
+        Log($"  [CRC-PKT] cmd=0x{cmdType:X2} body={body.Length}B enc={encrypted.Length}B total={packet.Length}B");
         Send(packet, peer);
     }
 
