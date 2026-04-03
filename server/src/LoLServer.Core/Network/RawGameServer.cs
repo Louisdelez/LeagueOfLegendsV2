@@ -320,31 +320,24 @@ public class RawGameServer : IGameServer, IDisposable
             SendCrcPacket(peer, 0x02, batchData);
             Log($"  [BATCH-KC] cmd=0x02, {batchData.Length}B");
 
-            // Also try: batch with a KNOWN OPCODE (0x000A is first known opcode)
-            // The game dispatcher reads u16 opcode from the deserialized struct
-            // The sub-packet DWORDs become fields of the struct
-            // Try putting opcode in the first few bytes
+            // Try ALL possible byte offsets for opcode 0x000A in the sub-packet
+            // Send one batch per offset position
+            for (int opcOffset = 0; opcOffset <= 14; opcOffset += 2)
             {
-                var opcodeData = new byte[16]; // 4 DWORDs
-                // Opcode is at param_2+0x08 (u16). In the 0x38-byte struct,
-                // the sub-packet DWORDs fill specific fields.
-                // The struct is: [qword@0][u16 opcode@8][...payload@10+]
-                // If DWORDs map sequentially: DWORD[0..1]=qword@0, DWORD[2] contains opcode
-                // Try opcode at DWORD[2] (offset 0x08 = byte 8 = DWORD index 2)
-                WriteLE32(opcodeData, 0, 0);         // DWORD 0 (part of qword@0)
-                WriteLE32(opcodeData, 4, 0);         // DWORD 1 (part of qword@0)
-                WriteLE32(opcodeData, 8, 0x000A);    // DWORD 2 = opcode 0x000A at byte offset 8
-                WriteLE32(opcodeData, 12, 0);        // DWORD 3 = payload
+                var opcodeData = new byte[16]; // 4 DWORDs (minimum)
+                // Place opcode 0x000A at byte offset opcOffset
+                opcodeData[opcOffset] = 0x0A;
+                opcodeData[opcOffset + 1] = 0x00;
 
-                var batch2 = new System.IO.MemoryStream();
-                batch2.WriteByte(0x02);
-                batch2.Write(BitConverter.GetBytes((uint)1), 0, 4);
-                batch2.Write(BitConverter.GetBytes((uint)(opcodeData.Length / 4)), 0, 4);
-                batch2.Write(opcodeData, 0, opcodeData.Length);
-                batch2.WriteByte(0x18);
-                SendCrcPacket(peer, 0x02, batch2.ToArray());
-                Log($"  [BATCH-OP] cmd=0x02 with opcode 0x000A, {batch2.Length}B");
+                var batchN = new System.IO.MemoryStream();
+                batchN.WriteByte(0x02);
+                batchN.Write(BitConverter.GetBytes((uint)1), 0, 4);
+                batchN.Write(BitConverter.GetBytes((uint)(opcodeData.Length / 4)), 0, 4);
+                batchN.Write(opcodeData, 0, opcodeData.Length);
+                batchN.WriteByte(0x18);
+                SendCrcPacket(peer, 0x02, batchN.ToArray());
             }
+            Log($"  [BATCH-BRUTE] sent 8 batch packets with opcode at offsets 0-14");
 
             // DISABLED: capture client's data and echo it back via CAFE
             // The server stores raw client payloads and sends them back
