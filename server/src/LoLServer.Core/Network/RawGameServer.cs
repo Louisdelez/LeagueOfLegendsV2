@@ -257,24 +257,13 @@ public class RawGameServer : IGameServer, IDisposable
             WriteBE16(reliableBody, 3, (ushort)keyCheckData.Length); // dataLen = 32
             Array.Copy(keyCheckData, 0, reliableBody, 5, keyCheckData.Length);
 
-            // Send KeyCheck as SEND_RELIABLE (cmd=6)
+            // cmd=0x30 is what the client uses for its 36B KeyCheck packet!
+            SendCrcPacket(peer, 0x30, reliableBody);
+            Log($"  [KC-30] sent cmd=0x30 (client's KeyCheck cmd), {reliableBody.Length}B");
+
+            // Also cmd=0x06 (standard SEND_RELIABLE)
             SendCrcPacket(peer, 0x06, reliableBody);
-            Log($"  [KEYCHECK] sent cmd=0x06, {reliableBody.Length}B body");
-
-            // Also try: send KeyCheck as raw data without SEND_RELIABLE wrapper
-            // Maybe the game expects it as a different command type
-            // Try cmd=0x06 with sentTime (flags=0x86)
-            SendCrcPacket(peer, 0x86, reliableBody);
-            Log($"  [KEYCHECK2] sent cmd=0x86 (RELIABLE+SENTTIME)");
-
-            // Try the KeyCheck data directly as cmd=2 (the batch data type)
-            // Agent said: "consumer distinguishes command type 2 (game data batches)"
-            SendCrcPacket(peer, 0x02, keyCheckData);
-            Log($"  [KEYCHECK3] sent cmd=0x02 (batch data), {keyCheckData.Length}B raw");
-
-            // Try PING (cmd=5) to test basic dispatch
-            SendCrcPacket(peer, 0x05, new byte[0]);
-            Log($"  [PING] sent cmd=0x05");
+            Log($"  [KC-06] sent cmd=0x06 (SEND_RELIABLE)");
         }
     }
 
