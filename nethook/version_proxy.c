@@ -1630,23 +1630,23 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
             static int handshakeDone = 0;
             totalRecv++;
 
-            // ALL responses from server are CAFE (no echo needed)
+            // Check for CAFE first (even during echo phase)
             int isCafe = (r >= 4 && (BYTE)buf[0] == 0xCA && (BYTE)buf[1] == 0xFE);
             if (!isCafe) {
-                // Non-CAFE packet (shouldn't happen with new server)
-                // Fallback: echo for keepalive
+                // Non-CAFE: echo for ENet keepalive
                 int echoLen = lastSendLen - 8;
                 if (echoLen > 0 && echoLen <= len) {
                     memcpy(buf, lastSendBuf + 8, echoLen);
                     r = echoLen;
                     echoCount++;
+                    if (echoCount == 30) {
+                        handshakeDone = 1;
+                        Log("=== ECHO handshake done ===");
+                    }
                 }
             }
+            // CAFE: CRC fixup and deliver (works during AND after echo)
             if (isCafe) {
-                if (!handshakeDone) {
-                    handshakeDone = 1;
-                    Log("=== CAFE MODE: all responses via CRC fixup ===");
-                }
                 static int postHsLog = 0;
                 if (postHsLog < 30) {
                     postHsLog++;

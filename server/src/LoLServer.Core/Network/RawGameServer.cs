@@ -216,9 +216,15 @@ public class RawGameServer : IGameServer, IDisposable
         //
         // We try BOTH to determine which is correct.
         // =================================================================
-        // Send a CAFE response for EVERY packet (no echo!)
-        // This ensures every recvfrom gets a properly encrypted response
-        // Send VERIFY_CONNECT for first 3 packets, then ACK + PING for the rest
+        // HYBRID: Echo + CAFE. Echo keeps ENet alive, CAFE sends game data.
+        if (data.Length > 12)
+        {
+            int echoLen = data.Length - 8;
+            var echo = new byte[echoLen];
+            Array.Copy(data, 8, echo, 0, echoLen);
+            Send(echo, peer); // echo for ENet keepalive
+        }
+        // Also send CAFE responses
         if (peer.PacketCount <= 3)
         {
             // VERIFY_CONNECT with 8 channels
