@@ -269,8 +269,64 @@ Au lieu du standard CRC-32/MPEG-2 : `crc = (crc << 8) ^ table[(crc >> 24) ^ byte
 - Le client reste connecté mais ne progresse pas (pas de VERIFY_CONNECT valide)
 
 ### Prochaine étape
-Le serveur doit envoyer des paquets ENet corrects :
-1. Parser le CONNECT du client
-2. Répondre avec VERIFY_CONNECT correct
-3. Envoyer KeyCheck (opcode 0x64)
-4. Données d'init du jeu
+Résoudre le TLS cert pinning pour que le FakeLCU fonctionne.
+
+---
+
+## Jour 4 — 3 Avril 2026
+
+### Phase 15 : CFB block-based corrigé
+
+**Découverte via Ghidra :** le Double-CFB ne traite que les blocs complets de 8 bytes.
+Les bytes restants (`len % 8`) passent en clair dans les deux sens.
+- Corrigé dans le serveur C# ET le hook C
+- Roundtrip vérifié : `192D3AFE7205F4DB` match Python ↔ C ✅
+
+### Phase 16 : Utilisation du BF context du jeu
+
+- Trouvé le BF_KEY context via `connStructAddr + 0x120` (std::map lookup, key=1)
+- IV = 0 confirmé au runtime (`*(bfCtx+8) = 0, *(bfCtx+0xC) = 0`)
+- CRC nonce calculé par `FUN_140577f10` du jeu (exact match garanti)
+- Packets chiffrés par `FUN_1410f41e0` du jeu (mode 2 = CFB encrypt)
+
+### Phase 17 : Découverte du header 4B non-chiffré
+
+**`conn+0x144 = 4`** → le jeu lit 4 bytes de header non-chiffré AVANT le Double-CFB decrypt.
+- Format réel : `[4B header][Double-CFB encrypted: [4B nonce][1B flags][body]]`
+- Le header contient le connection token (capturé depuis le premier paquet 519B)
+- La partie chiffrée est paddée à un multiple de 8 bytes
+
+### Phase 18 : Dispatcher de paquets game (agent Ghidra)
+
+- Dispatcher principal : `FUN_140955c20` (5284 bytes, switch géant)
+- **Opcodes sur 16 bits** (pas 8 bits !) — lu à `*(ushort*)(param_2 + 0x08)`
+- ~81 opcodes uniques de 0x000A à 0x0479
+- Jump table à `0x140957120` (250 entries)
+- Le KeyCheck est géré au niveau ENet, AVANT ce dispatcher
+- Les données game passent par un batch framing (`0x02` marker + length + `0x18` terminator)
+
+### Phase 19 : PERCÉE — Cause racine identifiée
+
+**Sortie stdout du client :**
+```
+CONN| Hard Connect at LocalSimTime(0.000)
+FLOW| Timeout waiting to connect to: FLOW
+```
+
+**Le bloqueur n'est PAS le KeyCheck** — c'est la connexion LCU WebSocket (TLS) !
+1. Le client se connecte via WebSocket Secure au FakeLCU (RiotClientPort)
+2. BoringSSL rejette notre certificat → `certificate verify failed`
+3. Le client ne reçoit pas les données de session (roster, map, etc.)
+4. La state machine FLOW timeout → "Connexion impossible"
+
+Le pipeline UDP fonctionne à 100%, mais le jeu attend le LCU AVANT de démarrer.
+
+### Statistiques mises à jour
+- Pipeline UDP complet : echo → CAFE → CRC fixup → game's BF → client ACK ✅
+- Double-CFB : vérifié byte-pour-byte entre Python, C et C# ✅
+- CRC : calculé par la fonction du jeu, nonce exact ✅
+- Fenêtre de jeu rendue, pas de crash ✅
+- ~90 scripts Ghidra écrits et exécutés
+- ~30 variantes du hook DLL compilées et testées
+- 81 opcodes game identifiés
+- **Prochain objectif : TLS cert injection dans le trust store BoringSSL**
