@@ -3371,10 +3371,24 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
                         fprintf(logfile, "[CertThread] CRYPTO_BUFFER at %p:\n", (void*)val);
                         for (int d = 0; d < 8; d++)
                             fprintf(logfile, "  [%d] +0x%02X = %p (%llu)\n", d, d*8, (void*)cb[d], (unsigned long long)cb[d]);
-                        // Check each pointer field - follow it and see if it starts with 30 82 (DER SEQUENCE)
+                        // Follow each pointer and dump first 16 bytes + check sub-pointers
                         for (int d = 0; d < 8; d++) {
-                            if (cb[d] > 0x10000 && cb[d] < 0x7FFFFFFFFFFF && !IsBadReadPtr((void*)cb[d], 4)) {
+                            if (cb[d] > 0x10000 && cb[d] < 0x7FFFFFFFFFFF && !IsBadReadPtr((void*)cb[d], 16)) {
                                 BYTE *p = (BYTE*)cb[d];
+                                fprintf(logfile, "  CB[%d]→ %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X%02X\n",
+                                    d, p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7],
+                                    p[8],p[9],p[10],p[11],p[12],p[13],p[14],p[15]);
+                                // Also check if any sub-pointer leads to DER
+                                for (int sd = 0; sd < 8; sd++) {
+                                    UINT64 subval = *(UINT64*)(p + sd*8);
+                                    if (subval > 0x10000 && subval < 0x7FFFFFFFFFFF && !IsBadReadPtr((void*)subval, 4)) {
+                                        BYTE *sp = (BYTE*)subval;
+                                        if (sp[0] == 0x30 && sp[1] == 0x82) {
+                                            int derLen = (sp[2] << 8) | sp[3];
+                                            fprintf(logfile, "  *** CB[%d][%d] → DER! len=%d ***\n", d, sd, derLen+4);
+                                        }
+                                    }
+                                }
                                 if (p[0] == 0x30 && p[1] == 0x82) {
                                     int derLen = (p[2] << 8) | p[3];
                                     fprintf(logfile, "  *** CB[%d] points to DER data! len=%d (30 82 %02X %02X) ***\n",
