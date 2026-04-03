@@ -2870,6 +2870,27 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
                 (tl>>24)&0xFF,(tl>>16)&0xFF,(tl>>8)&0xFF,tl&0xFF,
                 (tr>>24)&0xFF,(tr>>16)&0xFF,(tr>>8)&0xFF,tr&0xFF);
             Log("CRC[1]=0x%08X (expect 0x04C11DB7)", crc_table[1]);
+            // Test Double-CFB roundtrip with known data
+            {
+                BYTE testPt[24] = {0x00,0x00,0xDE,0xAD,0xBE,0xEF,0x06,0x00,
+                                   0x00,0x01,0x00,0x14,0x00,0x00,0x00,0x00,
+                                   0x00,0x00,0x00,0x00,0x01,0x00,0x00,0x00};
+                BYTE testEnc[24];
+                memcpy(testEnc, testPt, 24);
+                HookDoubleCFB_Encrypt(testEnc, 24);
+                // Expected: 192D3AFE7205F4DB9DBC86FD1D541512A3279BA724455868
+                Log("DBLCFB enc: %02X%02X%02X%02X%02X%02X%02X%02X (expect 192D3AFE7205F4DB)",
+                    testEnc[0],testEnc[1],testEnc[2],testEnc[3],
+                    testEnc[4],testEnc[5],testEnc[6],testEnc[7]);
+                HookDoubleCFB_Decrypt(testEnc, 24);
+                int match = (memcmp(testEnc, testPt, 24) == 0);
+                Log("DBLCFB roundtrip: %s", match ? "OK" : "FAIL!");
+                if (!match) {
+                    Log("  Got: %02X%02X%02X%02X%02X%02X%02X%02X",
+                        testEnc[0],testEnc[1],testEnc[2],testEnc[3],
+                        testEnc[4],testEnc[5],testEnc[6],testEnc[7]);
+                }
+            }
         }
 
         // Install network hooks
