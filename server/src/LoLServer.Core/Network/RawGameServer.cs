@@ -320,24 +320,25 @@ public class RawGameServer : IGameServer, IDisposable
             SendCrcPacket(peer, 0x02, batchData);
             Log($"  [BATCH-KC] cmd=0x02, {batchData.Length}B");
 
-            // Try ALL possible byte offsets for opcode 0x000A in the sub-packet
-            // Send one batch per offset position
-            for (int opcOffset = 0; opcOffset <= 14; opcOffset += 2)
+            // Sub-packet must be 14 DWORDs (0x38 = 56 bytes) to fill one record!
+            // The consumer iterates data_vec in steps of 0x38 bytes per sub-packet.
+            // Opcode (u16) is at record+0x08 = DWORD[2]
+            // Try ALL positions for opcode in a 56-byte record
+            for (int dwordIdx = 0; dwordIdx < 14; dwordIdx++)
             {
-                var opcodeData = new byte[16]; // 4 DWORDs (minimum)
-                // Place opcode 0x000A at byte offset opcOffset
-                opcodeData[opcOffset] = 0x0A;
-                opcodeData[opcOffset + 1] = 0x00;
+                var record = new byte[56]; // 14 DWORDs = 0x38 bytes
+                // Place opcode 0x000A at DWORD[dwordIdx]
+                WriteLE32(record, dwordIdx * 4, 0x000A);
 
                 var batchN = new System.IO.MemoryStream();
                 batchN.WriteByte(0x02);
-                batchN.Write(BitConverter.GetBytes((uint)1), 0, 4);
-                batchN.Write(BitConverter.GetBytes((uint)(opcodeData.Length / 4)), 0, 4);
-                batchN.Write(opcodeData, 0, opcodeData.Length);
+                batchN.Write(BitConverter.GetBytes((uint)1), 0, 4); // 1 sub-packet
+                batchN.Write(BitConverter.GetBytes((uint)14), 0, 4); // 14 DWORDs
+                batchN.Write(record, 0, record.Length);
                 batchN.WriteByte(0x18);
                 SendCrcPacket(peer, 0x02, batchN.ToArray());
             }
-            Log($"  [BATCH-BRUTE] sent 8 batch packets with opcode at offsets 0-14");
+            Log($"  [BATCH-56B] sent 14 batch packets (56B records) with opcode at each DWORD");
 
             // DISABLED: capture client's data and echo it back via CAFE
             // The server stores raw client payloads and sends them back
