@@ -217,8 +217,6 @@ public class RawGameServer : IGameServer, IDisposable
         // We try BOTH to determine which is correct.
         // =================================================================
         // ALWAYS echo back to keep recvfrom unblocked.
-        // The hook replaces small echoes with client's own data (pings).
-        // Large echoes pass through (the hook's smart mode handles them).
         if (data.Length > 12)
         {
             int echoLen = data.Length - 8; // strip 8B LNPBlob
@@ -513,27 +511,26 @@ public class RawGameServer : IGameServer, IDisposable
         // 4. Compute CRC, patch nonce
         // 5. Re-encrypt bytes 4+
 
-        // Encrypted part: [4B nonce placeholder][1B flags][body]
-        int encRawLen = 4 + 1 + body.Length;
-        int encPaddedLen = (encRawLen + 7) & ~7; // pad to multiple of 8
-        var encPlain = new byte[encPaddedLen];
-        WriteLE32(encPlain, 0, 0xDEADBEEF); // placeholder nonce
-        encPlain[4] = cmdType;
+        // Send PLAINTEXT with CAFE prefix. The hook will encrypt using game's own BF.
+        // Format: [2B CAFE][4B header][PLAINTEXT: [4B nonce placeholder][1B flags][body]]
+        // Pad plaintext to multiple of 8 bytes
+        int ptRawLen = 4 + 1 + body.Length;
+        int ptPaddedLen = (ptRawLen + 7) & ~7;
+        var plaintext = new byte[ptPaddedLen];
+        WriteLE32(plaintext, 0, 0xDEADBEEF); // placeholder nonce (hook will compute)
+        plaintext[4] = cmdType;
         if (body.Length > 0)
-            Array.Copy(body, 0, encPlain, 5, body.Length);
+            Array.Copy(body, 0, plaintext, 5, body.Length);
 
-        var encrypted = DoubleCfbEncrypt(encPlain);
-
-        // Build full packet: [2B CAFE][4B header][encrypted]
-        var packet = new byte[2 + 4 + encrypted.Length];
+        // NO encryption here! Send plaintext directly.
+        var packet = new byte[2 + 4 + plaintext.Length];
         packet[0] = 0xCA;
         packet[1] = 0xFE;
-        // Header bytes (non-encrypted): [2B peerID LE][2B padding]
         WriteLE16(packet, 2, 0); // peerID = 0
-        packet[4] = 0; packet[5] = 0; // padding
-        Array.Copy(encrypted, 0, packet, 6, encrypted.Length);
+        packet[4] = 0; packet[5] = 0;
+        Array.Copy(plaintext, 0, packet, 6, plaintext.Length);
 
-        Log($"  [CRC-PKT] cmd=0x{cmdType:X2} body={body.Length}B enc={encrypted.Length}B total={packet.Length}B");
+        Log($"  [CRC-PKT] cmd=0x{cmdType:X2} body={body.Length}B pt={plaintext.Length}B total={packet.Length}B (PLAINTEXT)");
         Send(packet, peer);
     }
 
