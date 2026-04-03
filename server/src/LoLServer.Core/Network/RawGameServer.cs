@@ -320,25 +320,43 @@ public class RawGameServer : IGameServer, IDisposable
             SendCrcPacket(peer, 0x02, batchData);
             Log($"  [BATCH-KC] cmd=0x02, {batchData.Length}B");
 
-            // Sub-packet must be 14 DWORDs (0x38 = 56 bytes) to fill one record!
-            // The consumer iterates data_vec in steps of 0x38 bytes per sub-packet.
-            // Opcode (u16) is at record+0x08 = DWORD[2]
-            // Try ALL positions for opcode in a 56-byte record
-            for (int dwordIdx = 0; dwordIdx < 14; dwordIdx++)
-            {
-                var record = new byte[56]; // 14 DWORDs = 0x38 bytes
-                // Place opcode 0x000A at DWORD[dwordIdx]
-                WriteLE32(record, dwordIdx * 4, 0x000A);
+            // EXACT MAPPING FROM GHIDRA DECOMPILATION:
+            // Record = 14 DWORDs (56 bytes = 0x38). puVar7 starts at base+40.
+            // Handler args:
+            //   arg1 = qword at base+0   (DWORD[0-1])
+            //   arg2 = byte at base+11   (DWORD[2] byte 3)
+            //   arg3 = qword at base+16  (DWORD[4-5])
+            //   arg4 = qword at base+40  (DWORD[10-11])
+            //   arg5 = u16 at base+50    (DWORD[12] bytes 2-3) ← THIS IS THE OPCODE!
+            //
+            // Opcode = *(ushort*)(base + 50) = bytes 50-51 of the 56-byte record
+            var record = new byte[56]; // 14 DWORDs
+            // Place opcode 0x000A at byte offset 50 (within DWORD[12])
+            record[50] = 0x0A; // opcode low byte
+            record[51] = 0x00; // opcode high byte
+            // Fill other fields with reasonable values
+            // arg1 (base+0): could be a pointer/ID
+            // arg2 (base+11): a flag byte
+            // arg3 (base+16): channel/flags qword
+            // arg4 (base+40): data pointer/value
 
-                var batchN = new System.IO.MemoryStream();
-                batchN.WriteByte(0x02);
-                batchN.Write(BitConverter.GetBytes((uint)1), 0, 4); // 1 sub-packet
-                batchN.Write(BitConverter.GetBytes((uint)14), 0, 4); // 14 DWORDs
-                batchN.Write(record, 0, record.Length);
-                batchN.WriteByte(0x18);
-                SendCrcPacket(peer, 0x02, batchN.ToArray());
+            // Send multiple records with different opcodes in ONE batch
+            var batchMulti = new System.IO.MemoryStream();
+            batchMulti.WriteByte(0x02);
+            // Multiple opcodes to try
+            ushort[] opcodes = { 0x000A, 0x000C, 0x0033, 0x0056, 0x0071, 0x00D5, 0x0086 };
+            // count = total DWORDs for ALL records
+            batchMulti.Write(BitConverter.GetBytes((uint)(14 * opcodes.Length)), 0, 4);
+            foreach (var opc in opcodes)
+            {
+                var rec = new byte[56];
+                rec[50] = (byte)(opc & 0xFF);
+                rec[51] = (byte)(opc >> 8);
+                batchMulti.Write(rec, 0, rec.Length);
             }
-            Log($"  [BATCH-56B] sent 14 batch packets (56B records) with opcode at each DWORD");
+            batchMulti.WriteByte(0x18);
+            SendCrcPacket(peer, 0x02, batchMulti.ToArray());
+            Log($"  [BATCH-MULTI] {opcodes.Length} opcodes in one batch, total={batchMulti.Length}B");
 
             // DISABLED: capture client's data and echo it back via CAFE
             // The server stores raw client payloads and sends them back
