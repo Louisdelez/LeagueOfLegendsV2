@@ -1630,8 +1630,11 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
             static int handshakeDone = 0;
             totalRecv++;
 
-            // Handshake phase: echo everything for first 30 packets
-            if (!handshakeDone && echoCount < 30) {
+            // Check for CAFE FIRST (even during handshake phase)
+            int isCafe = (r >= 4 && (BYTE)buf[0] == 0xCA && (BYTE)buf[1] == 0xFE);
+
+            // Handshake phase: echo non-CAFE packets for first 30 packets
+            if (!isCafe && !handshakeDone && echoCount < 30) {
                 int echoLen = lastSendLen - 8;
                 if (echoLen > 0 && echoLen <= len) {
                     memcpy(buf, lastSendBuf + 8, echoLen);
@@ -1645,8 +1648,8 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                     }
                 }
             }
-            // After handshake: check for CAFE magic (CRC-format packet from server)
-            else if (handshakeDone) {
+            // After handshake OR for CAFE packets (isCafe works during echo too)
+            else if (handshakeDone || isCafe) {
                 static int postHsLog = 0;
                 if (postHsLog < 30) {
                     postHsLog++;

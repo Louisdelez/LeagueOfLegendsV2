@@ -231,10 +231,9 @@ public class RawGameServer : IGameServer, IDisposable
             Send(echo, peer);
         }
 
-        // Send KeyCheck after echo handshake completes (packet 35+)
-        // Hook echo phase = 30 packets, server echo = always
-        // The CAFE-prefixed packet arrives alongside regular echo
-        if (!peer.GameInitSent && peer.PacketCount >= 35)
+        // Send game init packets EARLY (packet 10+, during echo phase)
+        // CAFE packets are delivered alongside echo responses
+        if (!peer.GameInitSent && peer.PacketCount >= 10)
         {
             peer.GameInitSent = true;
             Log($"  [GAME] Sending KeyCheck via CRC-format packet");
@@ -262,6 +261,26 @@ public class RawGameServer : IGameServer, IDisposable
             WriteBE16(reliableBody, 1, peer.ReliableSeqNo++); // seqNo
             WriteBE16(reliableBody, 3, (ushort)keyCheckData.Length); // dataLen = 32
             Array.Copy(keyCheckData, 0, reliableBody, 5, keyCheckData.Length);
+
+            // Try VERIFY_CONNECT (cmd=3) with KeyCheck in body
+            // In 16.6, the KeyCheck might be embedded in VERIFY_CONNECT response
+            {
+                // Standard ENet VERIFY_CONNECT body (36 bytes, big-endian)
+                var vcBody = new byte[36];
+                WriteBE16(vcBody, 0, 0);      // outPeerID
+                vcBody[2] = 0xFF;             // incomingSessionID
+                vcBody[3] = 0xFF;             // outgoingSessionID
+                WriteBE32(vcBody, 4, 996);    // MTU
+                WriteBE32(vcBody, 8, 32768);  // windowSize
+                WriteBE32(vcBody, 12, 1);     // channelCount
+                WriteBE32(vcBody, 16, 0);     // inBandwidth
+                WriteBE32(vcBody, 20, 0);     // outBandwidth
+                WriteBE32(vcBody, 24, 5000);  // throttleInterval
+                WriteBE32(vcBody, 28, 2);     // throttleAccel
+                WriteBE32(vcBody, 32, 2);     // throttleDecel
+                SendCrcPacket(peer, 0x03, vcBody); // cmd=3 = VERIFY_CONNECT
+                Log($"  [VC] sent VERIFY_CONNECT cmd=0x03, {vcBody.Length}B");
+            }
 
             // NEW APPROACH: capture client's data and echo it back via CAFE
             // The server stores raw client payloads and sends them back
