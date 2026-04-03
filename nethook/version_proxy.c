@@ -1703,35 +1703,20 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
 
                         fixupCount++;
                         if (fixupCount <= 20) {
-                            // Compare BF_encrypt(0) between our BF and game's BF
-                            BYTE testBlock[8] = {0};
-                            UINT32 sIVL = *(UINT32*)((BYTE*)bfCtx+8), sIVR = *(UINT32*)((BYTE*)bfCtx+0xC);
-                            *(UINT32*)((BYTE*)bfCtx+8) = 0; *(UINT32*)((BYTE*)bfCtx+0xC) = 0;
-                            typedef void (*bf_cfb_enc_t)(void*, BYTE*, unsigned short, int);
-                            bf_cfb_enc_t BfTestEnc = (bf_cfb_enc_t)((BYTE*)gameBase + 0x10F41E0);
-                            BfTestEnc(bfCtx, testBlock, 8, 2);
-                            *(UINT32*)((BYTE*)bfCtx+8) = sIVL; *(UINT32*)((BYTE*)bfCtx+0xC) = sIVR;
-                            Log("CRC_FIXUP #%d: total=%dB enc=%dB nonce=0x%08X gameBF(0)=%02X%02X%02X%02X%02X%02X%02X%02X ourBF(0)=F9ED26C0F22A52B4",
-                                fixupCount, totalLen, encLen, (UINT32)nonce,
-                                testBlock[0],testBlock[1],testBlock[2],testBlock[3],
-                                testBlock[4],testBlock[5],testBlock[6],testBlock[7]);
+                            // Log P[2]/P[3] which serve as initial CFB feedback
+                            UINT32 p2 = *(UINT32*)((BYTE*)bfCtx + 8);
+                            UINT32 p3 = *(UINT32*)((BYTE*)bfCtx + 0xC);
+                            Log("CRC_FIXUP #%d: total=%dB enc=%dB nonce=0x%08X P2=0x%08X P3=0x%08X",
+                                fixupCount, totalLen, encLen, (UINT32)nonce, p2, p3);
                             // VERIFY: decrypt our own encrypted packet and check CRC
                             BYTE *verify = (BYTE*)_alloca(encLen);
                             memcpy(verify, encPart, encLen);
                             typedef void (*bf_cfb_dec_t)(void*, BYTE*, unsigned short, int);
                             bf_cfb_dec_t BfDec2 = (bf_cfb_dec_t)((BYTE*)gameBase + 0x10F2A10);
-                            // Save/restore IV for verification decrypt
-                            UINT32 vIV_L = *(UINT32*)((BYTE*)bfCtx + 8);
-                            UINT32 vIV_R = *(UINT32*)((BYTE*)bfCtx + 0xC);
-                            *(UINT32*)((BYTE*)bfCtx + 8) = 0;
-                            *(UINT32*)((BYTE*)bfCtx + 0xC) = 0;
+                            // DO NOT modify bfCtx+8/0xC - they are P[2]/P[3], not IV!
                             BfDec2(bfCtx, verify, (unsigned short)encLen, 2);
                             ReverseBytes(verify, encLen);
-                            *(UINT32*)((BYTE*)bfCtx + 8) = 0;
-                            *(UINT32*)((BYTE*)bfCtx + 0xC) = 0;
                             BfDec2(bfCtx, verify, (unsigned short)encLen, 2);
-                            *(UINT32*)((BYTE*)bfCtx + 8) = vIV_L;
-                            *(UINT32*)((BYTE*)bfCtx + 0xC) = vIV_R;
                             // verify[0..3]=nonce, verify[4]=flags, verify[5+]=body
                             int storedNonce = *(int*)(verify + 0);
                             // Recompute CRC on the decrypted data
@@ -1749,24 +1734,20 @@ int WINAPI Hook_recvfrom(SOCKET s, char *buf, int len, int flags,
                                 match ? "CRC OK!" : "CRC MISMATCH!");
                         }
 
-                        // Re-encrypt with GAME's BF (save/restore IV to avoid state corruption)
+                        // Re-encrypt with GAME's BF
+                        // NOTE: bfCtx+8/0xC are P[2]/P[3] of the key schedule, NOT IV!
+                        // The CFB functions read them as initial feedback but they're actually
+                        // P-array values. DO NOT modify them!
                         typedef void (*bf_cfb_t)(void*, BYTE*, unsigned short, int);
                         bf_cfb_t BfEnc = (bf_cfb_t)((BYTE*)gameBase + 0x10F41E0);
-                        // Save IV from BF context (at bfCtx+8 and bfCtx+0xC)
-                        UINT32 savedIV_L = *(UINT32*)((BYTE*)bfCtx + 8);
-                        UINT32 savedIV_R = *(UINT32*)((BYTE*)bfCtx + 0xC);
-                        // Reset IV to 0 before encrypt (fresh per packet)
-                        *(UINT32*)((BYTE*)bfCtx + 8) = 0;
-                        *(UINT32*)((BYTE*)bfCtx + 0xC) = 0;
-                        BfEnc(bfCtx, encPart, (unsigned short)encLen, 2);
+                        UINT32 pre_p2 = *(UINT32*)((BYTE*)bfCtx+8);
+                        BfEnc(bfCtx, encPart, (unsigned short)encLen, 2); // pass 1
+                        UINT32 mid_p2 = *(UINT32*)((BYTE*)bfCtx+8);
                         ReverseBytes(encPart, encLen);
-                        // Reset IV again for second pass
-                        *(UINT32*)((BYTE*)bfCtx + 8) = 0;
-                        *(UINT32*)((BYTE*)bfCtx + 0xC) = 0;
-                        BfEnc(bfCtx, encPart, (unsigned short)encLen, 2);
-                        // Restore original IV
-                        *(UINT32*)((BYTE*)bfCtx + 8) = savedIV_L;
-                        *(UINT32*)((BYTE*)bfCtx + 0xC) = savedIV_R;
+                        BfEnc(bfCtx, encPart, (unsigned short)encLen, 2); // pass 2
+                        UINT32 post_p2 = *(UINT32*)((BYTE*)bfCtx+8);
+                        if (fixupCount <= 3)
+                            Log("  IV track: pre=0x%08X mid=0x%08X post=0x%08X", pre_p2, mid_p2, post_p2);
 
                         // Return: [4B header][re-encrypted]
                         memcpy(buf, pkt, totalLen);
