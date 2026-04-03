@@ -282,33 +282,38 @@ public class RawGameServer : IGameServer, IDisposable
             var encrypted = _cipher.EncryptBlock(playerIdBytes);
             Array.Copy(encrypted, 0, keyCheckData, 20, 8);
 
-            var reliableBody = new byte[1 + 2 + 2 + keyCheckData.Length]; // channel(1) + seq(2) + len(2) + data
+            // Wrap KeyCheck in batch framing: [0x02][data][0x18]
+            // The game dispatcher expects data in this batch format
+            var batchData = new byte[1 + keyCheckData.Length + 1]; // 0x02 + data + 0x18
+            batchData[0] = 0x02; // batch marker
+            Array.Copy(keyCheckData, 0, batchData, 1, keyCheckData.Length);
+            batchData[batchData.Length - 1] = 0x18; // terminator
+
+            // SEND_RELIABLE with batch-framed KeyCheck
+            var reliableBody = new byte[1 + 2 + 2 + batchData.Length];
             reliableBody[0] = 0x00; // channel 0 = handshake
-            WriteBE16(reliableBody, 1, peer.ReliableSeqNo++); // seqNo
-            WriteBE16(reliableBody, 3, (ushort)keyCheckData.Length); // dataLen = 32
-            Array.Copy(keyCheckData, 0, reliableBody, 5, keyCheckData.Length);
+            WriteBE16(reliableBody, 1, peer.ReliableSeqNo++);
+            WriteBE16(reliableBody, 3, (ushort)batchData.Length);
+            Array.Copy(batchData, 0, reliableBody, 5, batchData.Length);
 
-            // Try VERIFY_CONNECT (cmd=3) with KeyCheck in body
-            // In 16.6, the KeyCheck might be embedded in VERIFY_CONNECT response
-            {
-                // Standard ENet VERIFY_CONNECT body (36 bytes, big-endian)
-                var vcBody = new byte[36];
-                WriteBE16(vcBody, 0, 0);      // outPeerID
-                vcBody[2] = 0xFF;             // incomingSessionID
-                vcBody[3] = 0xFF;             // outgoingSessionID
-                WriteBE32(vcBody, 4, 996);    // MTU
-                WriteBE32(vcBody, 8, 32768);  // windowSize
-                WriteBE32(vcBody, 12, 8);     // channelCount (LoL uses 8 channels)
-                WriteBE32(vcBody, 16, 0);     // inBandwidth
-                WriteBE32(vcBody, 20, 0);     // outBandwidth
-                WriteBE32(vcBody, 24, 5000);  // throttleInterval
-                WriteBE32(vcBody, 28, 2);     // throttleAccel
-                WriteBE32(vcBody, 32, 2);     // throttleDecel
-                SendCrcPacket(peer, 0x03, vcBody); // cmd=3 = VERIFY_CONNECT
-                Log($"  [VC] sent VERIFY_CONNECT cmd=0x03, {vcBody.Length}B");
-            }
+            // Also try raw KeyCheck without batch framing (on channel 0)
+            var reliableRaw = new byte[1 + 2 + 2 + keyCheckData.Length];
+            reliableRaw[0] = 0x00;
+            WriteBE16(reliableRaw, 1, peer.ReliableSeqNo++);
+            WriteBE16(reliableRaw, 3, (ushort)keyCheckData.Length);
+            Array.Copy(keyCheckData, 0, reliableRaw, 5, keyCheckData.Length);
 
-            // NEW APPROACH: capture client's data and echo it back via CAFE
+            // Send both: batch-framed KeyCheck (cmd=6) and raw KeyCheck (cmd=6)
+            SendCrcPacket(peer, 0x06, reliableBody);
+            Log($"  [KC-BATCH] batch-framed KeyCheck cmd=0x06, {reliableBody.Length}B");
+            SendCrcPacket(peer, 0x06, reliableRaw);
+            Log($"  [KC-RAW] raw KeyCheck cmd=0x06, {reliableRaw.Length}B");
+
+            // Also try with cmd=2 (batch data type identified by agent)
+            SendCrcPacket(peer, 0x02, batchData);
+            Log($"  [KC-CMD2] batch data cmd=0x02, {batchData.Length}B");
+
+            // DISABLED: capture client's data and echo it back via CAFE
             // The server stores raw client payloads and sends them back
             // This ensures the game receives data in its OWN format
             if (peer.LastPayload != null && peer.LastPayload.Length > 0)
