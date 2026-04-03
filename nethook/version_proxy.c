@@ -2977,8 +2977,30 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
             UINT64 lcuObj3b8 = 0;
             if (lcuPtr != 0 && !IsBadReadPtr((void*)(lcuPtr + 0x3b8), 8))
                 lcuObj3b8 = *(UINT64*)(lcuPtr + 0x3b8);
-            if (logfile) { fprintf(logfile, "[CertThread] FLOW #%d: ptr=%p val=%d lcuPtr=%p lcu3b8=%p\n",
-                fw+1, (void*)flowPtr, flowVal, (void*)lcuPtr, (void*)lcuObj3b8); fflush(logfile); }
+            // Also read DAT_141da1480 + 0x422 (event type) and DAT_141dba0c0 + 0x19
+            BYTE evt422 = 0, flag19 = 0, flag33 = 0;
+            if (lcuPtr != 0 && !IsBadReadPtr((void*)(lcuPtr + 0x422), 1))
+                evt422 = *(BYTE*)(lcuPtr + 0x422);
+            UINT64 *dba0c0Addr = (UINT64*)((BYTE*)hExe + 0x1DBA0C0);
+            UINT64 dba0c0 = *dba0c0Addr;
+            if (dba0c0 != 0 && !IsBadReadPtr((void*)(dba0c0 + 0x19), 1)) {
+                flag19 = *(BYTE*)(dba0c0 + 0x19);
+                flag33 = *(BYTE*)(dba0c0 + 0x33);
+            }
+            if (logfile) {
+                fprintf(logfile, "[CertThread] FLOW #%d: val=%d evt422=0x%02X flag19=%d flag33=%d lcu3b8=%p\n",
+                    fw+1, flowVal, evt422, flag19, flag33, (void*)lcuObj3b8);
+                // Dump flowPtr structure (first 32 ints) to find all state fields
+                if (fw == 3 && flowPtr != 0 && !IsBadReadPtr((void*)flowPtr, 128)) {
+                    fprintf(logfile, "  flowPtr dump:");
+                    for (int d = 0; d < 128; d += 4) {
+                        if (d % 32 == 0) fprintf(logfile, "\n  +%03X:", d);
+                        fprintf(logfile, " %08X", *(UINT32*)(flowPtr + d));
+                    }
+                    fprintf(logfile, "\n");
+                }
+                fflush(logfile);
+            }
             // Patch flowVal to 1 AND make the vtable call return 1
             if (fw == 5 && flowPtr != 0) {
                 // Patch connection state to 1
