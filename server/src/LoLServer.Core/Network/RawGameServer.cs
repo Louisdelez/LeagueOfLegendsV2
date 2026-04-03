@@ -326,13 +326,15 @@ public class RawGameServer : IGameServer, IDisposable
             // Try putting opcode in the first few bytes
             {
                 var opcodeData = new byte[16]; // 4 DWORDs
-                // DWORD[0] might map to struct fields. Opcode is at struct+0x08 (u16)
-                // The struct is built from the sub-packet DWORDs
-                // Try: first DWORD = 0, second DWORD contains opcode 0x000A at right offset
-                WriteLE32(opcodeData, 0, 0);         // DWORD 0
-                WriteLE32(opcodeData, 4, 0x000A);    // DWORD 1 = opcode 0x000A?
-                WriteLE32(opcodeData, 8, 0);         // DWORD 2
-                WriteLE32(opcodeData, 12, 0);        // DWORD 3
+                // Opcode is at param_2+0x08 (u16). In the 0x38-byte struct,
+                // the sub-packet DWORDs fill specific fields.
+                // The struct is: [qword@0][u16 opcode@8][...payload@10+]
+                // If DWORDs map sequentially: DWORD[0..1]=qword@0, DWORD[2] contains opcode
+                // Try opcode at DWORD[2] (offset 0x08 = byte 8 = DWORD index 2)
+                WriteLE32(opcodeData, 0, 0);         // DWORD 0 (part of qword@0)
+                WriteLE32(opcodeData, 4, 0);         // DWORD 1 (part of qword@0)
+                WriteLE32(opcodeData, 8, 0x000A);    // DWORD 2 = opcode 0x000A at byte offset 8
+                WriteLE32(opcodeData, 12, 0);        // DWORD 3 = payload
 
                 var batch2 = new System.IO.MemoryStream();
                 batch2.WriteByte(0x02);
