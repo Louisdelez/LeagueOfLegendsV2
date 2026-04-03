@@ -2957,6 +2957,30 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
         }
     }
 
+    // === PHASE 0.5: Patch FLOW state to bypass LCU timeout ===
+    // DAT_141da5228 + 8 must be 1 for FLOW to proceed
+    // RVA = 0x1DA5228 + 8 = 0x1DA5230
+    {
+        BYTE *flowState = (BYTE*)hExe + 0x1DA5230;
+        // Wait for the state to be initialized, then patch
+        for (int fw = 0; fw < 30; fw++) {
+            Sleep(1000);
+            if (!IsBadReadPtr(flowState, 4)) {
+                int val = *(int*)flowState;
+                if (logfile) { fprintf(logfile, "[CertThread] FLOW state at %p = %d (attempt %d)\n",
+                    flowState, val, fw+1); fflush(logfile); }
+                if (val == 0) {
+                    *(int*)flowState = 1;
+                    if (logfile) { fprintf(logfile, "[CertThread] *** PATCHED FLOW state to 1! ***\n"); fflush(logfile); }
+                    break;
+                } else if (val == 1) {
+                    if (logfile) { fprintf(logfile, "[CertThread] FLOW state already 1, OK\n"); fflush(logfile); }
+                    break;
+                }
+            }
+        }
+    }
+
     // === PHASE 1: Parse certs and scan trust store (existing code) ===
     Sleep(500); // delay for DLL init
 
