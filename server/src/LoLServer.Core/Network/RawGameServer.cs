@@ -145,7 +145,7 @@ public class RawGameServer : IGameServer, IDisposable
         // Extract session ID from LNPBlob (little-endian in bytes 4-7)
         uint sessIdLE = (uint)(data[4] | (data[5] << 8) | (data[6] << 16) | (data[7] << 24));
 
-        // Extract connection token from bytes 8-11 (constant per connection)
+        // Extract connection token from bytes 8-11 (4B unencrypted header)
         if (data.Length >= 12)
         {
             uint connToken = ReadBE32(data, 8);
@@ -161,31 +161,59 @@ public class RawGameServer : IGameServer, IDisposable
             Log($"[CLIENT] #{peer.PacketCount} {data.Length}B LNPBlob sessID=0x{sessIdLE:X8} token=0x{peer.ConnectToken:X8}");
         }
 
-        // Decrypt: [8B LNPBlob][encrypted: [2B peerID][4B nonce][1B flags][body...]]
-        // Everything after LNPBlob is Double-CFB encrypted
-        if (data.Length > 8)
+        // Format: [8B LNPBlob][4B conn header UNENCRYPTED][Double-CFB encrypted: [4B CRC nonce][1B flags/cmd][body...]]
+        // conn+0x144=4 means first 4 bytes after LNPBlob are NOT encrypted
+        int headerSkip = 4; // connection header (unencrypted)
+        if (data.Length > 8 + headerSkip)
         {
-            int encLen = data.Length - 8;
-            byte[] payload = new byte[encLen];
-            Array.Copy(data, 8, payload, 0, encLen);
+            int encLen = data.Length - 8 - headerSkip;
+            byte[] encPayload = new byte[encLen];
+            Array.Copy(data, 8 + headerSkip, encPayload, 0, encLen);
 
-            byte[] decrypted = DoubleCfbDecrypt(payload);
+            byte[] dec = DoubleCfbDecrypt(encPayload);
 
-            // After decrypt: [2B peerID][4B nonce][1B flags][body...]
-            if (decrypted.Length >= 7)
+            // After decrypt: [4B CRC nonce][1B flags/cmd][body...]
+            if (dec.Length >= 5)
             {
-                ushort peerID = (ushort)(decrypted[0] | (decrypted[1] << 8));
-                uint nonce = (uint)(decrypted[2] | (decrypted[3] << 8) | (decrypted[4] << 16) | (decrypted[5] << 24));
-                byte flags = decrypted[6];
-                byte cmdType = (byte)(flags & 0x7F);
-                bool hasSentTime = (flags & 0x80) != 0;
+                uint nonce = (uint)(dec[0] | (dec[1] << 8) | (dec[2] << 16) | (dec[3] << 24));
+                byte flags = dec[4];
+                byte cmdType = (byte)(flags & 0x0F); // low 4 bits = ENet command
+                int bodyStart = 5;
+                int bodyLen = dec.Length - bodyStart;
 
-                if (peer.PacketCount <= 100 || cmdType > 10)
+                if (peer.PacketCount <= 100)
                 {
-                    int bodyLen = decrypted.Length - 7;
-                    Log($"  [DECRYPT] peerID=0x{peerID:X4} nonce=0x{nonce:X8} cmd={cmdType}(0x{cmdType:X2}) sentTime={hasSentTime} bodyLen={bodyLen}");
-                    if (bodyLen > 0)
-                        Log($"  [BODY] {Hex(decrypted, 7, Math.Min(48, bodyLen))}");
+                    Log($"  [DECRYPT] nonce=0x{nonce:X8} flags=0x{flags:X2} cmd={cmdType} bodyLen={bodyLen}");
+                    Log($"  [BODY] {Hex(dec, bodyStart, Math.Min(128, bodyLen))}");
+                }
+
+                // Store decoded payload for analysis
+                if (bodyLen > 0)
+                {
+                    byte[] body = new byte[bodyLen];
+                    Array.Copy(dec, bodyStart, body, 0, bodyLen);
+                    peer.LastDecryptedBody = body;
+                    peer.LastCmd = cmdType;
+
+                    // Parse game data from cmd=2 (batch) packets
+                    if (cmdType == 2 && bodyLen > 6)
+                    {
+                        ParseClientBatch(body, peer);
+                    }
+                    // Parse reliable data (cmd=6) - has channel + seqno header
+                    else if (cmdType == 6 && bodyLen > 5)
+                    {
+                        byte channel = body[0];
+                        ushort seqNo = (ushort)((body[1] << 8) | body[2]);
+                        ushort dataLen = (ushort)((body[3] << 8) | body[4]);
+                        Log($"  [RELIABLE] ch={channel} seq={seqNo} len={dataLen}");
+                        if (dataLen > 0 && bodyLen >= 5 + dataLen)
+                        {
+                            byte[] gameData = new byte[dataLen];
+                            Array.Copy(body, 5, gameData, 0, dataLen);
+                            ParseClientGamePacket(gameData, peer, channel);
+                        }
+                    }
                 }
             }
         }
@@ -273,147 +301,61 @@ public class RawGameServer : IGameServer, IDisposable
             }
         }
 
-        // Send CAFE packets early (packet 5+, during echo phase)
-        if (!peer.GameInitSent && peer.PacketCount >= 5)
+        // === GAME DATA (heap scan disabled in hook — game stays alive) ===
+        // Send game init sequence at the right time
+        if (peer.PacketCount % 100 == 0)
+            Log($"  [STATUS] pkt#{peer.PacketCount} — game alive");
+
+        // After handshake, send game init packets
+        // Try both RAW and BATCH formats, and both old (S4) and potential modern opcodes
+        if (peer.PacketCount == 15 && !peer.GameInitSent)
         {
             peer.GameInitSent = true;
-            Log($"  [GAME] Sending KeyCheck via CRC-format packet");
+            Log($"  [GAME-INIT] Sending full init sequence");
 
-            // ===== SEND RELIABLE KeyCheck =====
-            // ENet SEND_RELIABLE body after CRC flags byte:
-            //   [1B channelID][2B reliableSeqNo BE][2B dataLen BE][data...]
-            // KeyCheck: 32 bytes packet on handshake channel
-            // [1B action=0][3B pad][4B clientID LE][8B playerID LE][4B versionNo LE][8B checksum LE][4B pad]
-            // Checksum = BF_encrypt(playerID bytes)
-            var keyCheckData = new byte[32];
-            keyCheckData[0] = 0x00; // action = 0 (response)
-            // pad [1-3] = 0
-            WriteLE32(keyCheckData, 4, 0); // clientID = 0
-            // playerID at offset 8 (8 bytes LE) = 1
-            keyCheckData[8] = 0x01;
-            // versionNo at offset 16 = 0
-            // checksum at offset 20 = BF_encrypt(playerID)
+            // === QueryStatusAns (S4 opcode 0x88) ===
+            // [1B opcode][4B netID][1B response=true]
+            var queryAns = new byte[] { 0x88, 0x00, 0x00, 0x00, 0x00, 0x01 };
+            SendGamePacket(peer, queryAns, "QueryStatusAns-raw");
+            SendBatchPacket(peer, queryAns, "QueryStatusAns-batch");
+
+            // === SynchVersionS2C (S4 opcode 0x54) ===
+            var synchVer = new byte[512];
+            synchVer[0] = 0x54;
+            synchVer[5] = 0x0F; // bitfield
+            synchVer[6] = 11; // map=11
+            var verStr = System.Text.Encoding.ASCII.GetBytes("Version 16.6.1");
+            Array.Copy(verStr, 0, synchVer, 298, verStr.Length);
+            SendGamePacket(peer, synchVer, "SynchVersion-raw");
+
+            // === Extended opcode format (for opcodes > 0xFF) ===
+            // [0xFE][4B netID][2B opcode LE][body]
+            // Try some opcodes that might trigger loading
+            ushort[] tryOpcodes = { 0x0088, 0x0054, 0x005C, 0x0062, 0x0011, 0x00C1 };
+            foreach (var opc in tryOpcodes)
+            {
+                var ext = new byte[16];
+                ext[0] = 0xFE; // extended opcode marker
+                // netID = 0 at [1..4]
+                ext[5] = (byte)(opc & 0xFF);
+                ext[6] = (byte)(opc >> 8);
+                // minimal body
+                ext[7] = 0x01;
+                SendGamePacket(peer, ext, $"ExtOpcode-0x{opc:X4}");
+            }
+
+            // === StartGame (S4 opcode 0x5C) ===
+            var startGame = new byte[] { 0x5C, 0x00, 0x00, 0x00, 0x00, 0x01 };
+            SendGamePacket(peer, startGame, "StartGame-raw");
+
+            // === Also try KeyCheck response on channel 0 ===
+            var keyCheck = new byte[32];
+            keyCheck[0] = 0x00; // action = response
+            keyCheck[8] = 0x01; // playerID = 1
             var playerIdBytes = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
             var encrypted = _cipher.EncryptBlock(playerIdBytes);
-            Array.Copy(encrypted, 0, keyCheckData, 20, 8);
-
-            // Batch framing (from Ghidra analysis of FUN_14055b9a0):
-            // Outer: [0x02][u32 LE sub_count][sub-packets...][0x18]
-            // Each sub-packet: [u32 LE dword_count][u32 data_0][u32 data_1]...
-            // KeyCheck = 32 bytes = 8 DWORDs
-            var batchStream = new System.IO.MemoryStream();
-            batchStream.WriteByte(0x02); // batch start marker
-            batchStream.Write(BitConverter.GetBytes((uint)1), 0, 4); // 1 sub-packet
-            // Sub-packet: [u32 dword_count=8][8 x u32 data]
-            batchStream.Write(BitConverter.GetBytes((uint)(keyCheckData.Length / 4)), 0, 4);
-            batchStream.Write(keyCheckData, 0, keyCheckData.Length);
-            batchStream.WriteByte(0x18); // batch end marker
-            var batchData = batchStream.ToArray();
-            Log($"  [BATCH] format: 02 | count=1 | dwords={keyCheckData.Length/4} | data={keyCheckData.Length}B | 18 = {batchData.Length}B total");
-
-            // SEND_RELIABLE with batch-framed KeyCheck
-            var reliableBody = new byte[1 + 2 + 2 + batchData.Length];
-            reliableBody[0] = 0x00; // channel 0 = handshake
-            WriteBE16(reliableBody, 1, peer.ReliableSeqNo++);
-            WriteBE16(reliableBody, 3, (ushort)batchData.Length);
-            Array.Copy(batchData, 0, reliableBody, 5, batchData.Length);
-
-            // Also try raw KeyCheck without batch framing (on channel 0)
-            var reliableRaw = new byte[1 + 2 + 2 + keyCheckData.Length];
-            reliableRaw[0] = 0x00;
-            WriteBE16(reliableRaw, 1, peer.ReliableSeqNo++);
-            WriteBE16(reliableRaw, 3, (ushort)keyCheckData.Length);
-            Array.Copy(keyCheckData, 0, reliableRaw, 5, keyCheckData.Length);
-
-            // Send batch with KeyCheck data
-            SendCrcPacket(peer, 0x02, batchData);
-            Log($"  [BATCH-KC] cmd=0x02, {batchData.Length}B");
-
-            // EXACT MAPPING FROM GHIDRA DECOMPILATION:
-            // Record = 14 DWORDs (56 bytes = 0x38). puVar7 starts at base+40.
-            // Handler args:
-            //   arg1 = qword at base+0   (DWORD[0-1])
-            //   arg2 = byte at base+11   (DWORD[2] byte 3)
-            //   arg3 = qword at base+16  (DWORD[4-5])
-            //   arg4 = qword at base+40  (DWORD[10-11])
-            //   arg5 = u16 at base+50    (DWORD[12] bytes 2-3) ← THIS IS THE OPCODE!
-            //
-            // Opcode = *(ushort*)(base + 50) = bytes 50-51 of the 56-byte record
-            var record = new byte[56]; // 14 DWORDs
-            // Place opcode 0x000A at byte offset 50 (within DWORD[12])
-            record[50] = 0x0A; // opcode low byte
-            record[51] = 0x00; // opcode high byte
-            // Fill other fields with reasonable values
-            // arg1 (base+0): could be a pointer/ID
-            // arg2 (base+11): a flag byte
-            // arg3 (base+16): channel/flags qword
-            // arg4 (base+40): data pointer/value
-
-            // Send ALL confirmed opcodes (0x0A to 0x10B) in batches
-            // Split into chunks to avoid oversized packets
-            ushort[] allOpcodes = {
-                0x000A, 0x000C, 0x0016, 0x0019, 0x002A, 0x0033, 0x0038,
-                0x004F, 0x0056, 0x0071, 0x0086, 0x008B, 0x00AA, 0x00AD,
-                0x00AE, 0x00B4, 0x00C7, 0x00CB, 0x010A, 0x010B
-            };
-            // Send in batches of 5 opcodes each
-            for (int batchStart = 0; batchStart < allOpcodes.Length; batchStart += 5)
-            {
-                int batchSize = Math.Min(5, allOpcodes.Length - batchStart);
-                var batchM = new System.IO.MemoryStream();
-                batchM.WriteByte(0x02);
-                batchM.Write(BitConverter.GetBytes((uint)(14 * batchSize)), 0, 4);
-                for (int i = 0; i < batchSize; i++)
-                {
-                    var rec = new byte[56];
-                    var opc = allOpcodes[batchStart + i];
-                    rec[50] = (byte)(opc & 0xFF);
-                    rec[51] = (byte)(opc >> 8);
-                    // Fill arg1 with a player/entity ID
-                    WriteLE32(rec, 0, 0x40000001); // common LoL netID for player 1
-                    batchM.Write(rec, 0, rec.Length);
-                }
-                batchM.WriteByte(0x18);
-                SendCrcPacket(peer, 0x02, batchM.ToArray());
-            }
-            Log($"  [BATCH-ALL] sent {allOpcodes.Length} opcodes in {(allOpcodes.Length+4)/5} batches");
-
-            // DISABLED: capture client's data and echo it back via CAFE
-            // The server stores raw client payloads and sends them back
-            // This ensures the game receives data in its OWN format
-            if (peer.LastPayload != null && peer.LastPayload.Length > 0)
-            {
-                // Send client's own 36B payload back (after stripping LNPBlob+header)
-                // The hook will re-encrypt with game's BF and fix CRC
-                var echoPayload = peer.LastPayload;
-                // We need to send the INNER data (after 4B header) as the body
-                // Format for CAFE: [4B nonce placeholder][1B flags][body]
-                // The client's data after 4B header is already in the right format
-                if (echoPayload.Length >= 4)
-                {
-                    // Send as plaintext (hook will encrypt+CRC)
-                    // The flags byte from client's data will be used
-                    var innerData = new byte[echoPayload.Length - 4];
-                    Array.Copy(echoPayload, 4, innerData, 0, innerData.Length);
-                    // Prepend nonce placeholder
-                    var plaintext = new byte[((4 + innerData.Length + 7) / 8) * 8]; // pad to 8
-                    WriteLE32(plaintext, 0, 0xDEADBEEF);
-                    Array.Copy(innerData, 0, plaintext, 4, innerData.Length);
-
-                    // Build CAFE packet with 4B header
-                    var packet = new byte[2 + 4 + plaintext.Length];
-                    packet[0] = 0xCA; packet[1] = 0xFE;
-                    // Header = first 4B of client payload (connection token)
-                    Array.Copy(echoPayload, 0, packet, 2, 4);
-                    Array.Copy(plaintext, 0, packet, 6, plaintext.Length);
-                    Send(packet, peer);
-                    Log($"  [CAFE-REPLAY] echoed client data, inner={innerData.Length}B total={packet.Length}B");
-                }
-            }
-
-            // Also send KeyCheck with cmd=0x06
-            SendCrcPacket(peer, 0x06, reliableBody);
-            Log($"  [KC-06] cmd=0x06, {reliableBody.Length}B");
+            Array.Copy(encrypted, 0, keyCheck, 20, 8);
+            SendGamePacket(peer, keyCheck, "KeyCheck-raw");
         }
     }
 
@@ -427,6 +369,166 @@ public class RawGameServer : IGameServer, IDisposable
     // Old SendVerifyConnect, ScheduleGameInit, SendPing removed.
     // Now using SendCrcPacket for all server→client communication.
     // The hook DLL fixes CRC nonces automatically.
+
+    // ========================================================================
+    //  SEND GAME PACKETS
+    // ========================================================================
+
+    /// <summary>
+    /// Send a game packet via cmd=2 (game data path → handler +0x168).
+    /// Sends RAW game data (no batch framing) — the handler at +0x168 may expect
+    /// either batch-framed or raw GamePacket format.
+    /// </summary>
+    private void SendGamePacket(PeerInfo peer, byte[] gameData, string description)
+    {
+        // Send raw game data via cmd=2 (no batch framing)
+        SendCrcPacket(peer, 0x02, gameData);
+        Log($"  [GAME-PKT] {description}: {gameData.Length}B raw, cmd=0x02");
+    }
+
+    /// <summary>
+    /// Send a game packet wrapped in batch framing via cmd=2.
+    /// Batch format: [0x02][u32 total_dwords][sub: u32 dword_count + data][0x18]
+    /// </summary>
+    private void SendBatchPacket(PeerInfo peer, byte[] gameData, string description)
+    {
+        int paddedLen = (gameData.Length + 3) & ~3;
+        var padded = new byte[paddedLen];
+        Array.Copy(gameData, 0, padded, 0, gameData.Length);
+        int dwordCount = paddedLen / 4;
+
+        var batch = new System.IO.MemoryStream();
+        batch.WriteByte(0x02);
+        batch.Write(BitConverter.GetBytes((uint)dwordCount), 0, 4);
+        batch.Write(BitConverter.GetBytes((uint)dwordCount), 0, 4);
+        batch.Write(padded, 0, paddedLen);
+        batch.WriteByte(0x18);
+
+        var batchData = batch.ToArray();
+        SendCrcPacket(peer, 0x02, batchData);
+        Log($"  [BATCH-PKT] {description}: {gameData.Length}B data, {batchData.Length}B batch, cmd=0x02");
+    }
+
+    // ========================================================================
+    //  CLIENT GAME PACKET PARSING
+    // ========================================================================
+
+    /// <summary>
+    /// Parse batch-framed game data from cmd=2 body.
+    /// Format: [0x02][u32 LE total_dword_count][sub-packets...][0x18]
+    /// Each sub-packet: [u32 LE dword_count][dword_count * 4 bytes of data]
+    /// Opcode is at byte offset 50 of each 56-byte (14 DWORD) record.
+    /// </summary>
+    private void ParseClientBatch(byte[] body, PeerInfo peer)
+    {
+        if (body[0] != 0x02) return;
+        if (body.Length < 6) return;
+
+        uint totalDwords = BitConverter.ToUInt32(body, 1);
+        Log($"  [CLIENT-BATCH] marker=0x02 totalDwords={totalDwords} bodyLen={body.Length}");
+
+        int offset = 5; // skip marker(1) + totalDwords(4)
+        int recordNum = 0;
+        while (offset + 4 <= body.Length && body[offset] != 0x18)
+        {
+            uint dwordCount = BitConverter.ToUInt32(body, offset);
+            int dataLen = (int)(dwordCount * 4);
+            offset += 4;
+
+            if (dataLen <= 0 || offset + dataLen > body.Length) break;
+
+            recordNum++;
+            byte[] record = new byte[dataLen];
+            Array.Copy(body, offset, record, 0, dataLen);
+
+            // Extract fields from the record
+            if (dataLen >= 52) // need at least 52 bytes for opcode at offset 50
+            {
+                ushort opcode = (ushort)(record[50] | (record[51] << 8));
+                uint netId = BitConverter.ToUInt32(record, 0);
+                Log($"  [CLIENT-OPCODE] #{recordNum} opcode=0x{opcode:X4} netID=0x{netId:X8} dwords={dwordCount} data={Hex(record, 0, Math.Min(56, dataLen))}");
+
+                // Track client opcodes for response
+                HandleClientGameOpcode(opcode, record, peer);
+            }
+            else
+            {
+                Log($"  [CLIENT-RECORD] #{recordNum} dwords={dwordCount} data={Hex(record, 0, Math.Min(32, dataLen))}");
+            }
+
+            offset += dataLen;
+        }
+
+        if (offset < body.Length)
+            Log($"  [CLIENT-BATCH] terminator=0x{body[Math.Min(offset, body.Length - 1)]:X2}");
+    }
+
+    /// <summary>
+    /// Parse a game packet from reliable channel data.
+    /// LeagueSandbox format: [1B opcode][4B senderNetID][body...]
+    /// Extended: [0xFE][4B senderNetID][2B opcode LE][body...]
+    /// Batched: [0xFF][1B count][packets...]
+    /// </summary>
+    private void ParseClientGamePacket(byte[] gameData, PeerInfo peer, byte channel)
+    {
+        if (gameData.Length < 1) return;
+
+        byte firstByte = gameData[0];
+
+        if (firstByte == 0xFE && gameData.Length >= 7)
+        {
+            // Extended opcode format
+            uint netId = BitConverter.ToUInt32(gameData, 1);
+            ushort opcode = BitConverter.ToUInt16(gameData, 5);
+            Log($"  [CLIENT-GAME] EXTENDED opcode=0x{opcode:X4} netID=0x{netId:X8} ch={channel} len={gameData.Length}");
+            Log($"  [CLIENT-GAME-DATA] {Hex(gameData, 0, Math.Min(64, gameData.Length))}");
+            HandleClientGameOpcode(opcode, gameData, peer);
+        }
+        else if (firstByte == 0xFF && gameData.Length >= 2)
+        {
+            // Batched packets
+            byte count = gameData[1];
+            Log($"  [CLIENT-GAME] BATCHED count={count} ch={channel} len={gameData.Length}");
+            Log($"  [CLIENT-GAME-DATA] {Hex(gameData, 0, Math.Min(64, gameData.Length))}");
+        }
+        else if (gameData.Length >= 5)
+        {
+            // Normal opcode (1 byte)
+            byte opcode = firstByte;
+            uint netId = BitConverter.ToUInt32(gameData, 1);
+            Log($"  [CLIENT-GAME] NORMAL opcode=0x{opcode:X2} netID=0x{netId:X8} ch={channel} len={gameData.Length}");
+            Log($"  [CLIENT-GAME-DATA] {Hex(gameData, 0, Math.Min(64, gameData.Length))}");
+            HandleClientGameOpcode(opcode, gameData, peer);
+        }
+        else
+        {
+            Log($"  [CLIENT-GAME] RAW ch={channel} len={gameData.Length} data={Hex(gameData, 0, gameData.Length)}");
+        }
+    }
+
+    /// <summary>
+    /// Handle a game opcode from the client and send appropriate response.
+    /// Protocol is CLIENT-DRIVEN: client sends requests, server responds.
+    /// Opcodes are from Season 4 LeagueSandbox but may differ in modern client.
+    /// We log everything and respond to recognized patterns.
+    /// </summary>
+    private void HandleClientGameOpcode(ushort opcode, byte[] data, PeerInfo peer)
+    {
+        // Track all client opcodes we see
+        if (!peer.SeenOpcodes.Contains(opcode))
+        {
+            peer.SeenOpcodes.Add(opcode);
+            Log($"  [NEW-OPCODE] Client sent opcode 0x{opcode:X4} for the first time! Total unique: {peer.SeenOpcodes.Count}");
+        }
+
+        // Season 4 opcodes (may differ in 16.6, but try them):
+        // 0x14 = QueryStatusReq → respond with QueryStatusAns (0x88)
+        // 0xBD = SynchVersionC2S → respond with SynchVersionS2C (0x54)
+        // 0xBE = CharSelected → respond with TeamRosterUpdate
+        // 0x52 = ClientReady → respond with StartSpawn sequence
+
+        // For now, just log. We'll add responses once we identify the modern opcodes.
+    }
 
     // ========================================================================
     //  CRC32 HELPERS
@@ -684,5 +786,8 @@ public class RawGameServer : IGameServer, IDisposable
         public uint ConnectToken { get; set; }
         public byte[]? LastPayload { get; set; }
         public ushort AckSeqNo { get; set; } = 0;
+        public byte[]? LastDecryptedBody { get; set; }
+        public byte LastCmd { get; set; }
+        public HashSet<ushort> SeenOpcodes { get; set; } = new();
     }
 }

@@ -55,6 +55,41 @@ __declspec(dllexport) BOOL WINAPI VerQueryValueW(LPCVOID b, LPCWSTR s, LPVOID *p
 // Forward declarations (defined later in the file)
 static void Log(const char *fmt, ...);
 static volatile BYTE *connStructAddr = NULL;  // connection struct address, captured in sendto hook
+
+// Hardware breakpoint globals for cert verify bypass
+volatile BYTE *g_certBP[4] = {NULL, NULL, NULL, NULL};
+volatile int g_certBPCount = 0;
+volatile int g_certBPHits = 0;
+
+// Vectored Exception Handler for hardware breakpoints
+static LONG WINAPI CertVerifyVEH(PEXCEPTION_POINTERS exc) {
+    if (exc->ExceptionRecord->ExceptionCode != EXCEPTION_SINGLE_STEP)
+        return EXCEPTION_CONTINUE_SEARCH;
+
+    // Check if RIP matches one of our breakpoint addresses
+    UINT64 rip = exc->ContextRecord->Rip;
+    for (int i = 0; i < g_certBPCount; i++) {
+        if (g_certBP[i] && rip == (UINT64)g_certBP[i]) {
+            // We hit a cert verify conditional jump!
+            // The instruction at RIP is JNZ (75) or JZ (74)
+            BYTE opcode = *(BYTE*)rip;
+            if (opcode == 0x75) {
+                // JNZ: jump if ZF=0. We want to ALWAYS jump (skip error).
+                // Clear ZF (set ZF=0) so JNZ is taken.
+                exc->ContextRecord->EFlags &= ~0x40; // Clear ZF
+            } else if (opcode == 0x74) {
+                // JZ: jump if ZF=1. We want to ALWAYS jump (skip error).
+                // Set ZF=1 so JZ is taken.
+                exc->ContextRecord->EFlags |= 0x40; // Set ZF
+            }
+            g_certBPHits++;
+            // Re-enable single-step (RF flag) to continue from breakpoint
+            exc->ContextRecord->EFlags |= 0x10000; // Set RF (Resume Flag)
+            return EXCEPTION_CONTINUE_EXECUTION;
+        }
+    }
+    return EXCEPTION_CONTINUE_SEARCH;
+}
 static volatile UINT32 g_connToken = 0;       // connection token from first 519B packet
 
 // === BLOWFISH + CRC FIXUP ===
@@ -627,40 +662,94 @@ static void *vehHandle = NULL;
 static BYTE *crcBreakpointAddr = NULL;  // Address of SETE AL (0F 94 C0) = base + 0x57282A
 
 static LONG CALLBACK CrcBypassVEH(PEXCEPTION_POINTERS exc) {
-    // Handle SINGLE_STEP exceptions (both DR0 setup and CRC bypass)
-    if (exc->ExceptionRecord->ExceptionCode == EXCEPTION_SINGLE_STEP &&
-        crcBreakpointAddr != NULL) {
+    // Handle SINGLE_STEP exceptions (CRC bypass + cert verify bypass)
+    if (exc->ExceptionRecord->ExceptionCode == EXCEPTION_SINGLE_STEP) {
 
-        // Check if this is our TF-triggered setup (RIP is NOT at our target)
-        if (pendingDr0Setup && (BYTE*)exc->ContextRecord->Rip != crcBreakpointAddr) {
-            exc->ContextRecord->Dr0 = (DWORD64)crcBreakpointAddr;
-            exc->ContextRecord->Dr7 = (exc->ContextRecord->Dr7 & ~0xF) | 0x1;
-            exc->ContextRecord->Dr7 &= ~(0xF << 16);
-            pendingDr0Setup = 0;
+        if (crcBreakpointAddr != NULL) {
+            // Check if this is our TF-triggered setup (RIP is NOT at our target)
+            if (pendingDr0Setup && (BYTE*)exc->ContextRecord->Rip != crcBreakpointAddr) {
+                exc->ContextRecord->Dr0 = (DWORD64)crcBreakpointAddr;
+                exc->ContextRecord->Dr7 = (exc->ContextRecord->Dr7 & ~0xF) | 0x1;
+                exc->ContextRecord->Dr7 &= ~(0xF << 16);
+                pendingDr0Setup = 0;
 
-            if (hwBpThreadCount < 64) {
-                hwBpThreadIds[hwBpThreadCount++] = GetCurrentThreadId();
+                // Also set DR1/DR2 for cert verify bypass if addresses are ready
+                if (g_certBP[0]) {
+                    exc->ContextRecord->Dr1 = (DWORD64)g_certBP[0];
+                    exc->ContextRecord->Dr7 |= (1 << 2); // Enable DR1 local
+                    exc->ContextRecord->Dr7 &= ~(0xF << 20); // Execute, 1 byte for DR1
+                }
+                if (g_certBP[1]) {
+                    exc->ContextRecord->Dr2 = (DWORD64)g_certBP[1];
+                    exc->ContextRecord->Dr7 |= (1 << 4); // Enable DR2 local
+                    exc->ContextRecord->Dr7 &= ~(0xF << 24); // Execute, 1 byte for DR2
+                }
+
+                if (hwBpThreadCount < 64) {
+                    hwBpThreadIds[hwBpThreadCount++] = GetCurrentThreadId();
+                }
+
+                return EXCEPTION_CONTINUE_EXECUTION;
             }
 
-            return EXCEPTION_CONTINUE_EXECUTION;
+            // Hardware breakpoint hit at CRC check (DR0)
+            if ((BYTE*)exc->ContextRecord->Rip == crcBreakpointAddr) {
+                exc->ContextRecord->Rax = (exc->ContextRecord->Rax & ~0xFFULL) | 1;
+                exc->ContextRecord->Rip += 3;  // skip SETE AL (3 bytes)
+
+                exc->ContextRecord->Dr0 = (DWORD64)crcBreakpointAddr;
+                exc->ContextRecord->Dr7 |= 0x1;
+
+                if (!crcPatched) {
+                    crcPatched = 1;
+                    OutputDebugStringA("*** CRC BYPASS VEH: First hit! AL forced to 1 ***");
+                }
+                return EXCEPTION_CONTINUE_EXECUTION;
+            }
         }
 
-        // Hardware breakpoint hit at CRC check
-        if ((BYTE*)exc->ContextRecord->Rip == crcBreakpointAddr) {
-            // We're at "SETE AL" (0F 94 C0, 3 bytes)
-            // Force AL = 1 (CRC always valid) and skip the instruction
-            exc->ContextRecord->Rax = (exc->ContextRecord->Rax & ~0xFFULL) | 1;
-            exc->ContextRecord->Rip += 3;  // skip SETE AL (3 bytes)
-
-            // Re-enable the hardware breakpoint (single-step clears it)
-            exc->ContextRecord->Dr0 = (DWORD64)crcBreakpointAddr;
-            exc->ContextRecord->Dr7 |= 0x1;  // enable DR0 local
-
-            if (!crcPatched) {
-                crcPatched = 1;
-                OutputDebugStringA("*** CRC BYPASS VEH: First hit! AL forced to 1 ***");
+        // Check for TF-triggered setup from DLL_THREAD_ATTACH (cert verify setup)
+        // This fires when a new thread starts and we need DR1/DR2 set
+        if (g_certBPCount > 0 && exc->ContextRecord->Dr1 != (DWORD64)g_certBP[0]) {
+            // Set DR1/DR2 for cert verify on this thread
+            if (g_certBP[0]) {
+                exc->ContextRecord->Dr1 = (DWORD64)g_certBP[0];
+                exc->ContextRecord->Dr7 |= (1 << 2); // Enable DR1
+                exc->ContextRecord->Dr7 &= ~(0xF << 20);
             }
-            return EXCEPTION_CONTINUE_EXECUTION;
+            if (g_certBPCount > 1 && g_certBP[1]) {
+                exc->ContextRecord->Dr2 = (DWORD64)g_certBP[1];
+                exc->ContextRecord->Dr7 |= (1 << 4); // Enable DR2
+                exc->ContextRecord->Dr7 &= ~(0xF << 24);
+            }
+            // If this wasn't a CRC breakpoint setup, just continue
+            if (!crcBreakpointAddr || (BYTE*)exc->ContextRecord->Rip != crcBreakpointAddr) {
+                return EXCEPTION_CONTINUE_EXECUTION;
+            }
+        }
+
+        // Hardware breakpoint hit at cert verify check (DR1 or DR2)
+        BYTE *rip = (BYTE*)exc->ContextRecord->Rip;
+        for (int ci = 0; ci < g_certBPCount; ci++) {
+            if (g_certBP[ci] && rip == (BYTE*)g_certBP[ci]) {
+                BYTE opcode = *rip;
+                if (opcode == 0x75) {
+                    // JNZ: want to always jump (skip cert error). Clear ZF.
+                    exc->ContextRecord->EFlags &= ~0x40;
+                } else if (opcode == 0x74) {
+                    // JZ: want to always jump (skip cert error). Set ZF.
+                    exc->ContextRecord->EFlags |= 0x40;
+                }
+                g_certBPHits++;
+                // Re-enable breakpoints
+                exc->ContextRecord->EFlags |= 0x10000; // RF
+                if (ci == 0) { exc->ContextRecord->Dr1 = (DWORD64)g_certBP[0]; exc->ContextRecord->Dr7 |= (1<<2); }
+                if (ci == 1) { exc->ContextRecord->Dr2 = (DWORD64)g_certBP[1]; exc->ContextRecord->Dr7 |= (1<<4); }
+                if (g_certBPHits <= 3) {
+                    OutputDebugStringA("*** CERT VERIFY BYPASS: HW breakpoint hit! ***");
+                }
+                return EXCEPTION_CONTINUE_EXECUTION;
+            }
         }
     }
     return EXCEPTION_CONTINUE_SEARCH;
@@ -688,6 +777,8 @@ static void SetHardwareBreakpoint(void) {
 
     // Register VEH (first handler, priority over SEH)
     vehHandle = AddVectoredExceptionHandler(1, CrcBypassVEH);
+    // Also register cert verify VEH (handles HW breakpoints for TLS bypass)
+    AddVectoredExceptionHandler(1, CertVerifyVEH);
 
     // Set hardware breakpoint on the CURRENT thread via real handle
     EnsureHwBpOnThisThread();
@@ -1252,7 +1343,7 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
         // Decrypt client packets using GAME's own BF context (not ours)
         if (len > 27) {
             static int clientDecLog = 0;
-            if (clientDecLog < 15) {
+            if (clientDecLog < 200) {
                 HMODULE gBase = GetModuleHandleA(NULL);
                 void *bfCtxSend = NULL;
                 if (connStructAddr && !IsBadReadPtr((void*)(connStructAddr + 0x120), 16)) {
@@ -1284,21 +1375,43 @@ int WINAPI Hook_sendto(SOCKET s, const char *buf, int len, int flags,
                     ReverseBytes(dec, encLen);
                     BfDec(bfCtxSend, dec, (UINT64)encLen, 2); // pass 2
 
-                    // dec[0..3]=CRC nonce, dec[4]=flags, dec[5+]=body
+                    // dec[0..3]=CRC nonce, dec[4]=flags/cmd, dec[5+]=body
                     BYTE flags = (encLen >= 5) ? dec[4] : 0;
-                    char hexdump[200] = {0};
+                    BYTE cmdType = flags & 0x0F;
+                    // Extended hex dump (128B instead of 32B)
+                    char hexdump[600] = {0};
                     int hoff = 0;
-                    for (int i = 0; i < encLen && i < 32 && hoff < 180; i++)
+                    for (int i = 0; i < encLen && i < 128 && hoff < 580; i++)
                         hoff += snprintf(hexdump + hoff, sizeof(hexdump) - hoff, "%02X ", dec[i]);
-                    // Log conn offsets that control cursor behavior
-                    UINT16 c144 = 0, c146 = 0;
-                    if (connStructAddr && !IsBadReadPtr((void*)(connStructAddr+0x144), 4)) {
-                        c144 = *(UINT16*)(connStructAddr + 0x144);
-                        c146 = *(UINT16*)(connStructAddr + 0x146);
+
+                    Log("CLIENT_GAMEDEC #%d: %dB cmd=%d enc=%dB %s",
+                        clientDecLog, len, cmdType, encLen, hexdump);
+
+                    // Parse batch records if cmd=2
+                    if (cmdType == 2 && encLen > 10) {
+                        BYTE *body = dec + 5;
+                        int bodyLen = encLen - 5;
+                        if (body[0] == 0x02 && bodyLen > 5) {
+                            UINT32 totalDwords = *(UINT32*)(body + 1);
+                            Log("  CLIENT_BATCH: marker=0x02 totalDwords=%u bodyLen=%d", totalDwords, bodyLen);
+                            int off = 5;
+                            int recNum = 0;
+                            while (off + 4 <= bodyLen && body[off] != 0x18) {
+                                UINT32 dwCount = *(UINT32*)(body + off);
+                                int dataLen = dwCount * 4;
+                                off += 4;
+                                if (dataLen <= 0 || off + dataLen > bodyLen) break;
+                                recNum++;
+                                if (dataLen >= 52) {
+                                    UINT16 opcode = *(UINT16*)(body + off + 50);
+                                    UINT32 netId = *(UINT32*)(body + off);
+                                    Log("  CLIENT_OPCODE #%d: opcode=0x%04X netID=0x%08X dwords=%u",
+                                        recNum, opcode, netId, dwCount);
+                                }
+                                off += dataLen;
+                            }
+                        }
                     }
-                    Log("CLIENT_GAMEDEC #%d: %dB hdr=%02X%02X%02X%02X flags=0x%02X(cmd=%d) enc=%dB %s",
-                        clientDecLog, len, header[0],header[1],header[2],header[3],
-                        flags, flags & 0x7F, encLen, hexdump);
                 }
             }
         }
@@ -3306,8 +3419,395 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
             }
         }
     }
-    if (logfile) { fprintf(logfile, "[CertThread] vtable=0x%llX handle=%p, scanning heap...\n",
+    if (logfile) { fprintf(logfile, "[CertThread] vtable=0x%llX handle=%p — HEAP SCAN DISABLED (diagnostic)\n",
         g_x509Vtable, (void*)g_ourCertHandle); fflush(logfile); }
+
+    // === HOOK GAME OPCODE DISPATCHER (RVA 0x955C20) ===
+    // The dispatcher reads opcode from *(ushort*)(param_2 + 0x08)
+    // We inline-hook it to log what opcodes are being dispatched
+    {
+        BYTE *dispatcher = (BYTE*)hExe + 0x955C20;
+        if (!IsBadReadPtr(dispatcher, 32)) {
+            // Save original bytes and install a logging trampoline
+            // Simple approach: don't hook the dispatcher (too complex for inline)
+            // Instead, hook the HANDLER CALL at +0x168 offset
+            // Or: just scan the connection struct for useful state info
+
+            // Log the first 16 bytes of the dispatcher for analysis
+            if (logfile) {
+                fprintf(logfile, "[CertThread] Dispatcher at RVA 0x955C20 (VA=%p):\n  ", dispatcher);
+                for (int d = 0; d < 16; d++) fprintf(logfile, "%02X ", dispatcher[d]);
+                fprintf(logfile, "\n");
+                fflush(logfile);
+            }
+        }
+    }
+
+    // === BORINGSSL CERT VERIFY BYPASS (approach: patch verify result check) ===
+    // The game uses BoringSSL (statically linked) for TLS to FakeLCU.
+    // Since we can't easily find ssl_verify_cert_chain via string xrefs,
+    // let's search for the error constant SSL_R_CERTIFICATE_VERIFY_FAILED (134 = 0x86)
+    // being loaded near a conditional jump. If we find the check and NOP the jump,
+    // cert verification would be skipped.
+    {
+        BYTE *textBase = (BYTE*)hExe + 0x1000;
+        SIZE_T textSize = 0x18DE000;
+        int verifyPatched = 0;
+
+        // === HARDWARE BREAKPOINT APPROACH ===
+        // Vanguard blocks VirtualProtect on .text (err=5).
+        // Use hardware breakpoints (debug registers DR0-DR3) which work at CPU level.
+        // Set HW BP on the JNZ instruction that checks cert verify result.
+        // When triggered, modify EFLAGS.ZF to force the jump (skip error).
+        //
+        // We need a Vectored Exception Handler to catch the breakpoint.
+
+        // Find the cert verify JNZ addresses by scanning .text
+        BYTE *certVerifyJNZ[4] = {NULL};
+        int certJNZCount = 0;
+
+        for (SIZE_T i = 2; i + 5 <= textSize && certJNZCount < 4; i++) {
+            if (textBase[i] == 0xBA && textBase[i+1] == 0x86 && textBase[i+2] == 0x00 &&
+                textBase[i+3] == 0x00 && textBase[i+4] == 0x00) {
+                // Check for JNZ or JZ 2 bytes before
+                BYTE *j = textBase + i - 2;
+                if ((j[0] == 0x75 || j[0] == 0x74) && j[1] >= 0x10 && j[1] <= 0x40) {
+                    certVerifyJNZ[certJNZCount] = j;
+                    UINT64 rva = 0x1000 + i - 2;
+                    if (logfile) { fprintf(logfile,
+                        "[CertThread] HWBP target #%d: %s at RVA 0x%llX (disp=0x%02X)\n",
+                        certJNZCount+1, j[0]==0x74?"JZ":"JNZ", rva, j[1]); fflush(logfile); }
+                    certJNZCount++;
+                }
+            }
+        }
+
+        // Set up hardware breakpoints on the found addresses
+        if (certJNZCount > 0) {
+            // Store addresses globally for the VEH handler
+            extern volatile BYTE *g_certBP[4];
+            extern volatile int g_certBPCount;
+            extern volatile int g_certBPHits;
+            for (int b = 0; b < certJNZCount && b < 4; b++)
+                g_certBP[b] = certVerifyJNZ[b];
+            g_certBPCount = certJNZCount;
+
+            // Set hardware breakpoints using debug registers
+            // We need to iterate over all threads and set DR0-DR3
+            HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+            if (hSnap != INVALID_HANDLE_VALUE) {
+                THREADENTRY32 te;
+                te.dwSize = sizeof(te);
+                DWORD pid = GetCurrentProcessId();
+                int bpSet = 0;
+
+                if (Thread32First(hSnap, &te)) {
+                    do {
+                        if (te.th32OwnerProcessID == pid) {
+                            HANDLE hThread = OpenThread(THREAD_SET_CONTEXT | THREAD_GET_CONTEXT | THREAD_SUSPEND_RESUME, FALSE, te.th32ThreadID);
+                            if (hThread) {
+                                SuspendThread(hThread);
+                                CONTEXT ctx;
+                                ctx.ContextFlags = CONTEXT_DEBUG_REGISTERS;
+                                if (GetThreadContext(hThread, &ctx)) {
+                                    // Set DR0-DR3 to our breakpoint addresses
+                                    if (certJNZCount >= 1) ctx.Dr0 = (UINT64)certVerifyJNZ[0];
+                                    if (certJNZCount >= 2) ctx.Dr1 = (UINT64)certVerifyJNZ[1];
+                                    if (certJNZCount >= 3) ctx.Dr2 = (UINT64)certVerifyJNZ[2];
+                                    // DR7: enable breakpoints (execute, 1 byte)
+                                    ctx.Dr7 = 0;
+                                    if (certJNZCount >= 1) ctx.Dr7 |= (1 << 0); // Local DR0 enable
+                                    if (certJNZCount >= 2) ctx.Dr7 |= (1 << 2); // Local DR1 enable
+                                    if (certJNZCount >= 3) ctx.Dr7 |= (1 << 4); // Local DR2 enable
+                                    // All breakpoints are execute (00), 1 byte (00) — default
+
+                                    if (SetThreadContext(hThread, &ctx))
+                                        bpSet++;
+                                }
+                                ResumeThread(hThread);
+                                CloseHandle(hThread);
+                            }
+                        }
+                    } while (Thread32Next(hSnap, &te));
+                }
+                CloseHandle(hSnap);
+                if (logfile) { fprintf(logfile,
+                    "[CertThread] Set %d HW breakpoints on %d threads for cert bypass\n",
+                    certJNZCount, bpSet); fflush(logfile); }
+            }
+        }
+
+        // PATTERN-BASED PATCHES (fallback, will fail due to Vanguard):
+        // Pattern 1: "83 FE FF 75 XX BA 86 00 00 00" → CMP ESI,-1; JNZ+XX; MOV EDX,0x86
+        //   Patch: change 75→EB (JNZ→JMP, always skip error)
+        // Pattern 2: "4D 85 C0 75 XX BA 86 00 00 00" → TEST R8,R8; JNZ+XX; MOV EDX,0x86
+        //   Patch: change 75→EB
+        // Pattern 3: "74 XX BA 86 00 00 00" → JZ+XX; MOV EDX,0x86
+        //   Patch: change 74→EB (JZ→JMP, always skip error)
+        // Pattern 4: general "75 XX BA 86 00 00 00" or "0F 84 XX XX XX XX ... BA 86"
+
+        for (SIZE_T i = 0; i + 10 <= textSize; i++) {
+            // Look for BA 86 00 00 00 (MOV EDX, 0x86)
+            if (textBase[i] == 0xBA && textBase[i+1] == 0x86 && textBase[i+2] == 0x00 &&
+                textBase[i+3] == 0x00 && textBase[i+4] == 0x00) {
+                UINT64 rva = 0x1000 + i;
+
+                // Check 2 bytes before: should be 75 XX or 74 XX (short JNZ/JZ)
+                // where XX = displacement that jumps PAST this MOV instruction
+                BYTE *jmp = textBase + i - 2;
+                if (jmp[0] == 0x75 || jmp[0] == 0x74) {
+                    // Verify the jump skips the error code (displacement > 0)
+                    BYTE disp = jmp[1];
+                    if (disp >= 0x10 && disp <= 0x40) {
+                        // This jump goes forward past the error handling
+                        // If jump is taken → error is skipped (good)
+                        // If jump is NOT taken → error path executes (bad)
+                        // Patch: make jump unconditional (always skip error)
+                        DWORD oldProt;
+                        if (VirtualProtect(jmp, 1, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                            BYTE origOp = jmp[0];
+                            jmp[0] = 0xEB; // JMP (unconditional short)
+                            VirtualProtect(jmp, 1, oldProt, &oldProt);
+                            verifyPatched++;
+                            if (logfile) { fprintf(logfile,
+                                "[CertThread] *** CERT BYPASS: %s→JMP at RVA 0x%llX (disp=0x%02X, for MOV EDX,0x86 at 0x%llX) ***\n",
+                                origOp==0x74?"JZ":"JNZ", rva-2, disp, rva); fflush(logfile); }
+                        }
+                    }
+                }
+
+                // Also check 5 bytes before for: "83 FE FF 75 XX" pattern
+                if (i >= 5 && textBase[i-5] == 0x83 && textBase[i-4] == 0xFE &&
+                    textBase[i-3] == 0xFF && textBase[i-2] == 0x75) {
+                    // CMP ESI, -1; JNZ+XX; MOV EDX, 0x86
+                    BYTE *j = textBase + i - 2;
+                    DWORD oldProt;
+                    if (VirtualProtect(j, 1, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                        j[0] = 0xEB;
+                        VirtualProtect(j, 1, oldProt, &oldProt);
+                        verifyPatched++;
+                        if (logfile) { fprintf(logfile,
+                            "[CertThread] *** CERT BYPASS: CMP ESI,-1;JNZ→JMP at RVA 0x%llX ***\n",
+                            rva-2); fflush(logfile); }
+                    }
+                }
+
+                // Log all sites for debugging
+                if (logfile) {
+                    fprintf(logfile, "[CertThread] MOV EDX,0x86 at RVA 0x%llX pre2=%02X%02X\n",
+                        rva, textBase[i-2], textBase[i-1]);
+                    fflush(logfile);
+                }
+            }
+        }
+
+        // OLD CODE (replaced by pattern search above):
+        //
+        // RVA 0x16EEA10: "83 FE FF 75 20 BA 86" → CMP ESI,-1; JNZ+0x20; MOV EDX,0x86
+        //   If ESI==-1 (cert verify failed), falls to error. Patch: JNZ→JMP (always skip error)
+        //
+        // RVA 0x172E3CC: "4D 85 C0 75 27 BA 86" → TEST R8,R8; JNZ+0x27; MOV EDX,0x86
+        //   If R8!=0 (cert chain present), skip error. If R8==0, error. Patch: JNZ→JMP
+        //
+        // RVA 0x1685215: "DB 75 05 48 39 37 74 30 ... BA 86" — more complex, skip for now
+        //
+        // RVA 0x1848C9B: "0F 84 1D 01 00 00 ... 74 15 BA 86" — JZ far + JZ near
+        //   TEST EAX,EAX; JZ far → if verify returned 0 (ok), jump over. Then JZ +0x15 to error.
+        //   Patch the near JZ: 74 15 → EB 15 (always jump, skip error)
+
+        // Patch 1: RVA 0x16EEA0C — change JNZ (75 20) to JMP (EB 20)
+        {
+            BYTE *p = (BYTE*)hExe + 0x16EEA0C;
+            if (!IsBadReadPtr(p, 4) && p[0] == 0x75 && p[1] == 0x20) {
+                DWORD oldProt;
+                if (VirtualProtect(p, 2, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                    p[0] = 0xEB; // JMP (unconditional)
+                    VirtualProtect(p, 2, oldProt, &oldProt);
+                    verifyPatched++;
+                    if (logfile) { fprintf(logfile, "[CertThread] *** PATCH1: JNZ→JMP at RVA 0x16EEA0C ***\n"); fflush(logfile); }
+                }
+            }
+        }
+
+        // Patch 2: RVA 0x172E3C7 — change JNZ (75 27) to JMP (EB 27)
+        {
+            BYTE *p = (BYTE*)hExe + 0x172E3C7;
+            if (!IsBadReadPtr(p, 4) && p[0] == 0x75 && p[1] == 0x27) {
+                DWORD oldProt;
+                if (VirtualProtect(p, 2, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                    p[0] = 0xEB;
+                    VirtualProtect(p, 2, oldProt, &oldProt);
+                    verifyPatched++;
+                    if (logfile) { fprintf(logfile, "[CertThread] *** PATCH2: JNZ→JMP at RVA 0x172E3C7 ***\n"); fflush(logfile); }
+                }
+            }
+        }
+
+        // Patch 3: RVA 0x1745512 — change JNZ (0F 85 12 01 00 00) after TEST EAX,EAX
+        // at 0x1745510: "85 C0 0F 85 12 01 00 00" → TEST EAX,EAX; JNZ +0x112
+        // This jumps OVER the error path if verify succeeded.
+        // But the error MOV EDX,0x86 is in the fall-through (success?).
+        // Need to analyze more carefully. Let's check byte 0x1745510.
+        {
+            BYTE *p = (BYTE*)hExe + 0x1745510;
+            if (!IsBadReadPtr(p, 8) && p[0] == 0x85 && p[1] == 0xC0 && p[2] == 0x0F && p[3] == 0x85) {
+                // TEST EAX,EAX; JNZ far → if EAX!=0, jump far (probably to success)
+                // Fall through = error. Make it always jump (skip error):
+                DWORD oldProt;
+                if (VirtualProtect(p + 2, 6, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                    p[2] = 0x90; // NOP the TEST (doesn't matter)
+                    // Change JNZ to JMP: 0F 85 → E9 (near JMP, 4 bytes offset)
+                    p[2] = 0xE9; // JMP rel32
+                    p[3] = p[4]; // keep same offset
+                    // Actually, 0F 85 XX XX XX XX is 6 bytes, E9 XX XX XX XX is 5 bytes
+                    // Need to adjust: replace all 6 bytes with: E9 [offset] 90
+                    UINT32 offset = *(UINT32*)(p + 4);
+                    p[2] = 0xE9;
+                    *(UINT32*)(p + 3) = offset + 1; // +1 because JMP is 1 byte shorter
+                    p[7] = 0x90; // NOP the extra byte
+                    VirtualProtect(p + 2, 6, oldProt, &oldProt);
+                    verifyPatched++;
+                    if (logfile) { fprintf(logfile, "[CertThread] *** PATCH3: JNZ→JMP at RVA 0x1745512 ***\n"); fflush(logfile); }
+                }
+            }
+        }
+
+        // Patch 4: Try all sites with pattern "CMP reg,-1; JNZ short; MOV EDX,0x86"
+        // and "TEST R8,R8; JZ short; MOV EDX,0x86"
+        for (SIZE_T i = 0; i + 5 <= textSize; i++) {
+            if (textBase[i] == 0xBA && textBase[i+1] == 0x86 && textBase[i+2] == 0x00 &&
+                textBase[i+3] == 0x00 && textBase[i+4] == 0x00) {
+                UINT64 rva = 0x1000 + i;
+                // Check for JNZ/JZ that SKIPS this error code
+                for (int back = 2; back < 10; back++) {
+                    BYTE *p = textBase + i - back;
+                    if ((p[0] == 0x75 || p[0] == 0x74) && back == (p[1] + 2)) {
+                        // The conditional jump's target is our MOV EDX,0x86
+                        // p[0]=74 (JZ): jumps to error if zero → patch to NOP (never error)
+                        // p[0]=75 (JNZ): jumps to error if non-zero → patch to NOP
+                        DWORD oldProt;
+                        if (VirtualProtect(p, 2, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                            p[0] = 0x90; p[1] = 0x90; // NOP NOP
+                            VirtualProtect(p, 2, oldProt, &oldProt);
+                            verifyPatched++;
+                            if (logfile) { fprintf(logfile,
+                                "[CertThread] *** PATCH-AUTO: %s→NOP at RVA 0x%llX (target MOV EDX,0x86 at 0x%llX) ***\n",
+                                (p[0]==0x74?"JZ":"JNZ"), rva - back, rva); fflush(logfile); }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (verifyPatched > 0) {
+            if (logfile) { fprintf(logfile, "[CertThread] Patched %d cert verify checks!\n", verifyPatched); fflush(logfile); }
+        } else {
+            if (logfile) { fprintf(logfile, "[CertThread] No cert verify patches applied\n"); fflush(logfile); }
+        }
+    }
+
+    // Previous approach (LEA search - didn't work):
+    // The game uses BoringSSL (statically linked) for TLS to FakeLCU.
+    // "ssl_verify_cert_chain" string is at RVA 0x1A81708 in .rdata.
+    // We search the .text section for the function that calls ssl_verify_cert_chain
+    // and contains the cert verify check, then patch it to always succeed.
+    {
+        HMODULE hExe2 = GetModuleHandleA(NULL);
+        // Find the string "certificate verify failed" in the binary
+        BYTE *base = (BYTE*)hExe2;
+        // Scan .text for: call to ssl_verify_cert_chain followed by test eax,eax / jz
+        // Alternative: find and patch ssl_verify_cert_chain itself to always return 1
+
+        // The string "ssl_verify_cert_chain" is at RVA 0x1A81708
+        // Search code for LEA instructions referencing this string
+        BYTE *textBase = base + 0x1000; // .text starts at RVA 0x1000
+        SIZE_T textSize = 0x18DE000;    // .text size
+
+        // Scan for any CALL instruction followed by TEST EAX,EAX / JZ pattern
+        // near references to "verify" strings
+        // Simpler approach: find the verify function by searching for its prologue pattern
+
+        // In BoringSSL, ssl_verify_cert_chain returns enum ssl_verify_result_t
+        // ssl_verify_ok = 0, ssl_verify_invalid = 1, ssl_verify_retry = 2
+        // The caller checks: if (ret != ssl_verify_ok) → error
+
+        // SIMPLEST APPROACH: Find "ssl_verify_cert" string at known RVA,
+        // search backwards for the function that references it (LEA + CALL pattern),
+        // patch that function's entry to: MOV EAX, 0; RET (always return ssl_verify_ok)
+
+        // Search for LEA r?x, [rip+disp] where disp points to 0x1A81708
+        UINT64 strRVA = 0x1A81708;
+        int patchCount = 0;
+
+        for (SIZE_T i = 0; i + 7 <= textSize && patchCount == 0; i++) {
+            // Look for 48 8D xx (LEA with REX.W prefix) + [rip+disp32]
+            if (textBase[i] == 0x48 && textBase[i+1] == 0x8D) {
+                BYTE modrm = textBase[i+2];
+                if ((modrm & 0xC7) == 0x05) { // [rip+disp32] encoding
+                    INT32 disp = *(INT32*)(textBase + i + 3);
+                    UINT64 codeRVA = 0x1000 + i;
+                    UINT64 target = codeRVA + 7 + disp;
+                    if (target == strRVA) {
+                        // Found LEA referencing ssl_verify_cert_chain string!
+                        // This is inside ssl_verify_cert_chain function
+                        // Search backwards for the function prologue (push rbp; sub rsp, ...)
+                        // or (push rbx; sub rsp, ...)
+                        BYTE *funcStart = NULL;
+                        for (int back = 0; back < 256 && !funcStart; back++) {
+                            BYTE *p = textBase + i - back;
+                            // Common function prologues:
+                            // 48 89 5C 24 xx (mov [rsp+xx], rbx)
+                            // 40 53 (push rbx)
+                            // 48 83 EC xx (sub rsp, xx)
+                            // 55 (push rbp)
+                            // Check for aligned function start
+                            if (((UINT64)(p - (BYTE*)hExe2) & 0xF) == 0) {
+                                // 16-byte aligned, possible function start
+                                if (p[0] == 0x48 && p[1] == 0x89 && p[2] == 0x5C) {
+                                    funcStart = p;
+                                } else if (p[0] == 0x40 && (p[1] == 0x53 || p[1] == 0x55 || p[1] == 0x56 || p[1] == 0x57)) {
+                                    funcStart = p;
+                                } else if (p[0] == 0x55 || (p[0] == 0x48 && p[1] == 0x83 && p[2] == 0xEC)) {
+                                    funcStart = p;
+                                } else if (p[0] == 0x41 && (p[1] == 0x56 || p[1] == 0x57)) {
+                                    funcStart = p;
+                                }
+                            }
+                        }
+
+                        if (funcStart) {
+                            // Patch: XOR EAX, EAX (= return ssl_verify_ok=0); RET
+                            DWORD oldProt;
+                            if (VirtualProtect(funcStart, 4, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                                funcStart[0] = 0x31; // XOR EAX, EAX
+                                funcStart[1] = 0xC0;
+                                funcStart[2] = 0xC3; // RET
+                                VirtualProtect(funcStart, 4, oldProt, &oldProt);
+                                patchCount++;
+                                UINT64 patchRVA = (UINT64)(funcStart - (BYTE*)hExe2);
+                                if (logfile) { fprintf(logfile,
+                                    "[CertThread] *** PATCHED ssl_verify_cert_chain at RVA 0x%llX → XOR EAX,EAX; RET ***\n",
+                                    patchRVA); fflush(logfile); }
+                            }
+                        } else {
+                            if (logfile) { fprintf(logfile,
+                                "[CertThread] Found LEA xref at RVA 0x%llX but couldn't find function prologue\n",
+                                codeRVA); fflush(logfile); }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (patchCount == 0) {
+            if (logfile) { fprintf(logfile,
+                "[CertThread] No LEA xref found for ssl_verify_cert_chain (RVA 0x%llX)\n",
+                strRVA); fflush(logfile); }
+        }
+    }
+
+    if (logfile) { fprintf(logfile, "[CertThread] Thread exiting\n"); fflush(logfile); }
+    return 0;
 
     // Search heap for arrays of pointers where entry+0x20 == g_x509Vtable
     MEMORY_BASIC_INFORMATION mbi;
@@ -3610,6 +4110,13 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(hinst);
 
+        // Pre-compute cert verify breakpoint addresses (hardcoded from static analysis)
+        // These are JNZ/JZ instructions that guard the cert verify error path
+        HMODULE hExeInit = GetModuleHandleA(NULL);
+        g_certBP[0] = (BYTE*)hExeInit + 0x16EEA0E; // JNZ +0x20 (ssl_verify_cert_chain path)
+        g_certBP[1] = (BYTE*)hExeInit + 0x172E3CA; // JNZ +0x27 (cert chain validation)
+        g_certBPCount = 2;
+
         // Init Blowfish key schedule and CRC table for CRC nonce fixup
         {
             // Key: 17BLOhi6KZsTtldTsizvHg== (base64) = 16 bytes
@@ -3683,6 +4190,8 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
         // Start cert injection thread (adds our cert to BoringSSL trust store)
         CreateThread(NULL, 0, CertInjectionThread, NULL, 0, NULL);
     }
+    // DLL_THREAD_ATTACH: disabled (TF in DllMain crashes threads)
+    // Cert verify bypass needs a different approach.
     else if (reason == DLL_PROCESS_DETACH) {
         Log("Unloading");
         if (logfile) fclose(logfile);
