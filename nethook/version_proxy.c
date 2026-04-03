@@ -2986,33 +2986,91 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
                     *(int*)(flowPtr + 8) = 1;
                     if (logfile) { fprintf(logfile, "[CertThread] *** PATCHED flowPtr+8 to 1 ***\n"); fflush(logfile); }
                 }
-                // Patch the LCU connection object to make isConnected() return 1
-                // The vtable call is: *(*(*(lcuPtr+0x3b8)))[0x48/8]()
-                // We need: the function at vtable[9] to return 1
-                // Strategy: find a "return 1" gadget in the binary and point vtable[9] to it
+                // FAKE VTABLE: make isConnected() return 1
                 if (lcuPtr != 0 && lcuObj3b8 != 0) {
-                    // The vtable is at *(*(lcuObj3b8)) - first deref = object ptr, second = vtable
-                    UINT64 objPtr = 0;
-                    if (!IsBadReadPtr((void*)lcuObj3b8, 8))
-                        objPtr = *(UINT64*)lcuObj3b8;
-                    if (objPtr != 0 && !IsBadReadPtr((void*)objPtr, 8)) {
-                        UINT64 vtable = *(UINT64*)objPtr;
-                        UINT64 func48 = 0;
-                        if (!IsBadReadPtr((void*)(vtable + 0x48), 8))
-                            func48 = *(UINT64*)(vtable + 0x48);
-                        if (logfile) { fprintf(logfile, "[CertThread] LCU vtable=%p func48=%p\n",
-                            (void*)vtable, (void*)func48); fflush(logfile); }
+                    // The slot at *lcu3b8 is NULL (LCU never connected).
+                    // Create a FAKE chain: lcu3b8 → fakePtr → fakeObj → fakeVtable → return1
+                    if (logfile) { fprintf(logfile, "[CertThread] Attempting fake LCU: lcu3b8=%p val=%p\n",
+                        (void*)lcuObj3b8, (void*)*(UINT64*)lcuObj3b8); fflush(logfile); }
 
-                        // Instead of replacing the vtable, let's check if there's a "connected" flag
-                        // in the object that controls the return value
-                        // Dump first 64 bytes of the object
-                        if (logfile) {
-                            fprintf(logfile, "[CertThread] LCU obj dump: ");
-                            for (int d = 0; d < 64; d += 4) {
-                                if (!IsBadReadPtr((void*)(objPtr + d), 4))
-                                    fprintf(logfile, "[+%02X]=%08X ", d, *(UINT32*)(objPtr + d));
+                    static BYTE *retOneFunc = NULL;
+                    static UINT64 *fakeVtable = NULL;
+                    static UINT64 *fakeObj = NULL;
+                    static UINT64 *fakePtr = NULL;
+
+                    if (!retOneFunc) {
+                        retOneFunc = (BYTE*)VirtualAlloc(NULL, 64, MEM_COMMIT|MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+                        if (retOneFunc) {
+                            retOneFunc[0] = 0xB8; retOneFunc[1] = 0x01; retOneFunc[2] = 0x00;
+                            retOneFunc[3] = 0x00; retOneFunc[4] = 0x00; retOneFunc[5] = 0xC3;
+                        }
+                    }
+                    if (!fakeVtable) {
+                        fakeVtable = (UINT64*)VirtualAlloc(NULL, 0x100, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
+                        if (fakeVtable) {
+                            // Fill ALL vtable entries with return1 (safe default)
+                            for (int v = 0; v < 0x100/8; v++)
+                                fakeVtable[v] = (UINT64)retOneFunc;
+                        }
+                    }
+                    if (!fakeObj) {
+                        fakeObj = (UINT64*)VirtualAlloc(NULL, 0x100, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
+                        if (fakeObj) {
+                            fakeObj[0] = (UINT64)fakeVtable; // vtable pointer at offset 0
+                        }
+                    }
+                    if (!fakePtr) {
+                        fakePtr = (UINT64*)VirtualAlloc(NULL, 8, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
+                        if (fakePtr) {
+                            fakePtr[0] = (UINT64)fakeObj; // pointer to fake object
+                        }
+                    }
+
+                    if (retOneFunc && fakeVtable && fakeObj && fakePtr) {
+                        // Write fakePtr into the slot at *lcu3b8
+                        *(UINT64*)lcuObj3b8 = (UINT64)fakePtr;
+                        if (logfile) { fprintf(logfile,
+                            "[CertThread] *** INJECTED fake LCU: lcu3b8→%p→%p→vtable(%p)→return1(%p) ***\n",
+                            fakePtr, fakeObj, fakeVtable, retOneFunc); fflush(logfile); }
+                    }
+
+                    UINT64 objPtr = 0; // not used after injection
+                    if (objPtr != 0 && !IsBadReadPtr((void*)objPtr, 8)) {
+                        UINT64 origVtable = *(UINT64*)objPtr;
+                        if (logfile) { fprintf(logfile, "[CertThread] LCU obj=%p vtable=%p\n",
+                            (void*)objPtr, (void*)origVtable); fflush(logfile); }
+
+                        // Create a "return 1" function in executable memory
+                        static BYTE *retOneFunc = NULL;
+                        static UINT64 *fakeVtable = NULL;
+                        if (!retOneFunc) {
+                            retOneFunc = (BYTE*)VirtualAlloc(NULL, 64, MEM_COMMIT|MEM_RESERVE,
+                                                             PAGE_EXECUTE_READWRITE);
+                            if (retOneFunc) {
+                                // mov eax, 1; ret
+                                retOneFunc[0] = 0xB8; retOneFunc[1] = 0x01; retOneFunc[2] = 0x00;
+                                retOneFunc[3] = 0x00; retOneFunc[4] = 0x00; retOneFunc[5] = 0xC3;
+                                if (logfile) { fprintf(logfile, "[CertThread] return_1 func at %p\n",
+                                    retOneFunc); fflush(logfile); }
                             }
-                            fprintf(logfile, "\n"); fflush(logfile);
+                        }
+                        if (!fakeVtable && retOneFunc && !IsBadReadPtr((void*)origVtable, 0x60)) {
+                            // Allocate fake vtable (copy original, replace entry 9)
+                            fakeVtable = (UINT64*)VirtualAlloc(NULL, 0x100, MEM_COMMIT|MEM_RESERVE,
+                                                                PAGE_READWRITE);
+                            if (fakeVtable) {
+                                memcpy(fakeVtable, (void*)origVtable, 0x100);
+                                fakeVtable[0x48/8] = (UINT64)retOneFunc; // replace isConnected
+                                if (logfile) { fprintf(logfile, "[CertThread] Fake vtable at %p, entry[9]=%p\n",
+                                    fakeVtable, (void*)fakeVtable[0x48/8]); fflush(logfile); }
+                            }
+                        }
+                        if (fakeVtable) {
+                            // Replace vtable pointer in the LCU connection object
+                            *(UINT64*)objPtr = (UINT64)fakeVtable;
+                            if (logfile) { fprintf(logfile,
+                                "[CertThread] *** REPLACED LCU vtable: %p → %p ***\n",
+                                (void*)origVtable, fakeVtable); fflush(logfile); }
                         }
                     }
                 }
