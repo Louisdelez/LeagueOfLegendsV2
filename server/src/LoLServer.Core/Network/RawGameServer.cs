@@ -216,10 +216,16 @@ public class RawGameServer : IGameServer, IDisposable
         //
         // We try BOTH to determine which is correct.
         // =================================================================
+        // Store raw payload (after LNPBlob) for replay
+        if (data.Length > 8)
+        {
+            peer.LastPayload = new byte[data.Length - 8];
+            Array.Copy(data, 8, peer.LastPayload, 0, data.Length - 8);
+        }
         // ALWAYS echo back to keep recvfrom unblocked.
         if (data.Length > 12)
         {
-            int echoLen = data.Length - 8; // strip 8B LNPBlob
+            int echoLen = data.Length - 8;
             var echo = new byte[echoLen];
             Array.Copy(data, 8, echo, 0, echoLen);
             Send(echo, peer);
@@ -257,16 +263,42 @@ public class RawGameServer : IGameServer, IDisposable
             WriteBE16(reliableBody, 3, (ushort)keyCheckData.Length); // dataLen = 32
             Array.Copy(keyCheckData, 0, reliableBody, 5, keyCheckData.Length);
 
-            // Send the KeyCheck with various cmd types
-            // From client analysis: 36B has cmd that varies (CRC-dependent)
-            // Try cmd=0x06 (standard SEND_RELIABLE)
-            SendCrcPacket(peer, 0x06, reliableBody);
-            Log($"  [KC] cmd=0x06, {reliableBody.Length}B body");
+            // NEW APPROACH: capture client's data and echo it back via CAFE
+            // The server stores raw client payloads and sends them back
+            // This ensures the game receives data in its OWN format
+            if (peer.LastPayload != null && peer.LastPayload.Length > 0)
+            {
+                // Send client's own 36B payload back (after stripping LNPBlob+header)
+                // The hook will re-encrypt with game's BF and fix CRC
+                var echoPayload = peer.LastPayload;
+                // We need to send the INNER data (after 4B header) as the body
+                // Format for CAFE: [4B nonce placeholder][1B flags][body]
+                // The client's data after 4B header is already in the right format
+                if (echoPayload.Length >= 4)
+                {
+                    // Send as plaintext (hook will encrypt+CRC)
+                    // The flags byte from client's data will be used
+                    var innerData = new byte[echoPayload.Length - 4];
+                    Array.Copy(echoPayload, 4, innerData, 0, innerData.Length);
+                    // Prepend nonce placeholder
+                    var plaintext = new byte[((4 + innerData.Length + 7) / 8) * 8]; // pad to 8
+                    WriteLE32(plaintext, 0, 0xDEADBEEF);
+                    Array.Copy(innerData, 0, plaintext, 4, innerData.Length);
 
-            // Also try sending JUST the 32B KeyCheck data directly (no ENet wrapping)
-            // The game might expect raw data, not SEND_RELIABLE wrapped
-            SendCrcPacket(peer, 0x06, keyCheckData);
-            Log($"  [KC-RAW] cmd=0x06, raw 32B KeyCheck");
+                    // Build CAFE packet with 4B header
+                    var packet = new byte[2 + 4 + plaintext.Length];
+                    packet[0] = 0xCA; packet[1] = 0xFE;
+                    // Header = first 4B of client payload (connection token)
+                    Array.Copy(echoPayload, 0, packet, 2, 4);
+                    Array.Copy(plaintext, 0, packet, 6, plaintext.Length);
+                    Send(packet, peer);
+                    Log($"  [CAFE-REPLAY] echoed client data, inner={innerData.Length}B total={packet.Length}B");
+                }
+            }
+
+            // Also send KeyCheck with cmd=0x06
+            SendCrcPacket(peer, 0x06, reliableBody);
+            Log($"  [KC-06] cmd=0x06, {reliableBody.Length}B");
         }
     }
 
@@ -535,5 +567,6 @@ public class RawGameServer : IGameServer, IDisposable
         public ushort VerifySeqNo { get; set; } = 1;
         public ushort ReliableSeqNo { get; set; } = 1;
         public uint ConnectToken { get; set; }
+        public byte[]? LastPayload { get; set; }
     }
 }
