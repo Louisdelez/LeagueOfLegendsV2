@@ -2817,15 +2817,89 @@ static int SafeRead8(void *addr, UINT64 *out) {
 }
 
 static DWORD WINAPI CertInjectionThread(LPVOID param) {
-    if (logfile) { fprintf(logfile, "[CertThread] STARTED, waiting for vtable...\n"); fflush(logfile); }
+    if (logfile) { fprintf(logfile, "[CertThread] STARTED\n"); fflush(logfile); }
     HMODULE hExe = GetModuleHandleA(NULL);
     if (!hExe) return 0;
 
-    // Wait for sendto hook to capture the vtable (up to 60s - client takes ~20s)
-    for (int w = 0; w < 600 && g_x509Vtable == 0; w++) Sleep(100);
+    // Parse our cert immediately to get our handle (don't wait for sendto)
+    // Read cert from cert.pem in Game directory
+    Sleep(500); // small delay for DLL init
+
+    // If vtable not yet captured, try to compute it by parsing a cert ourselves
     if (g_x509Vtable == 0) {
-        if (logfile) { fprintf(logfile, "[CertThread] No vtable after 60s, aborting\n"); fflush(logfile); }
+        // Parse the Riot CA cert from the binary to get the vtable
+        typedef void* (*ParseCert_t)(void*, void**, int);
+        ParseCert_t ParseCert = (ParseCert_t)((BYTE*)hExe + 0x168A4F0);
+        BYTE *riotCA = (BYTE*)hExe + 0x19EEBD0;
+        static UINT64 tmpCtx[4] = {0};
+        void *tmpPtr = riotCA;
+        void *handle = ParseCert(tmpCtx, &tmpPtr, 1060);
+        if (tmpCtx[0]) {
+            UINT64 *cb = (UINT64*)tmpCtx[0];
+            g_x509Vtable = cb[4]; // vtable at +0x20
+            if (logfile) { fprintf(logfile, "[CertThread] Computed vtable=0x%llX from Riot CA (hExe=%p)\n",
+                g_x509Vtable, hExe); fflush(logfile); }
+        }
+    }
+
+    // Also wait for sendto to capture it (backup)
+    if (g_x509Vtable == 0) {
+        for (int w = 0; w < 100 && g_x509Vtable == 0; w++) Sleep(100);
+    }
+    if (g_x509Vtable == 0) {
+        if (logfile) { fprintf(logfile, "[CertThread] No vtable after 10s, aborting\n"); fflush(logfile); }
         return 0;
+    }
+
+    // Also parse our own cert if not yet done
+    if (g_ourCertHandle == 0) {
+        // Read cert.pem from Game directory
+        char certPath[MAX_PATH];
+        GetModuleFileNameA(NULL, certPath, MAX_PATH);
+        char *lastSlash = strrchr(certPath, '\\');
+        if (lastSlash) { strcpy(lastSlash + 1, "cert.pem"); }
+        FILE *cf = fopen(certPath, "rb");
+        if (cf) {
+            BYTE certBuf[4096];
+            // Decode PEM to DER
+            fseek(cf, 0, SEEK_END); long sz = ftell(cf); fseek(cf, 0, SEEK_SET);
+            char pemBuf[4096]; fread(pemBuf, 1, sz, cf); fclose(cf);
+            pemBuf[sz] = 0;
+            // Simple base64 decode
+            static const BYTE b64[] = {
+                ['A']=0,['B']=1,['C']=2,['D']=3,['E']=4,['F']=5,['G']=6,['H']=7,
+                ['I']=8,['J']=9,['K']=10,['L']=11,['M']=12,['N']=13,['O']=14,['P']=15,
+                ['Q']=16,['R']=17,['S']=18,['T']=19,['U']=20,['V']=21,['W']=22,['X']=23,
+                ['Y']=24,['Z']=25,['a']=26,['b']=27,['c']=28,['d']=29,['e']=30,['f']=31,
+                ['g']=32,['h']=33,['i']=34,['j']=35,['k']=36,['l']=37,['m']=38,['n']=39,
+                ['o']=40,['p']=41,['q']=42,['r']=43,['s']=44,['t']=45,['u']=46,['v']=47,
+                ['w']=48,['x']=49,['y']=50,['z']=51,['0']=52,['1']=53,['2']=54,['3']=55,
+                ['4']=56,['5']=57,['6']=58,['7']=59,['8']=60,['9']=61,['+']=62,['/']=63
+            };
+            char *p = strstr(pemBuf, "-----BEGIN");
+            if (p) p = strchr(p, '\n'); if (p) p++;
+            int dl = 0;
+            BYTE dr[4096];
+            unsigned bits = 0; int nb = 0;
+            while(p && *p && strncmp(p,"-----END",8)!=0) {
+                if(*p=='\n'||*p=='\r'||*p==' '||*p=='='){p++;continue;}
+                bits=(bits<<6)|b64[(unsigned char)*p];nb+=6;
+                if(nb>=8){nb-=8;dr[dl++]=(BYTE)(bits>>nb);bits&=(1<<nb)-1;}
+                p++;
+            }
+            if (dl > 0) {
+                typedef void* (*ParseCert_t2)(void*, void**, int);
+                ParseCert_t2 PC = (ParseCert_t2)((BYTE*)hExe + 0x168A4F0);
+                static UINT64 ourCtx2[4] = {0};
+                void *certPtr = dr;
+                PC(ourCtx2, &certPtr, dl);
+                if (ourCtx2[0]) {
+                    g_ourCertHandle = ourCtx2[0];
+                    if (logfile) { fprintf(logfile, "[CertThread] Parsed our cert: handle=%p\n",
+                        (void*)g_ourCertHandle); fflush(logfile); }
+                }
+            }
+        }
     }
     if (logfile) { fprintf(logfile, "[CertThread] vtable=0x%llX handle=%p, scanning heap...\n",
         g_x509Vtable, (void*)g_ourCertHandle); fflush(logfile); }
