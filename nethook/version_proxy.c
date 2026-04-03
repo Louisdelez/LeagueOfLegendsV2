@@ -2821,9 +2821,129 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
     HMODULE hExe = GetModuleHandleA(NULL);
     if (!hExe) return 0;
 
-    // Parse our cert immediately to get our handle (don't wait for sendto)
-    // Read cert from cert.pem in Game directory
-    Sleep(500); // small delay for DLL init
+    // === PHASE 0: Patch SSL_CTX verify_mode BEFORE first TLS attempt ===
+    // The parent SSL object has vtable at hExe + 0x19658D0
+    // Scan heap for this vtable to find the SSL parent, then patch verify_mode
+    Sleep(200); // tiny delay for heap init
+    {
+        UINT64 sslVtable = (UINT64)hExe + 0x19658D0;
+        if (logfile) { fprintf(logfile, "[CertThread] Scanning for SSL vtable 0x%llX...\n",
+            (unsigned long long)sslVtable); fflush(logfile); }
+
+        MEMORY_BASIC_INFORMATION mbi;
+        BYTE *scan = NULL;
+        int sslFound = 0;
+
+        // Retry up to 10 times (SSL_CTX may not be created yet)
+        for (int attempt = 0; attempt < 10 && !sslFound; attempt++) {
+            if (attempt > 0) Sleep(1000);
+            scan = NULL;
+            while (VirtualQuery(scan, &mbi, sizeof(mbi))) {
+                if (mbi.State == MEM_COMMIT && (mbi.Protect & PAGE_READWRITE) &&
+                    !(mbi.Protect & (PAGE_GUARD|PAGE_NOACCESS)) && mbi.RegionSize >= 8) {
+                    BYTE *base = (BYTE*)mbi.BaseAddress;
+                    SIZE_T size = mbi.RegionSize;
+                    if (!(base >= (BYTE*)hExe && base < (BYTE*)hExe + 0x20000000)) {
+                        for (SIZE_T j = 0; j + 8 <= size && !sslFound; j += 8) {
+                            UINT64 qval = *(UINT64*)(base + j);
+                            if (qval == sslVtable) {
+                                BYTE *sslObj = base + j;
+                                // Verify: the object should have heap pointers after the vtable
+                                UINT64 field1 = (j+16 <= size) ? *(UINT64*)(sslObj + 8) : 0;
+                                if (field1 < 0x10000 || field1 > 0x7FFFFFFFFFFF) continue; // not a valid ptr
+                                if (logfile) { fprintf(logfile,
+                                    "[CertThread] SSL parent at %p field1=%p (attempt %d)\n",
+                                    sslObj, (void*)field1, attempt+1);
+                                    // Dump first 64 bytes for analysis
+                                    fprintf(logfile, "  [0..63]: ");
+                                    for (int d = 0; d < 64 && j+d < size; d++)
+                                        fprintf(logfile, "%02X ", sslObj[d]);
+                                    fprintf(logfile, "\n");
+                                    fflush(logfile);
+                                }
+
+                                // The SSL parent stores pointers to sub-objects
+                                // One of them is the SSL_CTX (0x2E0 bytes)
+                                // Try to find and patch verify_mode in sub-objects
+                                // In BoringSSL, verify_mode is typically an int with value 1 (VERIFY_PEER)
+                                // Scan the object and its referenced objects for verify_mode
+
+                                // Strategy: look at pointer fields in the SSL parent
+                                // Each pointer might lead to SSL_CTX or SSL_config
+                                for (int poff = 8; poff < 256 && poff + 8 <= (int)size - (int)j; poff += 8) {
+                                    UINT64 ptr = *(UINT64*)(sslObj + poff);
+                                    if (ptr < 0x10000 || ptr > 0x7FFFFFFFFFFF) continue;
+                                    // Check if this pointer leads to a large heap object
+                                    MEMORY_BASIC_INFORMATION mbi2;
+                                    if (!VirtualQuery((void*)ptr, &mbi2, sizeof(mbi2))) continue;
+                                    if (mbi2.State != MEM_COMMIT || !(mbi2.Protect & PAGE_READWRITE)) continue;
+
+                                    // Scan this sub-object for verify_mode (int == 1)
+                                    // Try offsets 0x80-0x120 (common for BoringSSL verify_mode)
+                                    for (int voff = 0x80; voff <= 0x180; voff += 4) {
+                                        UINT32 val = 0;
+                                        if (SafeRead8((void*)(ptr + voff), (UINT64*)&val)) {
+                                            // Don't use SafeRead8 for 4 bytes, just read directly
+                                        }
+                                        if (!IsBadReadPtr((void*)(ptr + voff), 4)) {
+                                            val = *(UINT32*)(ptr + voff);
+                                            if (val == 1) { // SSL_VERIFY_PEER
+                                                // Check if nearby bytes look right (not just random 1)
+                                                UINT32 prev = *(UINT32*)(ptr + voff - 4);
+                                                UINT32 next = *(UINT32*)(ptr + voff + 4);
+                                                // verify_mode=1 is often near other small ints or zeros
+                                                if (prev < 100 && next < 100) {
+                                                    if (logfile) { fprintf(logfile,
+                                                        "[CertThread] Candidate verify_mode at obj+0x%X (parent+0x%X ptr=%p): "
+                                                        "prev=%u val=%u next=%u\n",
+                                                        voff, poff, (void*)ptr, prev, val, next);
+                                                        fflush(logfile); }
+                                                    // PATCH IT to SSL_VERIFY_NONE (0)
+                                                    *(UINT32*)(ptr + voff) = 0;
+                                                    if (logfile) { fprintf(logfile,
+                                                        "[CertThread] *** PATCHED verify_mode to 0 at %p+0x%X ***\n",
+                                                        (void*)ptr, voff); fflush(logfile); }
+                                                    sslFound = 1;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (sslFound) break;
+                                }
+                                if (!sslFound) {
+                                    // Didn't find verify_mode in sub-objects, try in the parent itself
+                                    for (int voff = 0x20; voff <= 0x200 && j + voff + 4 <= size; voff += 4) {
+                                        UINT32 val = *(UINT32*)(sslObj + voff);
+                                        if (val == 1) {
+                                            UINT32 prev = (voff >= 4) ? *(UINT32*)(sslObj + voff - 4) : 999;
+                                            UINT32 next = *(UINT32*)(sslObj + voff + 4);
+                                            if (prev < 100 && next < 100) {
+                                                *(UINT32*)(sslObj + voff) = 0;
+                                                if (logfile) { fprintf(logfile,
+                                                    "[CertThread] *** PATCHED parent+0x%X to 0 (was 1) ***\n", voff);
+                                                    fflush(logfile); }
+                                                sslFound = 1;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
+            }
+            if (logfile && !sslFound) {
+                fprintf(logfile, "[CertThread] SSL attempt %d: not found\n", attempt+1);
+                fflush(logfile);
+            }
+        }
+    }
+
+    // === PHASE 1: Parse certs and scan trust store (existing code) ===
+    Sleep(500); // delay for DLL init
 
     // If vtable not yet captured, try to compute it by parsing a cert ourselves
     if (g_x509Vtable == 0) {
