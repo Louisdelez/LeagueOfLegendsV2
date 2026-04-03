@@ -216,19 +216,31 @@ public class RawGameServer : IGameServer, IDisposable
         //
         // We try BOTH to determine which is correct.
         // =================================================================
-        // Store raw payload (after LNPBlob) for replay
-        if (data.Length > 8)
+        // Send a CAFE response for EVERY packet (no echo!)
+        // This ensures every recvfrom gets a properly encrypted response
+        if (peer.PacketCount <= 3)
         {
-            peer.LastPayload = new byte[data.Length - 8];
-            Array.Copy(data, 8, peer.LastPayload, 0, data.Length - 8);
+            // First few packets: send VERIFY_CONNECT via CAFE
+            var vcBody = new byte[36];
+            WriteBE16(vcBody, 0, 0);      // outPeerID
+            vcBody[2] = 0xFF;             // incomingSessionID
+            vcBody[3] = 0xFF;             // outgoingSessionID
+            WriteBE32(vcBody, 4, 996);    // MTU
+            WriteBE32(vcBody, 8, 32768);  // windowSize
+            WriteBE32(vcBody, 12, 1);     // channelCount
+            WriteBE32(vcBody, 16, 0);     // inBandwidth
+            WriteBE32(vcBody, 20, 0);     // outBandwidth
+            WriteBE32(vcBody, 24, 5000);  // throttleInterval
+            WriteBE32(vcBody, 28, 2);     // throttleAccel
+            WriteBE32(vcBody, 32, 2);     // throttleDecel
+            SendCrcPacket(peer, 0x03, vcBody); // VERIFY_CONNECT
         }
-        // ALWAYS echo back to keep recvfrom unblocked.
-        if (data.Length > 12)
+        else
         {
-            int echoLen = data.Length - 8;
-            var echo = new byte[echoLen];
-            Array.Copy(data, 8, echo, 0, echoLen);
-            Send(echo, peer);
+            // After handshake: send CAFE echo (client data through CAFE)
+            // This keeps recvfrom unblocked with valid encrypted data
+            // Use a simple PING as keepalive
+            SendCrcPacket(peer, 0x05, new byte[0]); // PING
         }
 
         // Send CAFE packets early (packet 5+, during echo phase)
