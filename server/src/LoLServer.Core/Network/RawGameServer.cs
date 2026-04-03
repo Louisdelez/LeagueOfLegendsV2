@@ -257,26 +257,24 @@ public class RawGameServer : IGameServer, IDisposable
             WriteBE16(reliableBody, 3, (ushort)keyCheckData.Length); // dataLen = 32
             Array.Copy(keyCheckData, 0, reliableBody, 5, keyCheckData.Length);
 
-            SendCrcPacket(peer, 0x06, reliableBody); // 0x06 = SEND_RELIABLE (ENet standard, confirmed)
-            Log($"  [KEYCHECK] sent via CAFE, {reliableBody.Length}B body");
+            // Send KeyCheck as SEND_RELIABLE (cmd=6)
+            SendCrcPacket(peer, 0x06, reliableBody);
+            Log($"  [KEYCHECK] sent cmd=0x06, {reliableBody.Length}B body");
 
-            // After KeyCheck, send SynchVersion to trigger loading screen
-            // SynchVersionS2C (opcode 0x1B): tells client server version is OK
-            {
-                // Minimal SynchVersion: [1B opcode=0x1B][1B isVersionOk=1][4B mapId=11]
-                // + version string + more data. Keep it minimal for now.
-                var synchBody = new byte[1 + 2 + 2 + 32]; // channel + seq + len + data
-                synchBody[0] = 0x00; // channel 0
-                WriteBE16(synchBody, 1, peer.ReliableSeqNo++);
-                WriteBE16(synchBody, 3, 28); // dataLen
-                synchBody[5] = 0x1B; // opcode SynchVersionS2C
-                synchBody[6] = 0x01; // isVersionOk = true
-                // mapId at offset 7 (LE)
-                WriteLE32(synchBody, 7, 11); // mapId = 11 (Summoner's Rift)
-                // Rest = zeros (player list, version string, etc.)
-                SendCrcPacket(peer, 0x06, synchBody); // 0x06 = SEND_RELIABLE (ENet standard)
-                Log($"  [SYNCH] sent SynchVersionS2C");
-            }
+            // Also try: send KeyCheck as raw data without SEND_RELIABLE wrapper
+            // Maybe the game expects it as a different command type
+            // Try cmd=0x06 with sentTime (flags=0x86)
+            SendCrcPacket(peer, 0x86, reliableBody);
+            Log($"  [KEYCHECK2] sent cmd=0x86 (RELIABLE+SENTTIME)");
+
+            // Try the KeyCheck data directly as cmd=2 (the batch data type)
+            // Agent said: "consumer distinguishes command type 2 (game data batches)"
+            SendCrcPacket(peer, 0x02, keyCheckData);
+            Log($"  [KEYCHECK3] sent cmd=0x02 (batch data), {keyCheckData.Length}B raw");
+
+            // Try PING (cmd=5) to test basic dispatch
+            SendCrcPacket(peer, 0x05, new byte[0]);
+            Log($"  [PING] sent cmd=0x05");
         }
     }
 
