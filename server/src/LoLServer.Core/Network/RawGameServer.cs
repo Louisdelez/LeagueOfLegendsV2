@@ -288,12 +288,18 @@ public class RawGameServer : IGameServer, IDisposable
             var encrypted = _cipher.EncryptBlock(playerIdBytes);
             Array.Copy(encrypted, 0, keyCheckData, 20, 8);
 
-            // Wrap KeyCheck in batch framing: [0x02][data][0x18]
-            // The game dispatcher expects data in this batch format
-            var batchData = new byte[1 + keyCheckData.Length + 1]; // 0x02 + data + 0x18
-            batchData[0] = 0x02; // batch marker
-            Array.Copy(keyCheckData, 0, batchData, 1, keyCheckData.Length);
-            batchData[batchData.Length - 1] = 0x18; // terminator
+            // Batch framing (from Ghidra agent analysis):
+            // [0x02][u32 LE count][sub-packets...][0x18]
+            // Each sub-packet is read by FUN_14055b9a0 as a 16-byte buffer record
+            // For now, try with count=1 and the KeyCheck as the sub-packet data
+            var batchStream = new System.IO.MemoryStream();
+            batchStream.WriteByte(0x02); // batch start marker
+            // u32 LE count = 1
+            batchStream.Write(BitConverter.GetBytes((uint)1), 0, 4);
+            // Sub-packet: the KeyCheck data (will be read by FUN_14055b9a0)
+            batchStream.Write(keyCheckData, 0, keyCheckData.Length);
+            batchStream.WriteByte(0x18); // batch end marker
+            var batchData = batchStream.ToArray();
 
             // SEND_RELIABLE with batch-framed KeyCheck
             var reliableBody = new byte[1 + 2 + 2 + batchData.Length];
@@ -309,15 +315,14 @@ public class RawGameServer : IGameServer, IDisposable
             WriteBE16(reliableRaw, 3, (ushort)keyCheckData.Length);
             Array.Copy(keyCheckData, 0, reliableRaw, 5, keyCheckData.Length);
 
-            // Send both: batch-framed KeyCheck (cmd=6) and raw KeyCheck (cmd=6)
-            SendCrcPacket(peer, 0x06, reliableBody);
-            Log($"  [KC-BATCH] batch-framed KeyCheck cmd=0x06, {reliableBody.Length}B");
-            SendCrcPacket(peer, 0x06, reliableRaw);
-            Log($"  [KC-RAW] raw KeyCheck cmd=0x06, {reliableRaw.Length}B");
-
-            // Also try with cmd=2 (batch data type identified by agent)
+            // cmd=2 is the GAME DATA batch type (goes to handler +0x168)
+            // cmd=6 goes to STUB handler +0x128 (does nothing!)
             SendCrcPacket(peer, 0x02, batchData);
-            Log($"  [KC-CMD2] batch data cmd=0x02, {batchData.Length}B");
+            Log($"  [BATCH] cmd=0x02 batch-framed, {batchData.Length}B");
+
+            // Also send raw KeyCheck via cmd=6 (in case some handler reads it)
+            SendCrcPacket(peer, 0x06, reliableRaw);
+            Log($"  [RELIABLE] cmd=0x06 raw, {reliableRaw.Length}B");
 
             // DISABLED: capture client's data and echo it back via CAFE
             // The server stores raw client payloads and sends them back
