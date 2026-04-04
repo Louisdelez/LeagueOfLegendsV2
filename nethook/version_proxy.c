@@ -56,6 +56,9 @@ __declspec(dllexport) BOOL WINAPI VerQueryValueW(LPCVOID b, LPCWSTR s, LPVOID *p
 static void Log(const char *fmt, ...);
 static volatile BYTE *connStructAddr = NULL;  // connection struct address, captured in sendto hook
 
+// Flag: set to 1 if PatchRiotCA succeeded (no need for heap fallback)
+static volatile int g_riotCaPatched = 0;
+
 // Hardware breakpoint globals for cert verify bypass
 volatile BYTE *g_certBP[4] = {NULL, NULL, NULL, NULL};
 volatile int g_certBPCount = 0;
@@ -367,30 +370,44 @@ static void PatchRiotCA(void) {
     if (!hExe) return;
 
     // Riot CA cert "LoL Game Engineering Certificate Authority" at RVA 0x19EEBD0 (1060 bytes DER)
-    // Also the rclient cert at RVA 0x19EE230 (1241 bytes)
     BYTE *riotCA = (BYTE*)hExe + 0x19EEBD0;
     int riotCASize = 1060;
 
-    // Verify it's still the Riot CA (check first few bytes of DER)
+    // Verify it's still a DER cert (starts with SEQUENCE tag)
     if (riotCA[0] != 0x30 || riotCA[1] != 0x82) {
         Log("PatchRiotCA: bytes at RVA 0x19EEBD0 = %02X %02X (expected 30 82), skipping",
             riotCA[0], riotCA[1]);
         return;
     }
+    Log("PatchRiotCA: Riot CA at %p, first8: %02X %02X %02X %02X %02X %02X %02X %02X",
+        riotCA, riotCA[0], riotCA[1], riotCA[2], riotCA[3],
+        riotCA[4], riotCA[5], riotCA[6], riotCA[7]);
 
-    // Read our FakeLCU cert from cert.pem
-    FILE *f = fopen("cert.pem", "r");
-    if (!f) f = fopen("D:\\LeagueOfLegendsV2\\fakeLcu.crt", "r");
-    if (!f) { Log("PatchRiotCA: can't open cert file"); return; }
+    // Check page protection of .rdata (should be PAGE_READONLY=0x02, NOT PAGE_NOACCESS=0x01)
+    MEMORY_BASIC_INFORMATION mbi;
+    if (VirtualQuery(riotCA, &mbi, sizeof(mbi))) {
+        Log("PatchRiotCA: page protect=0x%X state=0x%X type=0x%X",
+            mbi.Protect, mbi.State, mbi.Type);
+    }
 
-    char pem[4096] = {0};
-    fread(pem, 1, sizeof(pem)-1, f);
-    fclose(f);
-
-    // Decode PEM to DER (skip BEGIN/END lines, base64 decode)
+    // Try to load DER directly first (faster, no base64 decode needed)
     BYTE der[2048];
     int derLen = 0;
-    {
+    FILE *f = fopen("myCA.der", "rb");
+    if (!f) f = fopen("D:\\LeagueOfLegendsV2\\myCA.der", "rb");
+    if (f) {
+        derLen = (int)fread(der, 1, sizeof(der), f);
+        fclose(f);
+        Log("PatchRiotCA: loaded myCA.der (%dB)", derLen);
+    } else {
+        // Fallback: read PEM and decode
+        f = fopen("cert.pem", "r");
+        if (!f) f = fopen("D:\\LeagueOfLegendsV2\\myCA.crt", "r");
+        if (!f) f = fopen("D:\\LeagueOfLegendsV2\\fakeLcu.crt", "r");
+        if (!f) { Log("PatchRiotCA: no cert file found"); return; }
+        char pem[4096] = {0};
+        fread(pem, 1, sizeof(pem)-1, f);
+        fclose(f);
         // Simple base64 decode
         static const BYTE b64[] = {
             ['A']=0,['B']=1,['C']=2,['D']=3,['E']=4,['F']=5,['G']=6,['H']=7,
@@ -404,62 +421,80 @@ static void PatchRiotCA(void) {
         };
         char *p = pem;
         while (*p && strncmp(p, "-----BEGIN", 10) != 0) p++;
-        while (*p && *p != '\n') p++; // skip BEGIN line
-        p++;
+        while (*p && *p != '\n') p++; p++;
         int bits = 0, nbits = 0;
         while (*p && strncmp(p, "-----END", 8) != 0) {
-            if (*p == '\n' || *p == '\r' || *p == ' ') { p++; continue; }
-            if (*p == '=') { p++; continue; }
-            bits = (bits << 6) | b64[(unsigned char)*p];
-            nbits += 6;
-            if (nbits >= 8) {
-                nbits -= 8;
-                der[derLen++] = (BYTE)(bits >> nbits);
-                bits &= (1 << nbits) - 1;
-            }
+            if (*p == '\n' || *p == '\r' || *p == ' ' || *p == '=') { p++; continue; }
+            bits = (bits << 6) | b64[(unsigned char)*p]; nbits += 6;
+            if (nbits >= 8) { nbits -= 8; der[derLen++] = (BYTE)(bits >> nbits); bits &= (1 << nbits) - 1; }
             p++;
         }
+        Log("PatchRiotCA: decoded PEM to %dB DER", derLen);
     }
 
-    Log("PatchRiotCA: our cert DER=%dB, Riot CA=%dB", derLen, riotCASize);
-
-    if (derLen > riotCASize) {
-        Log("PatchRiotCA: our cert is LARGER than Riot CA, can't patch");
+    if (derLen <= 0 || derLen > riotCASize) {
+        Log("PatchRiotCA: bad cert size %dB (max %dB)", derLen, riotCASize);
         return;
     }
 
-    // Patch in memory: replace Riot CA with our cert, zero-pad remainder
-    // Use direct syscall to bypass stub.dll guard pages
-    DWORD sysnum = GetSyscallNumber("NtProtectVirtualMemory");
+    // Verify our cert starts with DER SEQUENCE
+    if (der[0] != 0x30 || der[1] != 0x82) {
+        Log("PatchRiotCA: our cert not valid DER: %02X %02X", der[0], der[1]);
+        return;
+    }
+
+    Log("PatchRiotCA: replacing %dB Riot CA with %dB our CA cert", riotCASize, derLen);
+
+    // === METHOD 1: Plain VirtualProtect (.rdata may not be Vanguard-protected) ===
     DWORD oldProt = 0;
     int patched = 0;
-    if (sysnum != 0) {
-        NtProtectVirtualMemory_t NtProt = MakeSyscallStub(sysnum);
-        if (NtProt) {
-            void *baseAddr = (void*)riotCA;
-            SIZE_T regionSize = riotCASize;
-            LONG status = NtProt((HANDLE)-1, &baseAddr, &regionSize, PAGE_READWRITE, &oldProt);
-            Log("PatchRiotCA: NtProtect status=0x%08X oldProt=0x%X", status, oldProt);
-            if (status == 0) {
-                patched = 1;
+    if (VirtualProtect(riotCA, riotCASize, PAGE_READWRITE, &oldProt)) {
+        Log("PatchRiotCA: VirtualProtect OK! oldProt=0x%X", oldProt);
+        patched = 1;
+    } else {
+        Log("PatchRiotCA: VirtualProtect failed (err=%lu), trying syscall...", GetLastError());
+    }
+
+    // === METHOD 2: Direct NtProtectVirtualMemory syscall ===
+    if (!patched) {
+        DWORD sysnum = GetSyscallNumber("NtProtectVirtualMemory");
+        if (sysnum != 0) {
+            NtProtectVirtualMemory_t NtProt = MakeSyscallStub(sysnum);
+            if (NtProt) {
+                void *baseAddr = (void*)riotCA;
+                SIZE_T regionSize = riotCASize;
+                LONG status = NtProt((HANDLE)-1, &baseAddr, &regionSize, PAGE_READWRITE, &oldProt);
+                Log("PatchRiotCA: NtProtect status=0x%08X oldProt=0x%X", status, oldProt);
+                if (status == 0) patched = 1;
+                VirtualFree((void*)NtProt, 0, MEM_RELEASE);
             }
-            VirtualFree((void*)NtProt, 0, MEM_RELEASE);
         }
     }
-    if (!patched && VirtualProtect(riotCA, riotCASize, PAGE_READWRITE, &oldProt)) {
-        patched = 1;
+
+    // === METHOD 3: Try PAGE_EXECUTE_READWRITE (in case .rdata has execute flag) ===
+    if (!patched) {
+        if (VirtualProtect(riotCA, riotCASize, PAGE_EXECUTE_READWRITE, &oldProt)) {
+            Log("PatchRiotCA: VirtualProtect(EXECUTE_RW) OK! oldProt=0x%X", oldProt);
+            patched = 1;
+        } else {
+            Log("PatchRiotCA: VirtualProtect(EXECUTE_RW) also failed (err=%lu)", GetLastError());
+        }
     }
+
     if (patched) {
         memcpy(riotCA, der, derLen);
-        memset(riotCA + derLen, 0, riotCASize - derLen);
-        // Fix the DER length field to match original size
-        // Actually, keep original cert structure but just replace the content
-        // The zero padding will make the cert invalid, but the TLS lib should
-        // use the size from the DER header, not the allocated size
+        if (derLen < riotCASize)
+            memset(riotCA + derLen, 0, riotCASize - derLen);
         VirtualProtect(riotCA, riotCASize, oldProt, &oldProt);
-        Log("*** PatchRiotCA: REPLACED Riot CA with our cert! ***");
+        g_riotCaPatched = 1;
+        Log("*** PatchRiotCA: SUCCESS! Replaced Riot CA with our CA (%dB) ***", derLen);
+        Log("  New first8: %02X %02X %02X %02X %02X %02X %02X %02X",
+            riotCA[0], riotCA[1], riotCA[2], riotCA[3],
+            riotCA[4], riotCA[5], riotCA[6], riotCA[7]);
     } else {
-        Log("PatchRiotCA: VirtualProtect failed (err=%lu)", GetLastError());
+        Log("PatchRiotCA: ALL METHODS FAILED - .rdata is Vanguard-protected too");
+        // Fallback: try to replace the cert on the HEAP (CRYPTO_BUFFER data pointer)
+        // This will be attempted by CertInjectionThread later
     }
 }
 
@@ -2938,6 +2973,381 @@ static DWORD WINAPI TlsBypassThread(LPVOID param) {
     return 0;
 }
 
+// Heap DER scan thread: find CRYPTO_BUFFER pointing to Riot CA and replace with our CA
+static DWORD WINAPI HeapDerScanThread(LPVOID param) {
+    HMODULE hExe = (HMODULE)param;
+    if (!hExe) return 0;
+
+    Sleep(500); // Wait for SSL_CTX to be created
+
+    // === PHASE -1: Dump code around cert verify to find verify_mode offset ===
+    {
+        BYTE *textBase = (BYTE*)hExe;
+        // Read 64 bytes before each cert verify JNZ site
+        UINT64 sites[] = {0x16EEA0E, 0x172E3CA, 0x1848C99};
+        for (int s = 0; s < 3; s++) {
+            BYTE *addr = textBase + sites[s];
+            if (!IsBadReadPtr(addr - 64, 96)) {
+                if (logfile) {
+                    fprintf(logfile, "[HeapDER] Code at RVA 0x%llX (VA=%p):\n", sites[s], addr);
+                    for (int d = -64; d < 32; d += 16) {
+                        fprintf(logfile, "  %+04d: ", d);
+                        for (int b = 0; b < 16; b++)
+                            fprintf(logfile, "%02X ", addr[d + b]);
+                        fprintf(logfile, "%s\n", d == 0 ? " ← JNZ/JZ" : "");
+                    }
+                    fflush(logfile);
+                }
+            }
+        }
+        // Also dump method addresses we found to identify real SSL_METHOD
+        // Known method candidates from previous scan
+        UINT64 methods[] = {0x1A47CB0, 0x199D218, 0x19E5830};
+        for (int m = 0; m < 3; m++) {
+            BYTE *maddr = textBase + methods[m];
+            if (!IsBadReadPtr(maddr, 64)) {
+                if (logfile) {
+                    fprintf(logfile, "[HeapDER] Method at RVA 0x%llX: ", methods[m]);
+                    for (int b = 0; b < 48; b++) fprintf(logfile, "%02X ", maddr[b]);
+                    fprintf(logfile, "\n");
+                    // First 6 QWORDs (function pointers in SSL_METHOD)
+                    UINT64 *fptrs = (UINT64*)maddr;
+                    for (int f = 0; f < 6; f++) {
+                        UINT64 rva = fptrs[f] - (UINT64)textBase;
+                        fprintf(logfile, "  [%d] = %p (RVA 0x%llX)%s\n", f, (void*)fptrs[f],
+                            rva, (rva > 0x1000 && rva < 0x1900000) ? " ← code ptr" : "");
+                    }
+                    fflush(logfile);
+                }
+            }
+        }
+    }
+
+    // === PHASE 0: Scan heap for SSL_CTX and patch verify_mode ===
+    // SSL_CTX starts with a pointer to SSL_METHOD in .rdata (game image).
+    // We look for heap allocations where first QWORD points into game's .rdata,
+    // then search for verify_mode=1 (SSL_VERIFY_PEER) nearby and set it to 0.
+    {
+        BYTE *imgBase = (BYTE*)hExe;
+        // Game .rdata is approximately at RVA 0x1960000-0x1B00000
+        // Only the REAL SSL_METHOD (verified: has function pointers to .text)
+        UINT64 validMethods[] = {
+            (UINT64)imgBase + 0x199D218,  // The ONLY real SSL_METHOD
+        };
+        int nMethods = 1;
+
+        MEMORY_BASIC_INFORMATION mi;
+        BYTE *s = NULL;
+        int sslCtxFound = 0;
+
+        for (int attempt = 0; attempt < 5 && !sslCtxFound; attempt++) {
+            if (attempt > 0) Sleep(1000);
+            s = NULL;
+            while (VirtualQuery(s, &mi, sizeof(mi))) {
+                if (mi.State == MEM_COMMIT &&
+                    (mi.Protect & PAGE_READWRITE) &&
+                    !(mi.Protect & (PAGE_GUARD|PAGE_NOACCESS)) &&
+                    mi.RegionSize >= 256) {
+                    BYTE *base = (BYTE*)mi.BaseAddress;
+                    SIZE_T size = mi.RegionSize;
+                    // Skip game image
+                    if (!(base >= imgBase && base < imgBase + 0x20000000)) {
+                        for (SIZE_T j = 0; j + 256 <= size; j += 8) {
+                            UINT64 firstQ = *(UINT64*)(base + j);
+                            // Check if first QWORD matches a known SSL_METHOD address
+                            int isMethod = 0;
+                            for (int m = 0; m < nMethods; m++)
+                                if (firstQ == validMethods[m]) { isMethod = 1; break; }
+                            if (isMethod) {
+                                // Candidate SSL_CTX! Scan for verify_mode=1
+                                for (int voff = 0x40; voff <= 0x200; voff += 4) {
+                                    if (j + voff + 4 > size) break;
+                                    UINT32 val = *(UINT32*)(base + j + voff);
+                                    if (val == 1) { // SSL_VERIFY_PEER
+                                        UINT32 prev = (voff >= 4) ? *(UINT32*)(base + j + voff - 4) : 999;
+                                        UINT32 next = *(UINT32*)(base + j + voff + 4);
+                                        // verify_mode=1 is typically near small ints or zeros
+                                        if (prev < 50 && next < 50) {
+                                            sslCtxFound++;
+                                            // Don't log every val=1 — too noisy
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                s = (BYTE*)mi.BaseAddress + mi.RegionSize;
+            }
+            if (logfile) { fprintf(logfile, "[HeapDER] SSL_CTX scan attempt %d: found %d\n",
+                attempt+1, sslCtxFound); fflush(logfile); }
+        }
+        if (sslCtxFound && logfile) {
+            fprintf(logfile, "[HeapDER] Found %d SSL_CTX candidates with method=0x199D218\n", sslCtxFound);
+            fflush(logfile);
+        }
+        // Now re-scan to find the EXACT SSL_CTX and dump + inject cert
+        if (sslCtxFound > 0) {
+            s = NULL;
+            while (VirtualQuery(s, &mi, sizeof(mi))) {
+                if (mi.State == MEM_COMMIT && (mi.Protect & PAGE_READWRITE) &&
+                    !(mi.Protect & (PAGE_GUARD|PAGE_NOACCESS)) && mi.RegionSize >= 512) {
+                    BYTE *base = (BYTE*)mi.BaseAddress;
+                    SIZE_T size = mi.RegionSize;
+                    if (!(base >= imgBase && base < imgBase + 0x20000000)) {
+                        for (SIZE_T j = 0; j + 512 <= size; j += 8) {
+                            UINT64 firstQ = *(UINT64*)(base + j);
+                            if (firstQ == validMethods[0]) {
+                                BYTE *ctx = base + j;
+                                if (logfile) {
+                                    fprintf(logfile, "[HeapDER] === SSL_CTX DUMP at %p ===\n", ctx);
+                                    // Dump first 512 bytes, marking pointers to .text/.rdata
+                                    for (int d = 0; d < 512; d += 8) {
+                                        UINT64 v = *(UINT64*)(ctx + d);
+                                        UINT64 rva = v - (UINT64)imgBase;
+                                        char *tag = "";
+                                        if (rva > 0x1000 && rva < 0x1900000) tag = " [.text]";
+                                        else if (rva >= 0x1960000 && rva < 0x1B00000) tag = " [.rdata]";
+                                        else if (v > 0x10000 && v < 0x7FFFFFFFFFFF) tag = " [heap?]";
+                                        else if (v > 0 && v < 100) tag = " [small]";
+                                        fprintf(logfile, "  +0x%03X: 0x%016llX%s\n", d, v, tag);
+                                    }
+                                    fflush(logfile);
+                                }
+
+                                // Try to add our CA cert to this SSL_CTX's trust store
+                                // In BoringSSL SSL_CTX, cert_store is at some offset
+                                // It's an X509_STORE* (heap pointer)
+                                // We'll try calling SSL_CTX_get_cert_store-like function
+                                // or directly scan the SSL_CTX for an X509_STORE pointer
+
+                                // For now, try SSL_CTX_set_custom_verify approach:
+                                // Create a callback that always returns ssl_verify_ok (0)
+                                static BYTE *verifyOkFunc = NULL;
+                                if (!verifyOkFunc) {
+                                    verifyOkFunc = (BYTE*)VirtualAlloc(NULL, 64, MEM_COMMIT|MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+                                    if (verifyOkFunc) {
+                                        // xor eax, eax; ret (return 0 = ssl_verify_ok)
+                                        verifyOkFunc[0] = 0x31; verifyOkFunc[1] = 0xC0; // xor eax, eax
+                                        verifyOkFunc[2] = 0xC3; // ret
+                                    }
+                                }
+
+                                // Scan SSL_CTX for function pointer fields that point to .text
+                                // These are likely callback fields. Replace the verify callback.
+                                // Also look for the cert_store (X509_STORE *) pointer to add our cert.
+
+                                // Strategy: find X509_STORE inside SSL_CTX and call X509_STORE_add_cert
+                                // X509_STORE has objs (STACK_OF(X509)) — scan for heap pointers
+                                // that lead to structures containing Riot CA X509
+
+                                goto ssl_ctx_found; // Only process first SSL_CTX
+                            }
+                        }
+                    }
+                }
+                s = (BYTE*)mi.BaseAddress + mi.RegionSize;
+            }
+            ssl_ctx_found:;
+        }
+    }
+
+    // Load our CA cert
+    char caPath[MAX_PATH];
+    GetModuleFileNameA(NULL, caPath, MAX_PATH);
+    char *sl = strrchr(caPath, '\\');
+    if (sl) strcpy(sl + 1, "myCA.der");
+    FILE *caf = fopen(caPath, "rb");
+    if (!caf) caf = fopen("D:\\LeagueOfLegendsV2\\myCA.der", "rb");
+    if (!caf) { if (logfile) { fprintf(logfile, "[HeapDER] myCA.der not found\n"); fflush(logfile); } return 0; }
+    fseek(caf, 0, SEEK_END); long caSize = ftell(caf); fseek(caf, 0, SEEK_SET);
+    if (caSize <= 0 || caSize > 4096) { fclose(caf); return 0; }
+    BYTE *heapCA = (BYTE*)VirtualAlloc(NULL, caSize, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
+    if (!heapCA) { fclose(caf); return 0; }
+    fread(heapCA, 1, caSize, caf); fclose(caf);
+    if (logfile) { fprintf(logfile, "[HeapDER] Loaded myCA.der: %ld bytes at %p\n", caSize, heapCA); fflush(logfile); }
+
+    // === PHASE A: Parse our CA cert to get X509 handle ===
+    typedef void* (*ParseCert_t)(void*, void**, int);
+    ParseCert_t ParseCert = (ParseCert_t)((BYTE*)hExe + 0x168A4F0);
+
+    static UINT64 ourCtx[4] = {0};
+    void *ourCertPtr = heapCA;
+    ParseCert(ourCtx, &ourCertPtr, (int)caSize);
+    UINT64 ourX509 = ourCtx[0];
+    if (logfile) { fprintf(logfile, "[HeapDER] Our CA X509: %p\n", (void*)ourX509); fflush(logfile); }
+    if (!ourX509) return 0;
+
+    // === PHASE B: Find game's CRYPTO_BUFFER for Riot CA (has data ptr to .rdata) ===
+    UINT64 riotDERaddr = (UINT64)hExe + 0x19EEBD0;
+    MEMORY_BASIC_INFORMATION mbi;
+    BYTE *scan = NULL;
+    UINT64 riotCBaddr = 0; // address of game's CRYPTO_BUFFER for Riot CA
+    UINT64 gameRiotX509 = 0; // address of game's X509 object for Riot CA
+
+    // Stage 1: Find CRYPTO_BUFFER whose .data field == riotDERaddr
+    // Scan ALL readable memory (not just RW — CRYPTO_BUFFER might be in RO region)
+    while (VirtualQuery(scan, &mbi, sizeof(mbi))) {
+        if (mbi.State == MEM_COMMIT &&
+            (mbi.Protect & (PAGE_READWRITE|PAGE_EXECUTE_READWRITE|PAGE_READONLY|PAGE_EXECUTE_READ)) &&
+            !(mbi.Protect & (PAGE_GUARD|PAGE_NOACCESS)) && mbi.RegionSize >= 16) {
+            BYTE *base = (BYTE*)mbi.BaseAddress;
+            SIZE_T size = mbi.RegionSize;
+            if (!(base >= (BYTE*)hExe && base < (BYTE*)hExe + 0x20000000)) {
+                for (SIZE_T j = 0; j + 16 <= size; j += 8) {
+                    UINT64 val = *(UINT64*)(base + j);
+                    if (val == riotDERaddr) {
+                        // Found pointer to Riot CA DER in .rdata
+                        // Log surrounding context to identify CRYPTO_BUFFER layout
+                        if (logfile) {
+                            fprintf(logfile, "[HeapDER] Stage1: DER ptr at %p+0x%llX context:\n",
+                                base, (unsigned long long)j);
+                            // Dump 8 QWORDs before and after
+                            for (int d = -32; d <= 32; d += 8) {
+                                if (j + d >= 0 && j + d + 8 <= (SIZE_T)size) {
+                                    UINT64 v = *(UINT64*)(base + j + d);
+                                    fprintf(logfile, "  [%+d] = 0x%016llX (%llu)%s\n",
+                                        d, v, v, d == 0 ? " ← DER ptr" : "");
+                                }
+                            }
+                            fflush(logfile);
+                        }
+                        // CRYPTO_BUFFER layout varies. data could be at +0 or +8.
+                        // The CB address is either (base+j) or (base+j-8).
+                        // Try both: check if nearby values look like length ~1060
+                        for (int off = -16; off <= 16; off += 8) {
+                            if (j + off >= 0 && j + off + 8 <= (SIZE_T)size) {
+                                UINT64 candidate = *(UINT64*)(base + j + off);
+                                if (candidate >= 800 && candidate <= 1200) {
+                                    riotCBaddr = (UINT64)(base + j - 8); // assume pool is at -8
+                                    if (off < 0) riotCBaddr = (UINT64)(base + j + off - 8);
+                                    if (logfile) { fprintf(logfile,
+                                        "[HeapDER] Stage1: len=%llu at off=%d, CB~%p\n",
+                                        candidate, off, (void*)riotCBaddr); fflush(logfile); }
+                                    // Replace DER data pointer
+                                    *(UINT64*)(base + j) = (UINT64)heapCA;
+                                    *(UINT64*)(base + j + off) = (UINT64)caSize;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!riotCBaddr) {
+                            // No length found, still record the CB address
+                            riotCBaddr = (UINT64)(base + j);
+                            // Only swap DER in writable memory
+                            if (mbi.Protect & (PAGE_READWRITE|PAGE_EXECUTE_READWRITE))
+                                *(UINT64*)(base + j) = (UINT64)heapCA;
+                        }
+                        // DON'T break — continue scanning for ALL occurrences
+                    }
+                }
+            }
+        }
+        scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
+        if (riotCBaddr) break;
+    }
+
+    if (!riotCBaddr) {
+        if (logfile) { fprintf(logfile, "[HeapDER] Stage1: Riot CA CRYPTO_BUFFER not found\n"); fflush(logfile); }
+        return 0;
+    }
+
+    // Stage 2: Find X509 objects that reference this CRYPTO_BUFFER
+    // X509 has a 'buf' field (CRYPTO_BUFFER *) somewhere in the struct
+    // Search for pointers to riotCBaddr within ~512 bytes of heap objects
+    scan = NULL;
+    int stage2Found = 0;
+    while (VirtualQuery(scan, &mbi, sizeof(mbi))) {
+        if (mbi.State == MEM_COMMIT &&
+            (mbi.Protect & (PAGE_READWRITE|PAGE_EXECUTE_READWRITE)) &&
+            !(mbi.Protect & (PAGE_GUARD|PAGE_NOACCESS)) && mbi.RegionSize >= 8) {
+            BYTE *base = (BYTE*)mbi.BaseAddress;
+            SIZE_T size = mbi.RegionSize;
+            if (!(base >= (BYTE*)hExe && base < (BYTE*)hExe + 0x20000000)) {
+                for (SIZE_T j = 0; j + 8 <= size; j += 8) {
+                    UINT64 val = *(UINT64*)(base + j);
+                    if (val == riotCBaddr) {
+                        // This pointer references the Riot CA CRYPTO_BUFFER
+                        // It's likely X509.buf or some other struct
+                        gameRiotX509 = (UINT64)(base + j) - 0x10; // approximate X509 start
+                        if (logfile) { fprintf(logfile,
+                            "[HeapDER] Stage2: ptr to CB at %p+0x%llX (possible X509 nearby)\n",
+                            base, (unsigned long long)j); fflush(logfile); }
+                        stage2Found++;
+                        // Don't break — log all references
+                    }
+                }
+            }
+        }
+        scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
+    }
+    if (logfile) { fprintf(logfile, "[HeapDER] Stage2: found %d refs to CRYPTO_BUFFER\n", stage2Found); fflush(logfile); }
+
+    // Stage 3: For each CB reference found, search for pointers to THAT address
+    // to find trust store entries. Replace with our X509.
+    if (gameRiotX509 && stage2Found > 0) {
+        // The gameRiotX509 is approximate. Let's search for pointers to addresses
+        // near the CB reference locations
+        scan = NULL;
+        int stage3Found = 0;
+        // Collect all CB ref locations for matching
+        BYTE *scan2 = NULL;
+        while (VirtualQuery(scan2, &mbi, sizeof(mbi))) {
+            if (mbi.State == MEM_COMMIT &&
+                (mbi.Protect & (PAGE_READWRITE|PAGE_EXECUTE_READWRITE)) &&
+                !(mbi.Protect & (PAGE_GUARD|PAGE_NOACCESS)) && mbi.RegionSize >= 8) {
+                BYTE *base = (BYTE*)mbi.BaseAddress;
+                SIZE_T size = mbi.RegionSize;
+                if (!(base >= (BYTE*)hExe && base < (BYTE*)hExe + 0x20000000)) {
+                    for (SIZE_T j = 0; j + 8 <= size; j += 8) {
+                        UINT64 val = *(UINT64*)(base + j);
+                        if (val == riotCBaddr) {
+                            // This is a reference to the Riot CB (inside an X509 struct)
+                            // The X509 struct probably starts 8-48 bytes before this pointer
+                            // Replace the CB pointer with our CB (our X509's buf)
+                            UINT64 *ourCB = (UINT64*)ourX509;
+                            // In BoringSSL X509, buf is stored at various offsets
+                            // We can't replace the whole X509 easily, but we CAN
+                            // replace the CRYPTO_BUFFER pointer with ours
+                            // First, find our X509's CRYPTO_BUFFER
+                            UINT64 ourCBaddr = 0;
+                            // Scan our X509 for a CRYPTO_BUFFER pointer
+                            for (int off = 0; off < 256; off += 8) {
+                                if (!IsBadReadPtr((void*)(ourX509 + off), 8)) {
+                                    UINT64 p = *(UINT64*)(ourX509 + off);
+                                    if (p > 0x10000 && p < 0x7FFFFFFFFFFF && !IsBadReadPtr((void*)p, 16)) {
+                                        UINT64 pdata = *(UINT64*)p;
+                                        if (pdata == (UINT64)heapCA) {
+                                            ourCBaddr = p;
+                                            if (logfile) { fprintf(logfile,
+                                                "[HeapDER] Stage3: our X509 CB at offset +0x%X = %p\n",
+                                                off, (void*)p); fflush(logfile); }
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if (ourCBaddr) {
+                                *(UINT64*)(base + j) = ourCBaddr;
+                                stage3Found++;
+                                if (logfile) { fprintf(logfile,
+                                    "[HeapDER] Stage3: *** SWAPPED CB ptr at %p+0x%llX → %p ***\n",
+                                    base, (unsigned long long)j, (void*)ourCBaddr); fflush(logfile); }
+                            }
+                        }
+                    }
+                }
+            }
+            scan2 = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
+        }
+        if (logfile) { fprintf(logfile, "[HeapDER] Stage3: %d CB pointer swaps\n", stage3Found); fflush(logfile); }
+        if (stage3Found > 0) g_riotCaPatched = 1;
+    }
+
+    if (logfile) { fprintf(logfile, "[HeapDER] DONE: CB=%p stage2=%d\n", (void*)riotCBaddr, stage2Found); fflush(logfile); }
+    return 0;
+}
+
 // Thread that adds our cert to BoringSSL trust store ASAP
 // Safe memory read: returns 0 if page is not readable
 static int SafeRead8(void *addr, UINT64 *out) {
@@ -3073,8 +3483,9 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
         }
     }
 
-    // === PHASE 0 heap DER scan + SSL vtable scan: BOTH DISABLED ===
-    if (0) { // DISABLED — both scans are too slow and don't find targets
+    // === PHASE 0 heap DER scan: DEFERRED to after FLOW patch (runs on separate thread) ===
+    // Must NOT block CertInjectionThread — FLOW patch (phase 0.5) is time-critical
+    if (0) { // DISABLED here — moved to after FLOW patch below
     {
         // Read our CA cert
         char caPath[MAX_PATH];
@@ -3340,6 +3751,12 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
         }
     }
 
+    // === PHASE 0.75: Heap DER scan on SEPARATE THREAD (non-blocking) ===
+    if (!g_riotCaPatched) {
+        // Launch heap scan on its own thread so it doesn't block FLOW or cert parsing
+        CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)HeapDerScanThread, hExe, 0, NULL);
+    }
+
     // === PHASE 1: Parse certs and scan trust store (existing code) ===
     Sleep(500); // delay for DLL init
 
@@ -3438,6 +3855,42 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
                 fprintf(logfile, "[CertThread] Dispatcher at RVA 0x955C20 (VA=%p):\n  ", dispatcher);
                 for (int d = 0; d < 16; d++) fprintf(logfile, "%02X ", dispatcher[d]);
                 fprintf(logfile, "\n");
+                fflush(logfile);
+            }
+
+            // === DUMP OPCODE TABLE ===
+            // Byte index table at RVA 0x957120 (250 entries, maps opcode-0x0A to case index)
+            // Dword offset table at RVA 0x9570C4 (case index to code offset)
+            BYTE *byteTable = (BYTE*)hExe + 0x957120;
+            INT32 *dwordTable = (INT32*)((BYTE*)hExe + 0x9570C4);
+            if (!IsBadReadPtr(byteTable, 250) && !IsBadReadPtr(dwordTable, 100*4)) {
+                // Find max case index
+                int maxIdx = 0;
+                for (int i = 0; i < 250; i++)
+                    if (byteTable[i] > maxIdx) maxIdx = byteTable[i];
+
+                // Find default handler (most common case index)
+                int counts[256] = {0};
+                for (int i = 0; i < 250; i++) counts[byteTable[i]]++;
+                int defaultIdx = 0;
+                for (int i = 1; i <= maxIdx; i++)
+                    if (counts[i] > counts[defaultIdx]) defaultIdx = i;
+                UINT64 defaultAddr = (UINT64)hExe + (UINT32)dwordTable[defaultIdx];
+
+                fprintf(logfile, "[OpcodeTable] %d entries, maxIdx=%d, defaultIdx=%d (handler=%p)\n",
+                    250, maxIdx, defaultIdx, (void*)defaultAddr);
+
+                // Print ALL non-default opcodes
+                for (int i = 0; i < 250; i++) {
+                    int opc = 0x0A + i;
+                    int idx = byteTable[i];
+                    UINT64 handler = (UINT64)hExe + (UINT32)dwordTable[idx];
+                    if (idx != defaultIdx) {
+                        UINT64 rva = (UINT32)dwordTable[idx];
+                        fprintf(logfile, "[OpcodeTable] opcode 0x%04X (%3d) -> idx=%d RVA=0x%llX\n",
+                            opc, opc, idx, rva);
+                    }
+                }
                 fflush(logfile);
             }
         }
@@ -4182,6 +4635,15 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
                         testEnc[4],testEnc[5],testEnc[6],testEnc[7]);
                 }
             }
+        }
+
+        // Patch Riot CA in .rdata with our CA cert (BEFORE TLS handshake!)
+        PatchRiotCA();
+
+        // If .rdata patch failed, start heap DER scan IMMEDIATELY (race TLS handshake)
+        if (!g_riotCaPatched) {
+            HMODULE hExeForScan = GetModuleHandleA(NULL);
+            CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)HeapDerScanThread, hExeForScan, 0, NULL);
         }
 
         // Install network hooks

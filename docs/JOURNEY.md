@@ -432,7 +432,7 @@ Le client envoie un paquet de 37B (25B chiffrés) toutes les 2 secondes :
 | 9. Game data delivery | ✅ | 20+ opcodes envoyés, CRC PASS, 0 crash |
 | 9.5 Heap scan fix | ✅ | Jeu tourne 2+ minutes (crash résolu) |
 | 10. TLS cert bypass | ⏳ | **Vanguard bloque — approche alternative requise** |
-| 11. Loading screen | ❌ | Nécessite TLS bypass ou opcodes modernes |
+| 11. Loading screen | ⏳ | Packets envoyés mais framing incorrect |
 
 ### Statistiques Jour 4
 - ~100 variantes du hook DLL compilées et testées
@@ -440,4 +440,79 @@ Le client envoie un paquet de 37B (25B chiffrés) toutes les 2 secondes :
 - 13 sites cert verify identifiés dans le binaire
 - 4 approches TLS bypass tentées (toutes bloquées par Vanguard)
 - Jeu stable en mode echo + CAFE ACK (2+ minutes)
-- **Prochain objectif : bypass TLS via SSL_CTX en heap, ou protocole game sans LCU**
+
+---
+
+## Jour 5 — TLS exhaustif + Opcode table + Packet framing (2026-04-04)
+
+### Phase 26 : TLS cert verify — 15 approches testées
+Objectif : contourner la vérification TLS de BoringSSL pour la connexion FakeLCU.
+
+**Résultat : ÉCHEC sur toutes les approches. Vanguard est impénétrable.**
+
+| # | Approche | Résultat |
+|---|----------|----------|
+| 1 | VirtualProtect .rdata | err=5 (ACCESS_DENIED) |
+| 2 | NtProtectVirtualMemory syscall | 0xC000004E |
+| 3 | NtWriteVirtualMemory syscall | 0x8000000D |
+| 4 | VirtualProtect .text | err=5 |
+| 5 | Hardware breakpoints (DR0-DR3) | SetThreadContext bloqué |
+| 6 | DLL_THREAD_ATTACH + TF flag | Crash threads |
+| 7 | Heap CRYPTO_BUFFER DER swap | Trouve stack temps, pas trust store |
+| 8 | Heap X509 pointer swap | Swap nos propres objets, pas ceux du jeu |
+| 9 | verify_mode brute-force | 1587 faux positifs |
+| 10 | SSL_CTX ciblé (method=0x199D218) | Objet trouvé mais pas SSL_CTX (contient "shaders") |
+| 11 | CertVerifyCertificateChainPolicy | Patché mais BoringSSL ne l'utilise pas |
+| 12 | InitializeSecurityContextW | secur32 jamais chargé |
+| 13 | SSL_CERT_FILE env var | BoringSSL l'ignore |
+| 14 | AddCA via ParseCert (RVA 0x168A4F0) | Appel réussit mais n'ajoute pas au trust store |
+| 15 | PatchRiotCA (.rdata cert) | Page protégée par Vanguard |
+
+**Découvertes TLS :**
+- Page .rdata : protect=0x02 (PAGE_READONLY) mais VirtualProtect refuse
+- Erreur client : `error:1416F086:SSL routines:tls_process_server_certificate:certificate verify failed`
+- Premier essai TLS à 83ms (avant que notre DLL ne s'exécute)
+- BoringSSL statiquement linké, erreurs "OpenSSL" sont des messages de compatibilité
+
+### Phase 27 : Certificats régénérés
+- **myCA.crt** : CA:TRUE, CN="LoL Private CA", keyCertSign (807B DER)
+- **server_tls.crt** : signé par myCA, SAN=localhost+127.0.0.1
+- **server_tls.pfx** : bundle complet pour FakeLCU
+- Chaîne vérifiée : `openssl verify -CAfile myCA.crt server_tls.crt → OK`
+
+### Phase 28 : Table d'opcodes extraite du binaire
+Dump de la jump table du dispatcher (RVA 0x955C20) au runtime via version.dll :
+- Byte index table : RVA 0x957120 (250 entrées, opcodes 0x0A-0x103)
+- Dword offset table : RVA 0x9570C4
+- **22 opcodes primaires gérés** : 0x0A, 0x0C, 0x16, 0x19, 0x2A, 0x33, 0x38, 0x4F, 0x56, 0x71, 0x86, 0x8B, 0xAA, 0xAD, 0xAE, 0xB4, 0xC7, 0xCB, 0xD4, 0xD5, 0xE5, 0x103
+- ~40 opcodes secondaires (0x10A-0x0479) dans des sous-switches
+
+### Phase 29 : Parsing ENet + KeyCheck
+- Correction du masque flags byte : `& 0x0F` pour le type de commande
+- Scan KeyCheck dans tous les body ≥ 32 bytes
+- Le client envoie 64+ opcodes uniques en unreliable
+- Ajout de SendReliableOnChannel pour envoyer sur des canaux ENet spécifiques
+- Le client envoie opcode 0x2C (pas dans la table dispatcher → pas un game opcode)
+
+### Phase 30 : Brute-force SynchVersion + framing multiple
+- Envoi de SynchVersionS2C avec les 22 opcodes gérés → aucun effet
+- Envoi via 3 méthodes (raw cmd=2, batch cmd=2, reliable channel 3) → aucun effet
+- **Diagnostic : les paquets n'atteignent pas le dispatcher du client**
+- Le consumer décompilé attend des records de 56 bytes avec opcode à byte 50
+- Notre format batch ne correspond pas au framing interne du client
+
+### Bilan Jour 5
+
+| Étape | Statut | Détail |
+|-------|--------|--------|
+| 10. TLS cert verify | ❌ | 15 approches épuisées, Vanguard bloquetout |
+| 11. Loading screen | ⏳ | Framing incorrect, packets n'atteignent pas le dispatcher |
+
+### Statistiques Jour 5
+- 15 approches TLS testées et documentées
+- Certs TLS régénérés (CA + server signé, chaîne valide)
+- Table d'opcodes complète extraite (22 + 40 opcodes)
+- Parsing ENet amélioré (flags, reliable, unreliable)
+- Consumer décompilé : 56-byte records, opcode at byte 50
+- 3800+ paquets échangés par session, jeu stable 2+ minutes
+- **Prochain objectif : capturer un vrai échange Riot pour reverse le framing exact**

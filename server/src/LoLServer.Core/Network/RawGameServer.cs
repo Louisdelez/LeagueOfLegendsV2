@@ -177,7 +177,7 @@ public class RawGameServer : IGameServer, IDisposable
             {
                 uint nonce = (uint)(dec[0] | (dec[1] << 8) | (dec[2] << 16) | (dec[3] << 24));
                 byte flags = dec[4];
-                byte cmdType = (byte)(flags & 0x0F); // low 4 bits = ENet command
+                byte cmdType = (byte)(flags & 0x0F); // low 4 bits = command type (proven working)
                 int bodyStart = 5;
                 int bodyLen = dec.Length - bodyStart;
 
@@ -195,24 +195,39 @@ public class RawGameServer : IGameServer, IDisposable
                     peer.LastDecryptedBody = body;
                     peer.LastCmd = cmdType;
 
+                    // Scan ALL bodies ≥ 20 bytes for KeyCheck pattern (action=0, valid playerID)
+                    // KeyCheck: [1B action=0][3B pad=0][4B clientID][8B playerID][8B unused][8B checksum]
+                    if (!peer.KeyCheckDone && bodyLen >= 32)
+                    {
+                        // Search for KeyCheck pattern in the body
+                        for (int koff = 0; koff + 32 <= bodyLen; koff++)
+                        {
+                            if (body[koff] == 0x00 && body[koff+1] == 0x00 && body[koff+2] == 0x00 && body[koff+3] == 0x00)
+                            {
+                                // Check if bytes 8-15 contain a small playerID (1-10)
+                                ulong pid = BitConverter.ToUInt64(body, koff + 8);
+                                if (pid >= 1 && pid <= 100)
+                                {
+                                    Log($"  [KEYCHECK-SCAN] Found KeyCheck at body+{koff}: playerID={pid}");
+                                    byte[] kcData = new byte[32];
+                                    Array.Copy(body, koff, kcData, 0, 32);
+                                    HandleKeyCheckFromClient(kcData, peer);
+                                    peer.KeyCheckDone = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
                     // Parse game data from cmd=2 (batch) packets
                     if (cmdType == 2 && bodyLen > 6)
                     {
                         ParseClientBatch(body, peer);
                     }
-                    // Parse reliable data (cmd=6) - has channel + seqno header
-                    else if (cmdType == 6 && bodyLen > 5)
+                    // Parse game packets from all other commands
+                    else if (cmdType != 1 && cmdType != 5 && bodyLen > 4) // skip ACK(1) and PING(5)
                     {
-                        byte channel = body[0];
-                        ushort seqNo = (ushort)((body[1] << 8) | body[2]);
-                        ushort dataLen = (ushort)((body[3] << 8) | body[4]);
-                        Log($"  [RELIABLE] ch={channel} seq={seqNo} len={dataLen}");
-                        if (dataLen > 0 && bodyLen >= 5 + dataLen)
-                        {
-                            byte[] gameData = new byte[dataLen];
-                            Array.Copy(body, 5, gameData, 0, dataLen);
-                            ParseClientGamePacket(gameData, peer, channel);
-                        }
+                        ParseClientGamePacket(body, peer, cmdType);
                     }
                 }
             }
@@ -311,42 +326,58 @@ public class RawGameServer : IGameServer, IDisposable
         if (peer.PacketCount == 15 && !peer.GameInitSent)
         {
             peer.GameInitSent = true;
-            Log($"  [GAME-INIT] Sending full init sequence");
+            Log($"  [GAME-INIT] Sending full init sequence with 16.6 opcodes");
 
-            // === QueryStatusAns (S4 opcode 0x88) ===
-            // [1B opcode][4B netID][1B response=true]
-            var queryAns = new byte[] { 0x88, 0x00, 0x00, 0x00, 0x00, 0x01 };
-            SendGamePacket(peer, queryAns, "QueryStatusAns-raw");
-            SendBatchPacket(peer, queryAns, "QueryStatusAns-batch");
+            // === Send SynchVersionS2C using ALL handled opcodes (brute force) ===
+            // The dispatcher handles these opcodes: 0x0A,0x0C,0x16,0x19,0x2A,0x33,0x38,
+            // 0x4F,0x56,0x71,0x86,0x8B,0xAA,0xAD,0xAE,0xB4,0xC7,0xCB,0xD4,0xD5,0xE5,0x103
+            // One of them is the SynchVersionS2C. Send a SynchVersion-like response
+            // using each opcode that could be the S2C version.
 
-            // === SynchVersionS2C (S4 opcode 0x54) ===
-            var synchVer = new byte[512];
-            synchVer[0] = 0x54;
-            synchVer[5] = 0x0F; // bitfield
-            synchVer[6] = 11; // map=11
-            var verStr = System.Text.Encoding.ASCII.GetBytes("Version 16.6.1");
-            Array.Copy(verStr, 0, synchVer, 298, verStr.Length);
-            SendGamePacket(peer, synchVer, "SynchVersion-raw");
+            // Format: [1B opcode][4B netID=0][body...] for opcodes < 0xFE
+            //    OR:  [0xFE][4B netID=0][2B opcode LE][body...] for extended opcodes
 
-            // === Extended opcode format (for opcodes > 0xFF) ===
-            // [0xFE][4B netID][2B opcode LE][body]
-            // Try some opcodes that might trigger loading
-            ushort[] tryOpcodes = { 0x0088, 0x0054, 0x005C, 0x0062, 0x0011, 0x00C1 };
-            foreach (var opc in tryOpcodes)
+            // SynchVersionS2C body: [4B isOK=1][version string at offset ~128][4B mapId][4B playerCount]
+            byte[] synchBody = new byte[506]; // body after opcode+netID header
+            BitConverter.GetBytes(1u).CopyTo(synchBody, 0); // isVersionOK = 1
+            var verBytes = System.Text.Encoding.ASCII.GetBytes(_config.GameVersion ?? "16.6.1");
+            Array.Copy(verBytes, 0, synchBody, 128, Math.Min(verBytes.Length, 127));
+            BitConverter.GetBytes(_config.MapId).CopyTo(synchBody, 256);
+            BitConverter.GetBytes(_config.Players.Count).CopyTo(synchBody, 260);
+
+            // Try each handled opcode as the SynchVersionS2C response
+            ushort[] handledOpcodes = { 0x0A, 0x0C, 0x16, 0x19, 0x2A, 0x33, 0x38,
+                0x4F, 0x56, 0x71, 0x86, 0x8B, 0xAA, 0xAD, 0xAE, 0xB4,
+                0xC7, 0xCB, 0xD4, 0xD5, 0xE5, 0x103 };
+
+            // Send SynchVersionS2C with MULTIPLE framing methods:
+            // Method 1: Raw game data via cmd=2 (current approach)
+            // Method 2: Reliable on channel 1 (ClientToServer response)
+            // Method 3: Reliable on channel 3 (ServerToClient)
+            // Method 4: Different flag encodings
+
+            // Use likely SynchVersion opcodes: 0x54 (S4), 0x1B (our enum),
+            // and each dispatcher-handled opcode
+            ushort[] likelyOpcodes = { 0x54, 0x1B, 0x0A, 0x0C, 0x19, 0x56, 0x86, 0xD4, 0xD5 };
+
+            foreach (var opc in likelyOpcodes)
             {
-                var ext = new byte[16];
-                ext[0] = 0xFE; // extended opcode marker
-                // netID = 0 at [1..4]
-                ext[5] = (byte)(opc & 0xFF);
-                ext[6] = (byte)(opc >> 8);
-                // minimal body
-                ext[7] = 0x01;
-                SendGamePacket(peer, ext, $"ExtOpcode-0x{opc:X4}");
+                // Standard game packet: [1B opcode][4B netID=0][body...]
+                var pkt = new byte[Math.Min(512, 5 + synchBody.Length)];
+                pkt[0] = (byte)(opc & 0xFF);
+                Array.Copy(synchBody, 0, pkt, 5, Math.Min(synchBody.Length, pkt.Length - 5));
+
+                // Method 1: raw cmd=2
+                SendGamePacket(peer, pkt, $"Synch-raw-0x{opc:X2}");
+
+                // Method 2: batch cmd=2
+                SendBatchPacket(peer, pkt, $"Synch-batch-0x{opc:X2}");
+
+                // Method 3: reliable on channel 3 (ServerToClient)
+                SendReliableOnChannel(peer, 3, pkt);
             }
 
-            // === StartGame (S4 opcode 0x5C) ===
-            var startGame = new byte[] { 0x5C, 0x00, 0x00, 0x00, 0x00, 0x01 };
-            SendGamePacket(peer, startGame, "StartGame-raw");
+            Log($"  [GAME-INIT] Sent {likelyOpcodes.Length} SynchVersion candidates x3 methods");
 
             // === Also try KeyCheck response on channel 0 ===
             var keyCheck = new byte[32];
@@ -502,8 +533,90 @@ public class RawGameServer : IGameServer, IDisposable
         }
         else
         {
-            Log($"  [CLIENT-GAME] RAW ch={channel} len={gameData.Length} data={Hex(gameData, 0, gameData.Length)}");
+            Log($"  [CLIENT-GAME] SHORT ch={channel} len={gameData.Length} data={Hex(gameData, 0, gameData.Length)}");
+            // Short packets (2-4 bytes) might contain opcode data in different format
+            // Pattern seen: [2B seq][0xFE][1B opcode_lo] — extended opcode in 4-byte packet
+            if (gameData.Length == 4 && gameData[2] == 0xFE)
+            {
+                ushort opcode = gameData[3]; // single byte opcode after FE marker
+                Log($"  [CLIENT-GAME] SHORT-EXT opcode=0x{opcode:X4} seq={gameData[0]:X2}{gameData[1]:X2}");
+                HandleClientGameOpcode(opcode, gameData, peer);
+            }
+            // Or maybe the entire 4 bytes is the game data with opcode at byte 0
+            else if (gameData.Length >= 2)
+            {
+                ushort opcode = gameData[0];
+                Log($"  [CLIENT-GAME] SHORT-NORM opcode=0x{opcode:X2}");
+                HandleClientGameOpcode(opcode, gameData, peer);
+            }
         }
+    }
+
+    /// <summary>
+    /// Handle KeyCheck from the client on channel 0 (handshake).
+    /// KeyCheck format: [1B action][3B pad][4B clientID][8B playerID][8B unused][8B checksum(BF encrypted)]
+    /// We respond with a KeyCheck response and then wait for SynchVersion.
+    /// </summary>
+    private void HandleKeyCheckFromClient(byte[] data, PeerInfo peer)
+    {
+        // Try to parse as KeyCheck
+        try
+        {
+            var kc = Protocol.Packets.KeyCheck.Deserialize(data);
+            Log($"  [KEYCHECK] Parsed: Action={kc.Action} ClientId={kc.ClientId} PlayerId={kc.PlayerId}");
+
+            // Create KeyCheck response
+            var client = EnsureClientInfo(peer);
+            client.PlayerId = kc.PlayerId;
+            client.State = ClientState.Authenticated;
+
+            var resp = Protocol.Packets.KeyCheck.CreateResponse(client.ClientId, kc.PlayerId, _cipher);
+            var respBytes = resp.Serialize();
+            Log($"  [KEYCHECK] Sending response ({respBytes.Length}B)");
+
+            // Send KeyCheck response on channel 0 (reliable)
+            // Use cmd=6 channel=0 (reliable on handshake channel)
+            SendReliableOnChannel(peer, 0, respBytes);
+
+            Log($"  [KEYCHECK] *** KeyCheck handshake complete! Client authenticated. ***");
+        }
+        catch (Exception ex)
+        {
+            Log($"  [KEYCHECK] Parse failed: {ex.Message}");
+            Log($"  [KEYCHECK] Raw data ({data.Length}B): {Hex(data, 0, Math.Min(32, data.Length))}");
+
+            // Try to respond with a basic KeyCheck response anyway
+            var client = EnsureClientInfo(peer);
+            var respBytes = new byte[32];
+            respBytes[0] = 0x01; // action = response
+            BitConverter.GetBytes(client.ClientId).CopyTo(respBytes, 4);
+            var playerIdBytes = BitConverter.GetBytes(1UL); // player ID 1
+            playerIdBytes.CopyTo(respBytes, 8);
+            var encrypted = _cipher.EncryptBlock(playerIdBytes);
+            Array.Copy(encrypted, 0, respBytes, 20, Math.Min(8, encrypted.Length));
+            SendReliableOnChannel(peer, 0, respBytes);
+            Log($"  [KEYCHECK] Sent fallback response ({respBytes.Length}B)");
+        }
+    }
+
+    /// <summary>
+    /// Send data as reliable on a specific ENet channel.
+    /// Wraps data in ENet reliable command format.
+    /// </summary>
+    private void SendReliableOnChannel(PeerInfo peer, byte channel, byte[] data)
+    {
+        // Build reliable header: [1B channel][2B seqNo BE][2B dataLen BE][data]
+        var reliable = new byte[5 + data.Length];
+        reliable[0] = channel;
+        reliable[1] = 0; reliable[2] = 1; // seqNo = 1
+        reliable[3] = (byte)((data.Length >> 8) & 0xFF);
+        reliable[4] = (byte)(data.Length & 0xFF);
+        Array.Copy(data, 0, reliable, 5, data.Length);
+
+        // Send via CRC packet with flags = 0x60 (cmd=6 reliable, channel=0)
+        byte flagByte = (byte)((6 << 4) | (channel & 0x0F));
+        SendCrcPacket(peer, flagByte, reliable);
+        Log($"  [SEND-RELIABLE] ch={channel} flags=0x{flagByte:X2} payload={data.Length}B");
     }
 
     /// <summary>
@@ -521,13 +634,44 @@ public class RawGameServer : IGameServer, IDisposable
             Log($"  [NEW-OPCODE] Client sent opcode 0x{opcode:X4} for the first time! Total unique: {peer.SeenOpcodes.Count}");
         }
 
-        // Season 4 opcodes (may differ in 16.6, but try them):
-        // 0x14 = QueryStatusReq → respond with QueryStatusAns (0x88)
-        // 0xBD = SynchVersionC2S → respond with SynchVersionS2C (0x54)
-        // 0xBE = CharSelected → respond with TeamRosterUpdate
-        // 0x52 = ClientReady → respond with StartSpawn sequence
+        // Modern client (16.6) uses extended opcode format: [0xFE][4B netID][2B opcode LE][body]
+        // Client sends opcode 0x002C every 2 seconds = likely SynchVersionC2S
+        // Respond with SynchVersionS2C using the same extended format
 
-        // For now, just log. We'll add responses once we identify the modern opcodes.
+        if (opcode == 0x002C || opcode == 0x56 || opcode == 0xBD) // SynchVersion (modern + legacy)
+        {
+            Log($"  [SYNCH] Received SynchVersion (opcode 0x{opcode:X4}), sending response...");
+
+            // SynchVersionS2C — respond using extended opcode format
+            // Format: [0xFE][4B netID=0][2B opcode=0x001B][body]
+            // The body contains: version string, map ID, player list
+            var resp = new byte[512];
+            resp[0] = 0xFE; // extended opcode marker
+            // netID = 0 at [1..4]
+            resp[5] = 0x1B; // opcode low byte (SynchVersionS2C = 0x1B)
+            resp[6] = 0x00; // opcode high byte
+            // Body: bitfield + map + version string
+            resp[7] = 0x01; // isVersionOK = true
+            resp[8] = (byte)(_config.MapId & 0xFF); // map ID low
+            resp[9] = (byte)((_config.MapId >> 8) & 0xFF);
+            // Version string at offset ~298-7=291 from body start, i.e. at byte 298
+            var verStr = System.Text.Encoding.ASCII.GetBytes($"Version {_config.GameVersion}");
+            Array.Copy(verStr, 0, resp, 298, Math.Min(verStr.Length, 200));
+            SendGamePacket(peer, resp, "SynchVersionS2C-response");
+
+            // Also send as batch in case client expects batch format
+            SendBatchPacket(peer, resp, "SynchVersionS2C-batch");
+        }
+        else if (opcode == 0x0014 || opcode == 0x88) // QueryStatus
+        {
+            Log($"  [QUERY] QueryStatus (0x{opcode:X4}), sending response");
+            var ans = new byte[] { 0x88, 0x00, 0x00, 0x00, 0x00, 0x01 };
+            SendGamePacket(peer, ans, "QueryStatusAns");
+        }
+        else
+        {
+            Log($"  [UNHANDLED] Client opcode 0x{opcode:X4}, data: {Hex(data, 0, Math.Min(32, data.Length))}");
+        }
     }
 
     // ========================================================================
@@ -789,5 +933,6 @@ public class RawGameServer : IGameServer, IDisposable
         public byte[]? LastDecryptedBody { get; set; }
         public byte LastCmd { get; set; }
         public HashSet<ushort> SeenOpcodes { get; set; } = new();
+        public bool KeyCheckDone { get; set; }
     }
 }

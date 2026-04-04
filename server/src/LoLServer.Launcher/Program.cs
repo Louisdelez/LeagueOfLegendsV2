@@ -166,22 +166,27 @@ class Program
 
         try
         {
-            // The LoL client uses OpenSSL/libcurl which reads SSL_CERT_FILE
-            // for trusted CA certificates. Point it to our FakeLCU cert.
-            var certPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "fakeLcu.crt");
+            // The LoL client uses OpenSSL which reads SSL_CERT_FILE
+            // for trusted CA certificates. Point it to our CA ROOT cert (not server cert!)
+            var certPath = Path.GetFullPath(Path.Combine(FindRepoRoot(), "myCA.crt"));
             if (!File.Exists(certPath))
-            {
-                // Try the Console build output
+                certPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "myCA.crt");
+            if (!File.Exists(certPath))
                 certPath = Path.GetFullPath(Path.Combine(
                     AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..",
-                    "LoLServer.Console", "bin", "Debug", "net8.0", "fakeLcu.crt"));
-            }
+                    "LoLServer.Console", "bin", "Debug", "net8.0", "myCA.crt"));
 
-            // Set SSL_CERT_FILE system-wide so the game's OpenSSL trusts our cert
+            // Set SSL_CERT_FILE for the game process — OpenSSL reads this as trust store
             if (File.Exists(certPath))
             {
+                // Set for both user AND process (process env is inherited by child)
                 Environment.SetEnvironmentVariable("SSL_CERT_FILE", certPath, EnvironmentVariableTarget.User);
-                System.Console.WriteLine($"  SSL_CERT_FILE={certPath} (set for current user)");
+                Environment.SetEnvironmentVariable("SSL_CERT_FILE", certPath, EnvironmentVariableTarget.Process);
+                System.Console.WriteLine($"  SSL_CERT_FILE={certPath} (CA root cert)");
+
+                // Also copy CA cert into game dir for version.dll to use
+                var gameCACert = Path.Combine(gamePath, "myCA.crt");
+                try { File.Copy(certPath, gameCACert, overwrite: true); } catch { }
             }
             else
             {
@@ -193,8 +198,15 @@ class Program
                 FileName = gameExe,
                 Arguments = arguments,
                 WorkingDirectory = gamePath,
-                UseShellExecute = true,
+                UseShellExecute = false, // false = inherit env vars (SSL_CERT_FILE!)
             };
+
+            // Ensure SSL_CERT_FILE is in the child process environment
+            if (File.Exists(certPath))
+            {
+                psi.Environment["SSL_CERT_FILE"] = certPath;
+                System.Console.WriteLine($"  SSL_CERT_FILE injected into process env");
+            }
 
             var process = Process.Start(psi);
             if (process != null)
@@ -378,6 +390,20 @@ class Program
         }
 
         return null;
+    }
+
+    static string FindRepoRoot()
+    {
+        var dir = Directory.GetCurrentDirectory();
+        for (int i = 0; i < 10; i++)
+        {
+            if (File.Exists(Path.Combine(dir, "start-server.bat")) || Directory.Exists(Path.Combine(dir, "server")))
+                return dir;
+            var parent = Directory.GetParent(dir);
+            if (parent == null) break;
+            dir = parent.FullName;
+        }
+        return Directory.GetCurrentDirectory();
     }
 
     static string? FindConfigPath()

@@ -2,7 +2,7 @@
 
 A private server emulator for League of Legends (patch 16.6), compatible with the real modern LoL client.
 
-> **Status:** Game runs indefinitely (2+ min). Full crypto pipeline working. TLS cert bypass is the last blocker to loading screen.
+> **Status:** Game alive 2+ min, 3800+ packets exchanged, opcode table extracted. Two blockers remain: TLS cert verify (Vanguard blocks all bypass) and packet framing (game data doesn't reach dispatcher).
 
 ## What Works
 
@@ -11,17 +11,19 @@ A private server emulator for League of Legends (patch 16.6), compatible with th
 - CRC-32 nonce computed by game's own function — **CRC PASS on every packet**
 - Echo handshake + CAFE delivery (server→client game data)
 - FLOW state machine bypassed (`flowPtr+8 = 1`)
-- Game data sent via cmd=2 (game handler path): QueryStatusAns, SynchVersion, opcodes
-- 20+ game opcodes delivered to dispatcher, 0 crashes
+- Game state progression: `Bootstrap → Patching → LoLCommon → GameSession → Hard Connect`
+- **Full opcode table extracted at runtime** — 22 primary + 40 secondary opcodes
+- Proper CA + server cert chain (CA:TRUE, SAN=localhost, verified OK)
+- 15 TLS bypass approaches tested and documented
 - Hardware breakpoint CRC bypass via VEH (Vanguard-compatible)
 
 ## What's Left
 
 | Blocker | Status | Details |
 |---------|--------|---------|
-| TLS cert verify | **Last blocker** | BoringSSL rejects our FakeLCU cert. Vanguard blocks .text patches (err=5) and debug registers. Need SSL_CTX heap patch or skip LCU entirely. |
-| Game opcodes | Pending | Modern client (16.6) uses different opcodes than Season 4. Need to identify QueryStatusReq/SynchVersion equivalents. |
-| Loading screen | Blocked by TLS | Once LCU WebSocket connects, game gets roster/map/config → loading screen. |
+| TLS cert verify | **Exhausted** | 15 approaches tried. Vanguard blocks .text + .rdata patches, HW breakpoints, debug registers. BoringSSL ignores SSL_CERT_FILE. Game runs without LCU but loading screen may need it. |
+| Packet framing | **Active blocker** | Game data sent via cmd=2 doesn't reach the game's opcode dispatcher (RVA 0x955C20). Consumer expects 56-byte records with opcode at byte 50. Need real packet capture to reverse the exact framing. |
+| Loading screen | Blocked by framing | Client sends 64+ opcodes but never SynchVersion (0x56). Server responds but client ignores — wrong framing. |
 
 ## Protocol (Fully Reverse-Engineered)
 
@@ -33,7 +35,7 @@ A private server emulator for League of Legends (patch 16.6), compatible with th
 | Key | `17BLOhi6KZsTtldTsizvHg==` (base64, 16 bytes) |
 | Integrity | CRC-32 nonce, polynomial `0x04C11DB7`, non-standard byte mixing: `(crc << 8 \| byte) ^ table[crc >> 24]` |
 | Game data | cmd=2 → handler +0x168 (real), cmd=6 → handler +0x128 (stub) |
-| Dispatcher | 81 opcodes (16-bit), 0x000A–0x0479, jump table at 0x140957120 |
+| Dispatcher | 22 primary opcodes (0x0A–0x103) + 40 secondary (0x10A–0x479), jump tables at 0x140957120 + 0x1409570C4 |
 | Anti-cheat | Vanguard: guard pages on `.text`, blocks VirtualProtect + debug registers |
 
 ### Packet Format
@@ -143,8 +145,16 @@ Start-Process "League of Legends.exe" '"127.0.0.1 5119 17BLOhi6KZsTtldTsizvHg== 
 | CRC check | 0x5725F0 | Recv decrypt + CRC validate |
 | Packet handler | 0x588F70 | Dequeue + dispatch |
 | Consumer | 0x5883D0 | Batch record → 56B internal struct |
-| **Dispatcher** | **0x955C20** | **81 game opcodes (16-bit switch)** |
+| Enqueue | 0x573160 | Enqueue game data to consumer queue |
+| Packet processor | 0x57AF90 | Parse raw packet → queue records |
+| **Dispatcher** | **0x955C20** | **22+40 game opcodes, opcode at struct+0x08** |
+| Opcode byte table | 0x957120 | 250 entries, maps opcode-0x0A → case index |
+| Opcode offset table | 0x9570C4 | Case index → handler code offset |
 | CFB decrypt | 0x10F2A10 | Double CFB decrypt (recv path) |
+| ParseCert | 0x168A4F0 | d2i_X509 — parse DER cert, works from hooks |
+| SSL_METHOD | 0x199D218 | TLS method struct (function ptrs to .text) |
+| Riot CA DER | 0x19EEBD0 | Embedded root CA cert (1060B, PAGE_READONLY) |
+| flowPtr | 0x1DA5228 | Global connection state pointer |
 | CFB encrypt | 0x10F41E0 | Double CFB encrypt (send path) |
 | ParseCert | 0x168A4F0 | BoringSSL d2i_X509 |
 | flowPtr | 0x1DA5228 | FLOW state machine global |
