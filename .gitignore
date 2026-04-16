@@ -39,3 +39,21 @@ Thumbs.db
 ghidra_full/
 ghidra_proj2*
 ghidra_11.3.2.zip
+
+# LoL 7.13 client - too large
+7.13/Client/client_full.7z
+7.13/Client/League Of Legends/
+
+# Nested git repos (GameServer is a clone, has its own .git)
+4.20/GameServer/.git/
+4.20/GameServer/Content/LeagueSandbox-Default/.git
+4.20/GameServer/LeaguePackets/.git
+
+# Build outputs
+4.20/GameServer/*/bin/
+4.20/GameServer/*/obj/
+
+# Runtime logs
+nethook_logs/
+*.log
+/tmp/

@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Platforms>AnyCPU;x86</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Crc32.NET" Version="1.2.0" />
+    <PackageReference Include="log4net" Version="2.0.14" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.1.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="OptimizedPriorityQueue" Version="5.1.0" />
+    <PackageReference Include="RoyT.AStar" Version="3.0.2" />
+		<PackageReference Include="LENet" Version="1.0.1" />
+	</ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\GameMaths\GameMaths.csproj" />
+    <ProjectReference Include="..\GameServerCore\GameServerCore.csproj" />
+    <ProjectReference Include="..\QuadTree\QuadTree.csproj" />
+    <ProjectReference Include="..\LeaguePackets\LeaguePackets\LeaguePackets.csproj" />
+	</ItemGroup>
+
+  <ItemGroup>
+      <AssemblyAttribute Include="LeagueSandbox.GameServer.BuildDateTimeAttribute">
+          <_Parameter1>$([System.String]::Concat($([System.DateTime]::UtcNow.ToString("G")), " UTC"))</_Parameter1>
+      </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>
