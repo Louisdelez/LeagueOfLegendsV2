@@ -3742,6 +3742,67 @@ static void InstallEnqueueProbe(BYTE *hExe) {
     // Dump the FULL state table area around 0x1950630 (2KB window)
     DumpFuncBytes(g_enqLog, "state_table_full (0x1950400)", hExe + 0x1950400, 2048);
 
+    // Scan callers of 0x6509D0 (the function wrapping Push for Patching)
+    // These callers pass the state machine as rcx arg.
+    {
+        BYTE *textBase = (BYTE*)hExe + 0x1000;
+        SIZE_T textSize = 0x1900000;
+        UINT64 target = 0x6509D0;
+        int found = 0;
+        fprintf(g_enqLog, "\n=== Callers of transition fn 0x6509D0 ===\n");
+        for (SIZE_T i = 0; i + 5 < textSize && found < 10; i++) {
+            if (textBase[i] != 0xE8) continue;
+            INT32 rel = *(INT32*)(textBase + i + 1);
+            UINT64 callerRva = 0x1000 + i;
+            UINT64 targetRva = callerRva + 5 + (INT64)rel;
+            if (targetRva != target) continue;
+            found++;
+            fprintf(g_enqLog, "\n[Trans-caller #%d] CALL to 0x6509D0 at RVA 0x%llX\n",
+                    found, callerRva);
+            SIZE_T before = (i >= 64) ? 64 : i;
+            for (SIZE_T j = 0; j < before + 5 + 16; j += 16) {
+                fprintf(g_enqLog, "  %04llX: ", (UINT64)(callerRva - before + j));
+                for (SIZE_T k = 0; k < 16 && j + k < before + 5 + 16; k++) {
+                    fprintf(g_enqLog, "%02X ", textBase[i - before + j + k]);
+                }
+                fprintf(g_enqLog, "\n");
+            }
+            fflush(g_enqLog);
+        }
+        fprintf(g_enqLog, "=== Total transition fn callers: %d ===\n", found);
+        fflush(g_enqLog);
+    }
+
+    // Scan .data section for qword pointers to addresses of flowPtr's neighbors
+    // Looking for state-machine-like globals (pointers into heap regions)
+    {
+        IMAGE_DOS_HEADER *dos = (IMAGE_DOS_HEADER*)hExe;
+        IMAGE_NT_HEADERS64 *nt = (IMAGE_NT_HEADERS64*)((BYTE*)hExe + dos->e_lfanew);
+        IMAGE_SECTION_HEADER *sections = IMAGE_FIRST_SECTION(nt);
+        UINT64 pushVA = (UINT64)hExe + 0x6463FD;
+        UINT64 transVA = (UINT64)hExe + 0x6509D0;
+        fprintf(g_enqLog, "\n=== .rdata/.data search for Push & transition vtable refs ===\n");
+        for (WORD s = 0; s < nt->FileHeader.NumberOfSections; s++) {
+            char name[9] = {0};
+            memcpy(name, sections[s].Name, 8);
+            if (strncmp(name, ".rdata", 6) != 0 && strncmp(name, ".data", 5) != 0) continue;
+            BYTE *sbase = (BYTE*)hExe + sections[s].VirtualAddress;
+            SIZE_T ssize = sections[s].Misc.VirtualSize;
+            int matches = 0;
+            for (SIZE_T off = 0; off + 8 <= ssize && matches < 6; off += 8) {
+                UINT64 val = *(UINT64*)(sbase + off);
+                if (val == pushVA || val == transVA) {
+                    matches++;
+                    UINT64 foundRva = sections[s].VirtualAddress + off;
+                    const char *kind = (val == pushVA) ? "Push" : "Trans";
+                    fprintf(g_enqLog, "  [%s @ %s+0x%llX] RVA 0x%llX\n",
+                            kind, name, (UINT64)off, foundRva);
+                }
+            }
+        }
+        fflush(g_enqLog);
+    }
+
     // Dump around 0x650A68 — the Patching xref that's NOT a getter.
     // This should be the state machine's transition/push code.
     DumpFuncBytes(g_enqLog, "state_machine_candidate (0x650900)", hExe + 0x650900, 1024);
