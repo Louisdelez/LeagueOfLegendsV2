@@ -114,6 +114,11 @@ namespace LeagueSandbox.GameServer.Packets.PacketHandlers
                 "", 0, player.Champion.NetId, _game.NetworkIdManager.GetNewNetId());
 
             SyncTime(player.ClientId);
+
+            // 7.13 client doesn't emit the 4.20-format Req packets, so we proactively
+            // send the S2C replies that unblock its state machine.
+            _game.PacketNotifier.NotifyS2C_QueryStatusAns(player.ClientId);
+            _game.PacketNotifier.NotifyS2C_StartSpawn(player.ClientId);
         }
 
         void SyncTime(int userId)
