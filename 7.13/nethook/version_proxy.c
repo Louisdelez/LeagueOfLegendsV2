@@ -175,6 +175,50 @@ __asm__(
     "    jmp *_g_tramp_76EE20_addr\n"
 );
 
+// Detour on the pre-dispatch fn @ RVA 0x5BA9A0. Prologue:
+//   55            push ebp
+//   8B EC         mov ebp, esp
+//   83 E4 F8      and esp, -8          (alignment)
+// First complete-instruction boundary at offset 6, so we steal 6 bytes.
+static BYTE tramp_5BA9A0[32];
+static volatile DWORD g_tramp_5BA9A0_addr = 0;
+static volatile int g_hits_5BA9A0 = 0;
+
+void __attribute__((cdecl, used)) LogFrom5BA9A0(DWORD this_ptr, DWORD arg0, DWORD ret_addr) {
+    int h = ++g_hits_5BA9A0;
+    if (h <= 20) {
+        BYTE *pkt = (BYTE*)arg0;
+        char hex[80] = {0};
+        if (arg0 && !IsBadReadPtr(pkt, 24)) {
+            for (int i = 0; i < 24; i++) {
+                char tmp[4]; snprintf(tmp, 4, "%02X ", pkt[i]);
+                strcat(hex, tmp);
+            }
+        } else { strcpy(hex, "<bad>"); }
+        Log("PREDISP 5BA9A0 #%d ret=%p this=%p arg=%p [%s]",
+            h, (void*)ret_addr, (void*)this_ptr, (void*)arg0, hex);
+    }
+}
+
+extern void Detour_5BA9A0(void);
+__asm__(
+    ".text\n"
+    ".globl _Detour_5BA9A0\n"
+    "_Detour_5BA9A0:\n"
+    "    pushal\n"
+    "    pushfl\n"
+    "    mov 36(%esp), %eax\n"      // retaddr
+    "    push %eax\n"
+    "    mov 40(%esp), %eax\n"      // arg0 on stack
+    "    push %eax\n"
+    "    push %ecx\n"                // this
+    "    call _LogFrom5BA9A0\n"
+    "    add $12, %esp\n"
+    "    popfl\n"
+    "    popal\n"
+    "    jmp *_g_tramp_5BA9A0_addr\n"
+);
+
 typedef int (WINAPI *sendto_t)(SOCKET, const char*, int, int, const struct sockaddr*, int);
 typedef int (WINAPI *recvfrom_t)(SOCKET, char*, int, int, struct sockaddr*, int*);
 typedef int (WINAPI *WSASendTo_t)(SOCKET, LPWSABUF, DWORD, LPDWORD, DWORD, const struct sockaddr*, int, LPWSAOVERLAPPED, LPWSAOVERLAPPED_COMPLETION_ROUTINE);
@@ -195,6 +239,30 @@ static void MakeTrampoline5(void *func, BYTE *tramp) {
     DWORD old;
     VirtualProtect(tramp, 32, PAGE_EXECUTE_READWRITE, &old);
     FlushInstructionCache(GetCurrentProcess(), tramp, 32);
+}
+
+// Like MakeTrampoline5 but steals N bytes (for prologues whose instruction
+// boundaries don't align at 5 bytes). Callers must also overwrite N bytes
+// at the target with a 5-byte jmp + (N-5) NOPs.
+static void MakeTrampolineN(void *func, BYTE *tramp, int n) {
+    memcpy(tramp, func, n);
+    tramp[n] = 0xE9;
+    DWORD rel = (DWORD)((BYTE*)func + n) - (DWORD)(tramp + n + 5);
+    *(DWORD*)(tramp + n + 1) = rel;
+    DWORD old;
+    VirtualProtect(tramp, 32, PAGE_EXECUTE_READWRITE, &old);
+    FlushInstructionCache(GetCurrentProcess(), tramp, 32);
+}
+
+static void PatchJmpN(void *target, void *dest, int n) {
+    DWORD old;
+    VirtualProtect(target, n, PAGE_EXECUTE_READWRITE, &old);
+    BYTE *t = (BYTE*)target;
+    t[0] = 0xE9;
+    *(DWORD*)(t + 1) = (DWORD)dest - ((DWORD)target + 5);
+    for (int i = 5; i < n; i++) t[i] = 0x90;
+    VirtualProtect(target, n, old, &old);
+    FlushInstructionCache(GetCurrentProcess(), target, n);
 }
 
 static void PatchJmp5(void *target, void *dest) {
@@ -528,6 +596,21 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                         tramp_3EF8F0, (void*)Detour_3EF8F0);
                 } else {
                     Log("DETOUR: prologue mismatch, skipping install");
+                }
+
+                // Install pre-dispatch detour @ 0x5BA9A0 (6-byte steal)
+                BYTE *tgt2 = (BYTE*)hExe + 0x5BA9A0;
+                Log("DETOUR2: @0x5BA9A0 bytes: %02X %02X %02X %02X %02X %02X",
+                    tgt2[0], tgt2[1], tgt2[2], tgt2[3], tgt2[4], tgt2[5]);
+                if (tgt2[0] == 0x55 && tgt2[1] == 0x8B && tgt2[2] == 0xEC &&
+                    tgt2[3] == 0x83 && tgt2[4] == 0xE4 && tgt2[5] == 0xF8) {
+                    MakeTrampolineN(tgt2, tramp_5BA9A0, 6);
+                    g_tramp_5BA9A0_addr = (DWORD)tramp_5BA9A0;
+                    PatchJmpN(tgt2, (void*)Detour_5BA9A0, 6);
+                    Log("DETOUR2: installed, trampoline=%p, detour=%p",
+                        tramp_5BA9A0, (void*)Detour_5BA9A0);
+                } else {
+                    Log("DETOUR2: prologue mismatch, skipping");
                 }
             }
         }
