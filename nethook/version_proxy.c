@@ -3739,6 +3739,46 @@ static void InstallEnqueueProbe(BYTE *hExe) {
         fflush(g_enqLog);
     }
 
+    // Dump the FULL state table area around 0x1950630 (2KB window)
+    DumpFuncBytes(g_enqLog, "state_table_full (0x1950400)", hExe + 0x1950400, 2048);
+
+    // Find xrefs to the state table base (0x1950618 approximately)
+    // Any LEA instruction loading a pointer into this region is our state machine code
+    {
+        BYTE *textBase = (BYTE*)hExe + 0x1000;
+        SIZE_T textSize = 0x1900000;
+        UINT64 rngLo = 0x1950600;
+        UINT64 rngHi = 0x1951000;
+        int xrefs = 0;
+        fprintf(g_enqLog, "\n=== State table xref scan (range 0x%llX-0x%llX) ===\n",
+                rngLo, rngHi);
+        for (SIZE_T i = 0; i + 7 < textSize && xrefs < 30; i++) {
+            if (textBase[i] != 0x48 && textBase[i] != 0x4C) continue;
+            if (textBase[i+1] != 0x8D) continue;
+            BYTE modrm = textBase[i+2];
+            if ((modrm & 0xC7) != 0x05) continue;
+            INT32 disp = *(INT32*)(textBase + i + 3);
+            UINT64 instrRva = 0x1000 + i;
+            UINT64 targetRva = instrRva + 7 + (INT64)disp;
+            if (targetRva < rngLo || targetRva >= rngHi) continue;
+            xrefs++;
+            fprintf(g_enqLog, "  [Xref #%d] LEA at RVA 0x%llX → target 0x%llX\n",
+                    xrefs, instrRva, targetRva);
+            // Short context
+            SIZE_T before = (i >= 16) ? 16 : i;
+            fprintf(g_enqLog, "    %04llX: ", (UINT64)(instrRva - before));
+            for (SIZE_T k = 0; k < before + 7 + 8; k++) {
+                if (k == before) fprintf(g_enqLog, "[ ");
+                fprintf(g_enqLog, "%02X ", textBase[i - before + k]);
+                if (k == before + 6) fprintf(g_enqLog, "] ");
+            }
+            fprintf(g_enqLog, "\n");
+            fflush(g_enqLog);
+        }
+        fprintf(g_enqLog, "=== Total state table xrefs: %d ===\n", xrefs);
+        fflush(g_enqLog);
+    }
+
     // === Dump flowPtr structure fully (256 bytes) — state machine may live here ===
     {
         UINT64 *flowPtrAddr = (UINT64*)((BYTE*)hExe + 0x1DA5228);
