@@ -3742,6 +3742,85 @@ static void InstallEnqueueProbe(BYTE *hExe) {
     // Dump the FULL state table area around 0x1950630 (2KB window)
     DumpFuncBytes(g_enqLog, "state_table_full (0x1950400)", hExe + 0x1950400, 2048);
 
+    // Dump around 0x650A68 — the Patching xref that's NOT a getter.
+    // This should be the state machine's transition/push code.
+    DumpFuncBytes(g_enqLog, "state_machine_candidate (0x650900)", hExe + 0x650900, 1024);
+
+    // Dump 0x1F84D0 — is it code (fn prologue) or data (vtable)?
+    DumpFuncBytes(g_enqLog, "shared_fn_0x1F84D0", hExe + 0x1F84D0, 128);
+
+    // Scan CALL rel32 to 0x1F84D0 (base State constructor) — these are state
+    // instantiation sites; their calling function is the state machine.
+    {
+        BYTE *textBase = (BYTE*)hExe + 0x1000;
+        SIZE_T textSize = 0x1900000;
+        UINT64 baseCtor = 0x1F84D0;
+        int found = 0;
+        fprintf(g_enqLog, "\n=== Base State ctor (0x1F84D0) callers scan ===\n");
+        for (SIZE_T i = 0; i + 5 < textSize && found < 20; i++) {
+            if (textBase[i] != 0xE8) continue;
+            INT32 rel = *(INT32*)(textBase + i + 1);
+            UINT64 callerRva = 0x1000 + i;
+            UINT64 targetRva = callerRva + 5 + (INT64)rel;
+            if (targetRva != baseCtor) continue;
+            found++;
+            fprintf(g_enqLog, "  [Caller #%d] CALL to 0x1F84D0 at RVA 0x%llX\n",
+                    found, callerRva);
+            // Short context (32 bytes before)
+            SIZE_T before = (i >= 32) ? 32 : i;
+            fprintf(g_enqLog, "    %04llX: ", (UINT64)(callerRva - before));
+            for (SIZE_T k = 0; k < before + 5 + 8; k++) {
+                if (k == before) fprintf(g_enqLog, "[ ");
+                fprintf(g_enqLog, "%02X ", textBase[i - before + k]);
+                if (k == before + 4) fprintf(g_enqLog, "] ");
+            }
+            fprintf(g_enqLog, "\n");
+        }
+        fprintf(g_enqLog, "=== Total base ctor callers: %d ===\n", found);
+        fflush(g_enqLog);
+    }
+
+    // Scan LEA rip-rel to state table ENTRIES (LoadingScreen @ 0x1950630 etc.)
+    // Each entry's address (40-byte entry start) should be referenced where the
+    // state machine looks up specific states by pointer.
+    {
+        BYTE *textBase = (BYTE*)hExe + 0x1000;
+        SIZE_T textSize = 0x1900000;
+        UINT64 entries[] = {
+            0x1950630, // LoadingScreen
+            0x1950658, // Patching
+            0x19506E8, // LoLCommon
+            0x1950710, // GameSession
+            0x1950730, // Gameplay
+            0x19507F0  // Bootstrap
+        };
+        const char *entryNames[] = {
+            "LoadingScreen", "Patching", "LoLCommon",
+            "GameSession", "Gameplay", "Bootstrap"
+        };
+        int numEntries = 6;
+        fprintf(g_enqLog, "\n=== State entry xref scan (LEA to each entry start) ===\n");
+        for (int e = 0; e < numEntries; e++) {
+            int found = 0;
+            UINT64 entryRva = entries[e];
+            for (SIZE_T i = 0; i + 7 < textSize && found < 4; i++) {
+                if (textBase[i] != 0x48 && textBase[i] != 0x4C) continue;
+                if (textBase[i+1] != 0x8D) continue;
+                BYTE modrm = textBase[i+2];
+                if ((modrm & 0xC7) != 0x05) continue;
+                INT32 disp = *(INT32*)(textBase + i + 3);
+                UINT64 instrRva = 0x1000 + i;
+                UINT64 targetRva = instrRva + 7 + (INT64)disp;
+                if (targetRva != entryRva) continue;
+                found++;
+                fprintf(g_enqLog, "  [%s #%d] LEA at RVA 0x%llX\n",
+                        entryNames[e], found, instrRva);
+            }
+        }
+        fprintf(g_enqLog, "=== State entry xref scan done ===\n");
+        fflush(g_enqLog);
+    }
+
     // Find xrefs to the state table base (0x1950618 approximately)
     // Any LEA instruction loading a pointer into this region is our state machine code
     {
