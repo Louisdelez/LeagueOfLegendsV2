@@ -3742,6 +3742,44 @@ static void InstallEnqueueProbe(BYTE *hExe) {
     // Dump the FULL state table area around 0x1950630 (2KB window)
     DumpFuncBytes(g_enqLog, "state_table_full (0x1950400)", hExe + 0x1950400, 2048);
 
+    // Scan .rdata/.data for qwords containing state handlers
+    // (each state's handler fn is a virtual method, so its address
+    //  appears in that state class's vtable somewhere in .rdata).
+    {
+        IMAGE_DOS_HEADER *dos = (IMAGE_DOS_HEADER*)hExe;
+        IMAGE_NT_HEADERS64 *nt = (IMAGE_NT_HEADERS64*)((BYTE*)hExe + dos->e_lfanew);
+        IMAGE_SECTION_HEADER *sections = IMAGE_FIRST_SECTION(nt);
+        struct { UINT64 rva; const char *name; } handlers[] = {
+            {0x619A60, "LoadingScreen"},
+            {0x619AC0, "Patching"},
+            {0x619B20, "LoLCommon"},
+            {0x619C60, "GameSession"},
+            {0x619CC0, "Gameplay"},
+            {0x619EB0, "Bootstrap"}
+        };
+        int numH = sizeof(handlers) / sizeof(handlers[0]);
+        fprintf(g_enqLog, "\n=== State handler fn search in .rdata/.data (for vtables) ===\n");
+        for (int h = 0; h < numH; h++) {
+            UINT64 handlerVA = (UINT64)hExe + handlers[h].rva;
+            int matches = 0;
+            for (WORD s = 0; s < nt->FileHeader.NumberOfSections && matches < 4; s++) {
+                char name[9] = {0};
+                memcpy(name, sections[s].Name, 8);
+                if (strncmp(name, ".rdata", 6) != 0 && strncmp(name, ".data", 5) != 0) continue;
+                BYTE *sbase = (BYTE*)hExe + sections[s].VirtualAddress;
+                SIZE_T ssize = sections[s].Misc.VirtualSize;
+                for (SIZE_T off = 0; off + 8 <= ssize && matches < 4; off += 8) {
+                    if (*(UINT64*)(sbase + off) != handlerVA) continue;
+                    matches++;
+                    UINT64 foundRva = sections[s].VirtualAddress + off;
+                    fprintf(g_enqLog, "  [%s handler @ %s+0x%llX] RVA 0x%llX\n",
+                            handlers[h].name, name, (UINT64)off, foundRva);
+                }
+            }
+        }
+        fflush(g_enqLog);
+    }
+
     // Scan callers of 0x6509D0 (the function wrapping Push for Patching)
     // These callers pass the state machine as rcx arg.
     {
