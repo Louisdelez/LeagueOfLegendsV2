@@ -26,8 +26,10 @@ namespace LeagueSandbox.GameServer
         public GameConfig GameConfig { get; private set; }
         public ContentManager ContentManager { get; private set; }
         public FeatureFlags GameFeatures { get; private set; }
-        public const string VERSION_STRING = "Version 4.20.0.315 [PUBLIC]";
-        public static readonly Version VERSION = new Version(4, 20, 0, 315);
+        // Was: "Version 4.20.0.315 [PUBLIC]". Client log shows the 7.13 build
+        // prints "Client Version 7.13.192.6794 [PUBLIC]" — match that exactly.
+        public const string VERSION_STRING = "Version 7.13.192.6794 [PUBLIC]";
+        public static readonly Version VERSION = new Version(7, 13, 192, 6794);
 
         public bool ChatCheatsEnabled { get; private set; }
         public string ContentPath { get; private set; }

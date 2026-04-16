@@ -76,6 +76,56 @@ static void SavePacket(const char *tag, const char *buf, int len, const struct s
 #define HOOK_SIZE 5
 static BYTE tramp_sendto[32], tramp_recvfrom[32], tramp_WSASendTo[32], tramp_WSARecvFrom[32], tramp_connect[32];
 
+// Diagnostic detour for the handler at RVA 0x3EF8F0 (writes state flag via
+// the deobfuscation chain). Answers: does the handler fire naturally after
+// auth, or is the caller chain never reached?
+static BYTE tramp_3EF8F0[32];
+static volatile DWORD g_tramp_3EF8F0_addr = 0;
+static volatile int g_handler_hits = 0;
+
+void __attribute__((cdecl, used)) LogFrom3EF8F0(DWORD this_ptr, DWORD ret_addr) {
+    int h = ++g_handler_hits;
+    if (h <= 20) {
+        // Dump the first 16 bytes at ECX. Use IsBadReadPtr as a cheap
+        // safety check — deprecated but adequate for a diagnostic hook.
+        BYTE *ob = (BYTE*)this_ptr;
+        char hex[64] = {0};
+        if (this_ptr && !IsBadReadPtr(ob, 16)) {
+            for (int i = 0; i < 16; i++) {
+                char tmp[4];
+                snprintf(tmp, 4, "%02X ", ob[i]);
+                strcat(hex, tmp);
+            }
+        } else {
+            strcpy(hex, "<bad ptr>");
+        }
+        Log("HANDLER: 0x3EF8F0 fire #%d ret=%p this=%p [%s]",
+            h, (void*)ret_addr, (void*)this_ptr, hex);
+    } else if (h == 100) {
+        Log("HANDLER: suppressing further hits");
+    }
+}
+
+// Naked assembly detour: preserves all regs/flags, calls LogFrom3EF8F0 with
+// (ECX_on_entry, return_address), then jumps to the trampoline (which runs
+// the original stolen bytes and falls through to 0x3EF8F0 + 5).
+extern void Detour_3EF8F0(void);
+__asm__(
+    ".text\n"
+    ".globl _Detour_3EF8F0\n"
+    "_Detour_3EF8F0:\n"
+    "    pushal\n"
+    "    pushfl\n"
+    "    mov 36(%esp), %eax\n"      // [esp+32 (pushal) + 4 (pushfl)] = ret addr
+    "    push %eax\n"
+    "    push %ecx\n"                // 'this' (still intact)
+    "    call _LogFrom3EF8F0\n"
+    "    add $8, %esp\n"
+    "    popfl\n"
+    "    popal\n"
+    "    jmp *_g_tramp_3EF8F0_addr\n"
+);
+
 typedef int (WINAPI *sendto_t)(SOCKET, const char*, int, int, const struct sockaddr*, int);
 typedef int (WINAPI *recvfrom_t)(SOCKET, char*, int, int, struct sockaddr*, int*);
 typedef int (WINAPI *WSASendTo_t)(SOCKET, LPWSABUF, DWORD, LPDWORD, DWORD, const struct sockaddr*, int, LPWSAOVERLAPPED, LPWSAOVERLAPPED_COMPLETION_ROUTINE);
@@ -151,6 +201,34 @@ int WINAPI Hook_connect(SOCKET s, const struct sockaddr *addr, int addrlen) {
     return real_connect(s, addr, addrlen);
 }
 
+// Watchdog thread: after a warmup delay, continuously write 1 to the state
+// flag at VA 0x01AA4254 (relative to the preferred PE base 0x00400000).
+// If this unblocks "Query Status Req started", the flag is the real gate.
+static DWORD WINAPI FlagWatchdog(LPVOID arg) {
+    HMODULE hExe = GetModuleHandleA(NULL);
+    if (!hExe) { Log("WD: no exe handle"); return 0; }
+    BYTE *base = (BYTE*)hExe;
+    // PE preferred base is 0x00400000 for this binary. The static VA 0x01AA4254
+    // was taken from a preferred-base disassembly, so RVA = VA - 0x00400000.
+    DWORD flagRVA = 0x01AA4254 - 0x00400000;
+    BYTE *flag = base + flagRVA;
+    Log("WD: start, hExe=%p, flag=%p (RVA 0x%08lX)", base, flag, flagRVA);
+    DWORD oldProt;
+    if (!VirtualProtect(flag, 4, PAGE_READWRITE, &oldProt)) {
+        Log("WD: VirtualProtect err=%lu", GetLastError());
+        return 0;
+    }
+    Log("WD: initial value=%08lX", *(volatile DWORD*)flag);
+    Sleep(3000); // let client boot + handshake
+    Log("WD: post-sleep value=%08lX, begin continuous poke", *(volatile DWORD*)flag);
+    for (int i = 0; i < 100; i++) {
+        *(volatile DWORD*)flag = 1;
+        Sleep(100);
+    }
+    Log("WD: done, final=%08lX", *(volatile DWORD*)flag);
+    return 0;
+}
+
 static void InstallNetHooks(void) {
     HMODULE ws2 = LoadLibraryA("ws2_32.dll");
     if (!ws2) { Log("Can't load ws2_32"); return; }
@@ -194,6 +272,216 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
         Log("PID %lu", GetCurrentProcessId());
         InstallNetHooks();
         Log("cmdline: %s", GetCommandLineA());
+
+        // Force exit from the "Query Status Req started" wait loop by NOPing
+        // out the 6-byte long `je 0x4A9BA0` at RVA 0x4A9C99. Sequence:
+        //   cmp dword ptr [0x1AA4254], 0   ; 83 3D 54 42 AA 01 00
+        //   je  0x4A9BA0 (loop back)       ; 0F 84 01 FF FF FF    ← patch target
+        // After patch, the cmp falls through unconditionally → control reaches
+        // the "Query Status Req ended" log regardless of flag value.
+        //
+        // (Prior approaches — flipping the jnz at 0x5BAAAC, direct flag pokes,
+        // forcing the handler 0x3EF8F0 — all failed: handler never runs, flag
+        // never naturally set, NOPing its guard breaks auth.)
+        //
+        // Additional pattern-scan for the 0x5BAAAC jnz is retained for
+        // diagnostics but no bytes are modified there.
+        {
+            HMODULE hExe = GetModuleHandleA(NULL);
+            if (hExe) {
+                BYTE *base = (BYTE*)hExe;
+                DWORD scanStart = 0x5BA000, scanEnd = 0x5BB000;
+                int hits = 0;
+                DWORD firstHit = 0;
+                for (DWORD off = scanStart; off < scanEnd; off++) {
+                    BYTE *q = base + off;
+                    if (q[0] == 0x84 && q[1] == 0xC0 &&
+                        q[2] == 0x75 &&
+                        q[4] == 0x8B && q[5] == 0xCF &&
+                        q[6] == 0xE8) {
+                        hits++;
+                        if (firstHit == 0) firstHit = off;
+                        Log("PATCH: found pattern @RVA 0x%06lX (jnz +%02X)", off, q[3]);
+                        // Byte modification disabled pending deeper analysis:
+                        // * EB 07 (always jump past call) → no regression but no
+                        //   progress (flag stays 0, handler never fires).
+                        // * 90 90 (always call) → auth breaks (client never
+                        //   completes KeyCheck).
+                        // Scan + dump only for now. If/when we confirm via a
+                        // detour hook whether the handler should fire here, we
+                        // can make the right edit.
+                        (void)off;
+                    }
+                }
+                Log("PATCH: scan done, %d hits in [0x%06lX..0x%06lX]", hits, scanStart, scanEnd);
+
+                // NEW PATCH: NOP out the long `je 0x4A9BA0` at RVA 0x4A9C99.
+                // Pattern (after PE relocation): cmp [flag_runtime], 0 ; je long
+                //   83 3D <flag_VA_little_endian> 00 0F 84 <rel32>
+                // We compute the runtime VA of the flag from the preferred-base
+                // VA 0x01AA4254 (→ runtime VA = base + RVA = hExe + 0x016A4254).
+                {
+                    DWORD flagRuntimeVA = (DWORD)base + (0x01AA4254 - 0x00400000);
+                    BYTE needle[9] = {
+                        0x83, 0x3D,
+                        (BYTE)(flagRuntimeVA),
+                        (BYTE)(flagRuntimeVA >> 8),
+                        (BYTE)(flagRuntimeVA >> 16),
+                        (BYTE)(flagRuntimeVA >> 24),
+                        0x00, 0x0F, 0x84
+                    };
+                    DWORD p2Start = 0x4A9C00, p2End = 0x4A9D00;
+                    int p2Hits = 0;
+                    Log("PATCH2: scanning for cmp [0x%08lX],0;je-long — needle %02X%02X%02X%02X%02X%02X%02X%02X%02X",
+                        flagRuntimeVA, needle[0], needle[1], needle[2], needle[3], needle[4], needle[5], needle[6], needle[7], needle[8]);
+                    for (DWORD off = p2Start; off < p2End - sizeof(needle); off++) {
+                        BYTE *q = base + off;
+                        int match = 1;
+                        for (unsigned i = 0; i < sizeof(needle); i++) {
+                            if (q[i] != needle[i]) { match = 0; break; }
+                        }
+                        if (match) {
+                            p2Hits++;
+                            BYTE *je = q + 7;    // 0F 84 rel32 (6 bytes)
+                            Log("PATCH2: found cmp+je @RVA 0x%06lX, je@0x%06lX rel=%02X%02X%02X%02X",
+                                off, off + 7, je[2], je[3], je[4], je[5]);
+                            DWORD oldProt;
+                            if (VirtualProtect(je, 6, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                                for (int i = 0; i < 6; i++) je[i] = 0x90;
+                                FlushInstructionCache(GetCurrentProcess(), je, 6);
+                                VirtualProtect(je, 6, oldProt, &oldProt);
+                                Log("PATCH2: NOPed 6 bytes @RVA 0x%06lX (bypass flag gate)", off + 7);
+                            } else {
+                                Log("PATCH2: VirtualProtect err=%lu", GetLastError());
+                            }
+                        }
+                    }
+                    Log("PATCH2: scan done, %d hits", p2Hits);
+                }
+
+                // PATCH3: bypass the "Waiting for server response..." wait
+                // loop. At RVA 0x4AA090 (pre-reloc VA 0x8AA090):
+                //   cmp byte ptr [0x1E84F73], 0  ; 80 3D <byte_VA> 00
+                //   jne 0x8AA0E9                 ; 75 50 (short jne, NOT long)
+                // Convert `75 rel8` to `EB rel8` (unconditional short jmp,
+                // same target) → always skip the busy-wait loop.
+                {
+                    DWORD flag2RuntimeVA = (DWORD)base + (0x01E84F73 - 0x00400000);
+                    BYTE needle[8] = {
+                        0x80, 0x3D,
+                        (BYTE)(flag2RuntimeVA),
+                        (BYTE)(flag2RuntimeVA >> 8),
+                        (BYTE)(flag2RuntimeVA >> 16),
+                        (BYTE)(flag2RuntimeVA >> 24),
+                        0x00, 0x75                // cmp ..., 0 ; jne short
+                    };
+                    DWORD p3Start = 0x4AA000, p3End = 0x4AA200;
+                    int p3Hits = 0;
+                    Log("PATCH3: scanning for cmp byte [0x%08lX],0;jne-short", flag2RuntimeVA);
+                    for (DWORD off = p3Start; off < p3End - sizeof(needle); off++) {
+                        BYTE *q = base + off;
+                        int match = 1;
+                        for (unsigned i = 0; i < sizeof(needle); i++) {
+                            if (q[i] != needle[i]) { match = 0; break; }
+                        }
+                        if (match) {
+                            p3Hits++;
+                            BYTE *jne = q + 7;  // the 0x75 byte
+                            Log("PATCH3: found cmp+jne-short @RVA 0x%06lX rel8=%02X",
+                                off, jne[1]);
+                            DWORD oldProt;
+                            if (VirtualProtect(jne, 2, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                                jne[0] = 0xEB;  // jmp short
+                                FlushInstructionCache(GetCurrentProcess(), jne, 2);
+                                VirtualProtect(jne, 2, oldProt, &oldProt);
+                                Log("PATCH3: jne->jmp @RVA 0x%06lX (skip server-response wait)", off + 7);
+                            } else {
+                                Log("PATCH3: VirtualProtect err=%lu", GetLastError());
+                            }
+                        }
+                    }
+                    Log("PATCH3: scan done, %d hits", p3Hits);
+                }
+
+                // PATCH4: bypass the "Server/Client mismatch" log + shutdown.
+                // At RVA 0x4AA844:
+                //   cmp byte ptr [0x1E84F72], 0   ; 80 3D <byte_VA> 00
+                //   jne 0x8AA8B0 (skip mismatch)  ; 75 63 (short)
+                // Convert 75→EB: always skip the mismatch path, client proceeds.
+                {
+                    DWORD vfRuntimeVA = (DWORD)base + (0x01E84F72 - 0x00400000);
+                    BYTE needle[8] = {
+                        0x80, 0x3D,
+                        (BYTE)(vfRuntimeVA),
+                        (BYTE)(vfRuntimeVA >> 8),
+                        (BYTE)(vfRuntimeVA >> 16),
+                        (BYTE)(vfRuntimeVA >> 24),
+                        0x00, 0x75
+                    };
+                    DWORD p4Start = 0x4AA700, p4End = 0x4AA900;
+                    int p4Hits = 0;
+                    Log("PATCH4: scanning for cmp byte [0x%08lX],0;jne-short (version-mismatch gate)",
+                        vfRuntimeVA);
+                    for (DWORD off = p4Start; off < p4End - sizeof(needle); off++) {
+                        BYTE *q = base + off;
+                        int match = 1;
+                        for (unsigned i = 0; i < sizeof(needle); i++) {
+                            if (q[i] != needle[i]) { match = 0; break; }
+                        }
+                        if (match) {
+                            p4Hits++;
+                            BYTE *jne = q + 7;
+                            Log("PATCH4: found cmp+jne-short @RVA 0x%06lX rel8=%02X",
+                                off, jne[1]);
+                            DWORD oldProt;
+                            if (VirtualProtect(jne, 2, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                                jne[0] = 0xEB;
+                                FlushInstructionCache(GetCurrentProcess(), jne, 2);
+                                VirtualProtect(jne, 2, oldProt, &oldProt);
+                                Log("PATCH4: jne->jmp @RVA 0x%06lX (skip mismatch shutdown)",
+                                    off + 7);
+                            } else {
+                                Log("PATCH4: VirtualProtect err=%lu", GetLastError());
+                            }
+                        }
+                    }
+                    Log("PATCH4: scan done, %d hits", p4Hits);
+                }
+                // Also dump 32 bytes around the originally-guessed RVA for reference
+                BYTE *ref = base + 0x5BAAA0;
+                char hex[128] = {0};
+                for (int i = 0; i < 32; i++) {
+                    char tmp[4];
+                    snprintf(tmp, 4, "%02X ", ref[i]);
+                    strcat(hex, tmp);
+                }
+                Log("PATCH: @0x5BAAA0: %s", hex);
+            }
+        }
+
+        // Watchdog thread disabled (see notes above).
+        (void)FlagWatchdog;
+
+        // Install diagnostic detour on handler at RVA 0x3EF8F0 to see if it
+        // fires naturally.
+        {
+            HMODULE hExe = GetModuleHandleA(NULL);
+            if (hExe) {
+                BYTE *target = (BYTE*)hExe + 0x3EF8F0;
+                // Verify prologue: 55 8B EC 6A FF (push ebp; mov ebp,esp; push -1)
+                Log("DETOUR: @0x3EF8F0 bytes: %02X %02X %02X %02X %02X",
+                    target[0], target[1], target[2], target[3], target[4]);
+                if (target[0] == 0x55 && target[1] == 0x8B && target[2] == 0xEC) {
+                    MakeTrampoline5(target, tramp_3EF8F0);
+                    g_tramp_3EF8F0_addr = (DWORD)tramp_3EF8F0;
+                    PatchJmp5(target, (void*)Detour_3EF8F0);
+                    Log("DETOUR: installed, trampoline=%p, detour=%p",
+                        tramp_3EF8F0, (void*)Detour_3EF8F0);
+                } else {
+                    Log("DETOUR: prologue mismatch, skipping install");
+                }
+            }
+        }
     }
     else if (reason == DLL_PROCESS_DETACH) {
         Log("Unloading");
