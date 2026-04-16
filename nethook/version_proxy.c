@@ -4112,6 +4112,64 @@ static void InstallEnqueueProbe(BYTE *hExe) {
 // The object lives on the heap, first byte in {0..0xA}, followed by structured data.
 // We scan heap regions every 1s and log any byte that TRANSITIONS between runs —
 // that tells us which stage actually ran on our traffic.
+// Scan heap for state instances (objects whose first qword == Patching vtable)
+// The vtable is at RVA 0x1953200. Runtime VA = hExe + 0x1953200.
+static DWORD WINAPI StateInstanceScanThread(LPVOID param) {
+    HMODULE hExe = GetModuleHandleA(NULL);
+    Sleep(10000); // let game reach GameSession
+
+    if (!g_enqLog) return 0;
+    UINT64 stateVtable = (UINT64)hExe + 0x1953200;
+    fprintf(g_enqLog, "\n[StateInstanceScan] hunting for vtable %p on heap\n",
+            (void*)stateVtable);
+    fflush(g_enqLog);
+
+    MEMORY_BASIC_INFORMATION mbi;
+    BYTE *scan = NULL;
+    int found = 0;
+    while (VirtualQuery(scan, &mbi, sizeof(mbi)) && found < 10) {
+        scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
+        if (mbi.State != MEM_COMMIT) continue;
+        if (!(mbi.Protect & PAGE_READWRITE)) continue;
+        if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) continue;
+        if (mbi.Type != MEM_PRIVATE) continue;
+        if (mbi.RegionSize > 0x10000000) continue;
+        BYTE *base = (BYTE*)mbi.BaseAddress;
+        SIZE_T sz = mbi.RegionSize;
+        for (SIZE_T off = 0; off + 64 <= sz; off += 8) {
+            if (*(UINT64*)(base + off) != stateVtable) continue;
+            found++;
+            fprintf(g_enqLog, "\n[StateInstance #%d] @ %p\n", found, base + off);
+            // Dump 64 bytes of the object
+            for (int d = 0; d < 64; d += 16) {
+                fprintf(g_enqLog, "  +%02X: ", d);
+                for (int j = 0; j < 16; j++) {
+                    fprintf(g_enqLog, "%02X ", base[off + d + j]);
+                }
+                fprintf(g_enqLog, " ");
+                for (int j = 0; j < 16; j++) {
+                    BYTE b = base[off + d + j];
+                    fprintf(g_enqLog, "%c", (b >= 32 && b < 127) ? b : '.');
+                }
+                fprintf(g_enqLog, "\n");
+            }
+            // Show any pointers-like qwords in the first 64 bytes
+            for (int q = 8; q < 64; q += 8) {
+                UINT64 val = *(UINT64*)(base + off + q);
+                if (val < 0x10000 || val > 0x7FFFFFFFFFFF) continue;
+                if (IsBadReadPtr((void*)val, 8)) continue;
+                UINT64 rva = val >= (UINT64)hExe ? val - (UINT64)hExe : 0;
+                fprintf(g_enqLog, "  +%02X qword = %p (rva=0x%llX)\n", q, (void*)val, rva);
+            }
+            fflush(g_enqLog);
+            if (found >= 10) break;
+        }
+    }
+    fprintf(g_enqLog, "\n[StateInstanceScan] done, %d instances found\n", found);
+    fflush(g_enqLog);
+    return 0;
+}
+
 static DWORD WINAPI ParserStateScanThread(LPVOID param) {
     HMODULE hExe = GetModuleHandleA(NULL);
     Sleep(5000); // let CertThread finish first
@@ -4726,6 +4784,7 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
     // === ENQUEUE PROBE ===
     InstallEnqueueProbe((BYTE*)hExe);
     CreateThread(NULL, 0, ParserStateScanThread, NULL, 0, NULL);
+    CreateThread(NULL, 0, StateInstanceScanThread, NULL, 0, NULL);
 
     // === BORINGSSL CERT VERIFY BYPASS (approach: patch verify result check) ===
     // The game uses BoringSSL (statically linked) for TLS to FakeLCU.
