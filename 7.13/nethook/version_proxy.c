@@ -126,6 +126,55 @@ __asm__(
     "    jmp *_g_tramp_3EF8F0_addr\n"
 );
 
+// Second detour: on the vtable method @ RVA 0x76EE20 (virtual packet handler).
+// This is the class method that onpacket-received; its arg [ebp+0xC] is the
+// packet pointer. We log ecx (this) + the packet bytes to determine whether
+// this vtable entry is the real post-auth packet dispatch entry.
+static BYTE tramp_76EE20[32];
+static volatile DWORD g_tramp_76EE20_addr = 0;
+static volatile int g_hits_76EE20 = 0;
+
+void __attribute__((cdecl, used)) LogFrom76EE20(DWORD this_ptr, DWORD arg_pkt, DWORD ret_addr) {
+    int h = ++g_hits_76EE20;
+    if (h <= 20) {
+        BYTE *pkt = (BYTE*)arg_pkt;
+        char hex[80] = {0};
+        if (arg_pkt && !IsBadReadPtr(pkt, 24)) {
+            for (int i = 0; i < 24; i++) {
+                char tmp[4];
+                snprintf(tmp, 4, "%02X ", pkt[i]);
+                strcat(hex, tmp);
+            }
+        } else {
+            strcpy(hex, "<bad ptr>");
+        }
+        Log("VT76EE20 #%d ret=%p this=%p pkt=%p [%s]",
+            h, (void*)ret_addr, (void*)this_ptr, (void*)arg_pkt, hex);
+    }
+}
+
+extern void Detour_76EE20(void);
+__asm__(
+    ".text\n"
+    ".globl _Detour_76EE20\n"
+    "_Detour_76EE20:\n"
+    // Stack at entry: [esp]=retaddr, [esp+4]=arg0 (stdcall/thiscall layout
+    // with arg passed on stack). For thiscall this = ecx, 1st stack arg is
+    // at [esp+4]. We grab both.
+    "    pushal\n"
+    "    pushfl\n"
+    "    mov 36(%esp), %eax\n"      // retaddr
+    "    push %eax\n"
+    "    mov 40(%esp), %eax\n"      // arg0 at [esp+36(pushal+fl)+4(retaddr)] = 40
+    "    push %eax\n"
+    "    push %ecx\n"                // this
+    "    call _LogFrom76EE20\n"
+    "    add $12, %esp\n"
+    "    popfl\n"
+    "    popal\n"
+    "    jmp *_g_tramp_76EE20_addr\n"
+);
+
 typedef int (WINAPI *sendto_t)(SOCKET, const char*, int, int, const struct sockaddr*, int);
 typedef int (WINAPI *recvfrom_t)(SOCKET, char*, int, int, struct sockaddr*, int*);
 typedef int (WINAPI *WSASendTo_t)(SOCKET, LPWSABUF, DWORD, LPDWORD, DWORD, const struct sockaddr*, int, LPWSAOVERLAPPED, LPWSAOVERLAPPED_COMPLETION_ROUTINE);
