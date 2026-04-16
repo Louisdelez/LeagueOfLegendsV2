@@ -74,7 +74,9 @@ namespace PacketDefinitions420
                     case EventType.RECEIVE:
                         {
                             var channel = (Channel)enetEvent.ChannelID;
-                            PacketHandlerManager.HandlePacket(enetEvent.Peer, enetEvent.Packet, channel);
+                            System.Console.WriteLine($"[PacketServer] RX channel={channel}({enetEvent.ChannelID}) len={enetEvent.Packet.Data.Length}");
+                            bool ok = PacketHandlerManager.HandlePacket(enetEvent.Peer, enetEvent.Packet, channel);
+                            System.Console.WriteLine($"[PacketServer] handler result={ok}");
                             // Clean up the packet now that we're done using it.
                             //enetEvent.Packet.Dispose();
                         }
