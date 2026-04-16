@@ -1,0 +1,54 @@
+League of Legends.exe(0x000000000000325C): ALWAYS|   CFG| Command Line:  "127.0.0.1 5119 17BLOhi6KZsTtldTsizvHg== 1" "-Product=LoL" "-PlayerID=1" "-GameID=1" "-PlayerNameMode=ALIAS" "-LNPBlob=N6oAFO++rd4=" "-GameBaseDir=D:\LeagueOfLegendsV2\client-private" "-Region=EUW" "-PlatformID=EUW1" "-Locale=fr_FR" "-SkipBuild" "-EnableCrashpad=false" "-RiotClientPort=57091" "-RiotClientAuthToken=PrivateServerToken123" 
+League of Legends.exe(0x000000000000325C): ALWAYS| Live Profiling enabled. Will overwrite old RPD.
+League of Legends.exe(0x000000000000325C): ALWAYS|   CFG| Build Version: Version 16.6.756.0931 (Mar 20 2026/10:15:05) [PUBLIC] <Releases/16.6> ChangeList: 7560931
+League of Legends.exe(0x000000000000325C): ALWAYS| LCURemotingClient: Initializing on port 57091
+League of Legends.exe(0x000000000000325C):  ERROR| ClientWebSocketTransport: After SSL_connect SSL_get_error returned 1...
+League of Legends.exe(0x000000000000325C):  ERROR| ClientWebSocketTransport: OpenSSL error: error:1416F086:SSL routines:tls_process_server_certificate:certificate verify failed
+League of Legends.exe(0x000000000000325C):  ERROR| LCURemotingClient: Unable to connect to app process.
+League of Legends.exe(0x000000000000325C): ALWAYS|  FLOW| Initializing Renderer
+League of Legends.exe(0x000000000000325C): ALWAYS| r3dRenderLayer::Init enter
+League of Legends.exe(0x000000000000325C): ALWAYS| r3dRenderLayer::Init() exit successfully
+League of Legends.exe(0x000000000000325C): ALWAYS| Checking DXGI Factory
+League of Legends.exe(0x000000000000325C): ALWAYS| Enumerating Adaptors
+League of Legends.exe(0x000000000000325C): ALWAYS| Getting Descriptor
+League of Legends.exe(0x000000000000325C): ALWAYS| Checking Feature Level
+League of Legends.exe(0x000000000000325C): ALWAYS| Detected DX11 Feature Level: 11.0
+League of Legends.exe(0x000000000000325C): ALWAYS| rr3dRenderLayer::InitDevice(XRes = 1280, YRes = 720, BPP = 32) PresentMode: Windowed enter
+League of Legends.exe(0x000000000000325C): ALWAYS| rr3dRenderLayer::InitDevice: Creating X3D device
+League of Legends.exe(0x000000000000325C): ALWAYS| DXGI version: 1.6
+League of Legends.exe(0x000000000000325C): ALWAYS| Detected Adapter 'NVIDIA GeForce RTX 3060'
+League of Legends.exe(0x000000000000325C): ALWAYS| DXGI: Tearing support enabled.
+League of Legends.exe(0x000000000000325C): ALWAYS| DX11 feature level: 11.1
+League of Legends.exe(0x000000000000325C): ALWAYS| Using X3D Platform: DX11
+League of Legends.exe(0x000000000000325C): ALWAYS| X3D: Focus Gained
+League of Legends.exe(0x000000000000325C): ALWAYS| r3dRenderLayer::RecreateOwnedResources
+League of Legends.exe(0x000000000000325C): ALWAYS| r3dRenderLayer::InitResources exit successfully
+League of Legends.exe(0x000000000000325C): ALWAYS| AudioManager: Wwise Version v2022.1.13 initialized.
+League of Legends.exe(0x000000000000325C): ALWAYS|  FLOW| Requesting State Transition: Pushing Patching State Stack Empty
+League of Legends.exe(0x000000000000325C): ALWAYS|  FLOW| Completed  State Transition: Pushing Bootstrap Current Topmost State: Bootstrap
+League of Legends.exe(0x000000000000325C): ALWAYS|  FLOW| Starting   State Transition: Pushing Patching Current Topmost State: Bootstrap
+League of Legends.exe(0x000000000000325C): ALWAYS|  FLOW| Completed  State Transition: Pushing Patching Current Topmost State: Patching
+League of Legends.exe(0x000000000000325C): ALWAYS|  FLOW| Requesting State Transition: Changing from Patching to LoLCommon Current Topmost State: Patching
+League of Legends.exe(0x000000000000325C): ALWAYS|  FLOW| Starting   State Transition: Changing from Patching to LoLCommon Current Topmost State: Patching
+League of Legends.exe(0x000000000000325C): ALWAYS| LCURemotingClient: Initializing on port 57091
+League of Legends.exe(0x000000000000325C):  ERROR| ClientWebSocketTransport: After SSL_connect SSL_get_error returned 1...
+League of Legends.exe(0x000000000000325C):  ERROR| ClientWebSocketTransport: OpenSSL error: error:1416F086:SSL routines:tls_process_server_certificate:certificate verify failed
+League of Legends.exe(0x000000000000325C):  ERROR| LCURemotingClient: Unable to connect to app process.
+League of Legends.exe(0x000000000000325C):  ERROR| LCUVoiceChatClient: Unable to connect to LCU.
+League of Legends.exe(0x000000000000325C): ALWAYS|  FLOW| Completed  State Transition: Changing from Patching to LoLCommon Current Topmost State: LoLCommon
+League of Legends.exe(0x000000000000325C): ALWAYS|  FLOW| Requesting State Transition: Pushing GameSession Current Topmost State: LoLCommon
+League of Legends.exe(0x000000000000325C): ALWAYS|  FLOW| Starting   State Transition: Pushing GameSession Current Topmost State: LoLCommon
+League of Legends.exe(0x000000000000325C): ALWAYS| GameStartData::GameID=1
+League of Legends.exe(0x000000000000325C): ALWAYS| Client Clock Synchronization Started
+League of Legends.exe(0x000000000000325C): ALWAYS|  CONN| Starting Multiplayer Session: PlayerClient GameID(1) ServerAddress(127.0.0.1:5119) SummonerID(1)
+League of Legends.exe(0x000000000000325C): ALWAYS|  CONN| Connecting to address (127.0.0.1) port (5119)
+League of Legends.exe(0x0000000000002DCC): ALWAYS| LCURemotingClient: Initializing on port 57091
+League of Legends.exe(0x0000000000002DCC):  ERROR| ClientWebSocketTransport: After SSL_connect SSL_get_error returned 1...
+League of Legends.exe(0x0000000000002DCC):  ERROR| ClientWebSocketTransport: OpenSSL error: error:1416F086:SSL routines:tls_process_server_certificate:certificate verify failed
+League of Legends.exe(0x0000000000002DCC):  ERROR| LCURemotingClient: Unable to connect to app process.
+League of Legends.exe(0x000000000000325C): ALWAYS|  FLOW| Completed  State Transition: Pushing GameSession Current Topmost State: GameSession
+League of Legends.exe(0x000000000000325C): ALWAYS|  CONN| Hard Connect at LocalSimTime(0.000)
+League of Legends.exe(0x000000000000325C): ALWAYS|  FLOW| Timeout waiting to connect to: FLOW
+League of Legends.exe(0x0000000000002DCC):  ERROR| ClientWebSocketTransport: After SSL_connect SSL_get_error returned 1...
+League of Legends.exe(0x0000000000002DCC):  ERROR| ClientWebSocketTransport: OpenSSL error: error:1416F086:SSL routines:tls_process_server_certificate:certificate verify failed
+League of Legends.exe(0x0000000000002DCC):  ERROR| LCURemotingClient: Unable to connect to app process.

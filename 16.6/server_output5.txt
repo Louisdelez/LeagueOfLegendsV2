@@ -1,0 +1,5 @@
+D:\LeagueOfLegendsV2\server\src\LoLServer.Core\Network\PacketServer.cs(185,19): warning CS0219: La variable 'maxNoActivityForAutoDetect' est assignée, mais sa valeur n'est jamais utilisée [D:\LeagueOfLegendsV2\server\src\LoLServer.Core\LoLServer.Core.csproj]
+D:\LeagueOfLegendsV2\server\src\LoLServer.Core\Network\RawGameServer.cs(523,13): error CS0128: Une variable ou une fonction locale nommée 'packet' est déjà définie dans cette portée [D:\LeagueOfLegendsV2\server\src\LoLServer.Core\LoLServer.Core.csproj]
+D:\LeagueOfLegendsV2\server\src\LoLServer.Core\Game\GameLoop.cs(53,17): warning CS0169: Le champ 'GameLoop._redDragons' n'est jamais utilisé [D:\LeagueOfLegendsV2\server\src\LoLServer.Core\LoLServer.Core.csproj]
+D:\LeagueOfLegendsV2\server\src\LoLServer.Core\Game\GameLoop.cs(52,17): warning CS0169: Le champ 'GameLoop._blueDragons' n'est jamais utilisé [D:\LeagueOfLegendsV2\server\src\LoLServer.Core\LoLServer.Core.csproj]
+D:\LeagueOfLegendsV2\server\src\LoLServer.Core\Game\GameLoop.cs(54,18): warning CS0169: Le champ 'GameLoop._baronAlive' n'est jamais utilisé [D:\LeagueOfLegendsV2\server\src\LoLServer.Core\LoLServer.Core.csproj]

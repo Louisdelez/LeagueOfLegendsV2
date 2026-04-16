@@ -1,0 +1,20 @@
+{
+  "gameMode": "CLASSIC",
+  "mapId": 11,
+  "serverPort": 5119,
+  "clientPath": "D:\\Programm\\Riot Games\\League of Legends\\Game",
+  "blowfishKey": "17BLOhi6KZsTtldTsizvHg==",
+  "gameVersion": "16.6.1",
+  "players": [
+    {
+      "playerId": 1,
+      "team": 100,
+      "name": "Player1",
+      "champion": "Ezreal",
+      "skinId": 0,
+      "summonerSpell1": "SummonerFlash",
+      "summonerSpell2": "SummonerIgnite",
+      "blowfishKey": null
+    }
+  ]
+}

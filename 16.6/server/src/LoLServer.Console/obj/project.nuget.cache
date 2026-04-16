@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "cnF0xBaextM=",
+  "success": true,
+  "projectFilePath": "D:\\LeagueOfLegendsV2\\server\\src\\LoLServer.Console\\LoLServer.Console.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\loicd\\.nuget\\packages\\bouncycastle.cryptography\\2.6.2\\bouncycastle.cryptography.2.6.2.nupkg.sha512",
+    "C:\\Users\\loicd\\.nuget\\packages\\crc32.net\\1.2.0\\crc32.net.1.2.0.nupkg.sha512",
+    "C:\\Users\\loicd\\.nuget\\packages\\lenet\\1.0.1\\lenet.1.0.1.nupkg.sha512",
+    "C:\\Users\\loicd\\.nuget\\packages\\microsoft.netcore.platforms\\1.1.0\\microsoft.netcore.platforms.1.1.0.nupkg.sha512",
+    "C:\\Users\\loicd\\.nuget\\packages\\netstandard.library\\2.0.0\\netstandard.library.2.0.0.nupkg.sha512",
+    "C:\\Users\\loicd\\.nuget\\packages\\newtonsoft.json\\13.0.4\\newtonsoft.json.13.0.4.nupkg.sha512"
+  ],
+  "logs": []
+}

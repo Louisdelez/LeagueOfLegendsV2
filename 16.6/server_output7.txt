@@ -1,0 +1,833 @@
+
+  ╔═══════════════════════════════════════════╗
+  ║     LoL Private Server v0.1.0             ║
+  ║     Compatible with modern LoL client     ║
+  ╚═══════════════════════════════════════════╝
+
+Loading config from D:\LeagueOfLegendsV2\server\src\LoLServer.Console\bin\Debug\net8.0\gameconfig.json
+Server port: 5119
+Client path: /media/louisdelez/VM/LeagueOfLegendsV2/client/Game
+Game version: 16.6.1
+Map: 11
+Mode: Raw UDP (modern client)
+Raw capture: False
+
+[LOBBY] Web lobby running at http://localhost:8888/
+[LOBBY] Players can join at http://<YOUR_IP>:8888/
+[LCU] Using custom cert from D:\LeagueOfLegendsV2\server_tls.pfx (CN=CN=localhost)
+[LCU] Certificate saved to D:\LeagueOfLegendsV2\fakeLcu.crt
+[LCU] Certificate already in store, skipping install
+[LCU] Fake RiotClient (TLS) running on port 59379
+
+Log file: D:\LeagueOfLegendsV2\server\src\LoLServer.Console\bin\Debug\net8.0\logs\server_20260403_072906.log
+Press Ctrl+C to stop the server.
+
+[07:29:06.353] === LoL Private Server (Double CFB Mode) ===
+[07:29:06.355] Port: 5119
+[07:29:06.355] Blowfish Key: 17BLOhi6KZsTtldTsizvHg== (16 bytes)
+[07:29:06.355] BF_encrypt(zeros) = F9-ED-26-C0-F2-2A-52-B4
+[07:29:06.355] P[0] = 0xBBCD2876 (client has 0xBBCD2876)
+[07:29:06.356] SessionID: 0xDEADBEEF
+[07:29:06.356] Players: 2
+[07:29:06.356] [OK] Listening on UDP port 5119
+[07:29:06.356] Waiting for LoL client connection...
+[LCU] Client handler error: Authentication failed because the remote party sent a TLS alert: 'UnknownCA'.
+[LCU] Client handler error: Authentication failed because the remote party sent a TLS alert: 'UnknownCA'.
+[LCU] Client handler error: Authentication failed because the remote party sent a TLS alert: 'UnknownCA'.
+[07:29:43.337] [NEW PEER] 127.0.0.1:63890 → PeerId=0
+[07:29:43.338]   [TOKEN] Connection token: 0xEDE36B43
+[07:29:43.338] [CLIENT] #1 519B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:43.338]   [DECRYPT] peerID=0x0000 nonce=0xEBD59CD3 cmd=72(0x48) sentTime=False bodyLen=504
+[07:29:43.338]   [BODY] 4A-89-8A-4E-F1-2F-EF-7F-1D-45-1D-46-DC-F5-82-CF-CC-64-93-14-F9-6C-FC-1D-AC-87-5C-12-AE-7D-C4-D2-BE-96-9D-FD-B6-A1-F8-E0-BF-31-B3-8B-AD-2B-F1-1D
+[07:29:43.339]   [HANDSHAKE] ECHO-ONLY mode
+[07:29:43.341]   [CLIENT] Created PeerId=0
+[07:29:43.342] [CLIENT] #2 119B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:43.342]   [DECRYPT] peerID=0x0000 nonce=0xBAA6C11D cmd=12(0x0C) sentTime=False bodyLen=104
+[07:29:43.342]   [BODY] C5-AA-C2-4A-4A-7E-45-F0-9C-6A-9D-5D-04-FC-B3-3F-58-E1-3C-0B-2F-6B-27-89-A7-F0-64-AC-15-5C-A4-B6-E8-8D-B9-1F-0A-B8-9D-CC-A2-26-7B-AF-5A-AA-BC-D3
+[07:29:43.343] [CLIENT] #3 519B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:43.343]   [DECRYPT] peerID=0x0000 nonce=0xB02D4628 cmd=69(0x45) sentTime=False bodyLen=504
+[07:29:43.343]   [BODY] 1B-03-36-40-B1-4A-F1-CD-A1-48-72-62-82-E4-72-DC-D8-AA-EE-7C-69-6D-52-F0-92-46-A7-A8-A8-AE-31-53-45-A6-55-A0-E2-5C-6B-9F-8A-80-1E-B8-E9-0C-B8-06
+[07:29:43.343] [CLIENT] #4 119B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:43.344]   [DECRYPT] peerID=0x0000 nonce=0x84F7AD62 cmd=58(0x3A) sentTime=True bodyLen=104
+[07:29:43.344]   [BODY] 92-CF-AF-17-C7-FF-5E-5C-B4-9E-42-87-9E-5B-67-28-12-4B-70-C9-75-6E-01-52-5E-C0-CB-52-F0-F7-FD-97-7E-48-B2-94-FD-59-A3-66-0E-6D-46-AD-1D-30-3C-DD
+[07:29:43.345] [CLIENT] #5 64B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:43.345]   [DECRYPT] peerID=0xC6E9 nonce=0xA8E321EE cmd=15(0x0F) sentTime=True bodyLen=49
+[07:29:43.345]   [BODY] 8F-A9-30-4D-BD-93-5B-0E-B3-DF-5A-C5-6C-58-B9-DA-C3-9D-A8-97-6F-B8-FA-21-63-E9-35-3E-32-FB-1D-15-3E-DB-99-4C-61-98-62-62-5B-A9-40-38-B0-C0-18-E6
+[07:29:43.346] [CLIENT] #6 34B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:43.346]   [DECRYPT] peerID=0x0002 nonce=0xBFC67E99 cmd=20(0x14) sentTime=True bodyLen=19
+[07:29:43.346]   [BODY] AD-62-E6-47-4B-1B-1C-31-36-F8-C2-BE-35-7B-0F-25-A1-0E-14
+[07:29:43.349] [CLIENT] #7 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:43.349]   [DECRYPT] peerID=0xFFFE nonce=0x96A99799 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:43.349]   [BODY] BF-74-15-26-C5-C5-B5-52-47-4D-0E-14
+[07:29:43.349] [CLIENT] #8 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:43.349]   [DECRYPT] peerID=0xFFFE nonce=0x96A99799 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:43.349]   [BODY] BF-74-15-26-C5-C5-B5-52-47-4D-0E-14
+[07:29:43.355] [CLIENT] #9 64B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:43.355]   [DECRYPT] peerID=0x9503 nonce=0xEB5D5391 cmd=112(0x70) sentTime=True bodyLen=49
+[07:29:43.355]   [BODY] 62-37-EC-BC-96-1C-38-9D-EA-D6-F8-41-C9-26-09-8B-4A-F8-B0-CF-8F-FA-60-CD-BE-D3-E1-D1-8D-63-9C-8F-84-A1-65-14-9D-18-2C-F0-10-24-3E-3F-CE-D0-72-7D
+[07:29:43.355] [CLIENT] #10 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:43.356]   [DECRYPT] peerID=0xFFFD nonce=0x099E6091 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:43.356]   [BODY] B9-FA-C5-6D-26-46-84-EE-36-4D-0E-14
+[07:29:43.865] [CLIENT] #11 19B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:43.865]   [DECRYPT] peerID=0xEDFD nonce=0xD79F94B0 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:43.865]   [BODY] 37-4D-0E-14
+[07:29:43.866] [CLIENT] #12 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:43.866]   [DECRYPT] peerID=0xFFFC nonce=0xC7848853 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:43.866]   [BODY] B5-AC-F6-11-E7-61-FC-E5-76-4D-0E-14
+[07:29:44.376] [CLIENT] #13 19B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:44.376]   [DECRYPT] peerID=0xEDFC nonce=0x165163F7 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:44.376]   [BODY] 37-4D-0E-14
+[07:29:44.376] [CLIENT] #14 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:44.377]   [DECRYPT] peerID=0xFFFB nonce=0x9E44708E cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:44.377]   [BODY] AD-C7-4C-E0-EA-67-D8-FF-4D-4D-0E-14
+[07:29:44.887] [CLIENT] #15 19B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:44.887]   [DECRYPT] peerID=0xEDFF nonce=0x55027B3F cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:44.887]   [BODY] 37-4D-0E-14
+[07:29:44.887] [CLIENT] #16 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:44.887]   [DECRYPT] peerID=0xFFFA nonce=0x0DE17AD4 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:44.887]   [BODY] 9D-C2-89-7A-46-6C-AC-8B-63-4D-0E-14
+[07:29:45.345] [CLIENT] #17 36B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:45.345]   [DECRYPT] peerID=0xD90E nonce=0x980031A1 cmd=57(0x39) sentTime=True bodyLen=21
+[07:29:45.345]   [BODY] 7D-A2-68-D2-E3-27-7F-62-FD-A0-62-14-43-22-B0-FB-EA-83-4D-0E-14
+[07:29:45.346] [CLIENT] #18 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:45.346]   [DECRYPT] peerID=0xFFF9 nonce=0xEA649827 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:45.346]   [BODY] FD-05-EB-D5-BD-35-B9-2A-05-4D-0E-14
+[07:29:45.855] [CLIENT] #19 19B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:45.855]   [DECRYPT] peerID=0xEDF1 nonce=0x02F4B69D cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:45.855]   [BODY] 37-4D-0E-14
+[07:29:45.856] [CLIENT] #20 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:29:45.856]   [DECRYPT] peerID=0xFFF8 nonce=0x63079A17 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:45.856]   [BODY] 3D-CA-7D-AE-4D-3F-69-66-A1-4D-0E-14
+[07:29:46.366]   [DECRYPT] peerID=0xEDF0 nonce=0xC33A41DA cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:46.366]   [BODY] 37-4D-0E-14
+[07:29:46.366]   [DECRYPT] peerID=0xFFF7 nonce=0x6FAE9E55 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:46.366]   [BODY] BD-BD-44-9E-A8-92-10-76-D0-4D-0E-14
+[07:29:46.876]   [DECRYPT] peerID=0xEDF3 nonce=0x80695912 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:46.876]   [BODY] 37-4D-0E-14
+[07:29:46.877]   [DECRYPT] peerID=0xFFF6 nonce=0x27950010 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:46.877]   [BODY] BD-38-7D-23-F8-89-EE-1E-16-4D-0E-14
+[07:29:47.345]   [DECRYPT] peerID=0xF10B nonce=0x7F674EA7 cmd=37(0x25) sentTime=True bodyLen=22
+[07:29:47.346]   [BODY] 2D-9C-DC-B2-45-10-EA-4A-A2-19-30-D1-6D-92-4C-3C-8D-31-83-4D-0E-14
+[07:29:47.346]   [DECRYPT] peerID=0xFFF5 nonce=0x762DCBDC cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:47.346]   [BODY] BD-CB-49-27-8B-27-0C-49-11-4D-0E-14
+[07:29:47.849]   [DECRYPT] peerID=0xEDF5 nonce=0xB1D2A886 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:47.849]   [BODY] 37-4D-0E-14
+[07:29:47.850]   [DECRYPT] peerID=0xFFF4 nonce=0x93359B92 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:47.850]   [BODY] BD-41-DF-9D-33-04-DF-BF-9B-4D-0E-14
+[07:29:48.359]   [DECRYPT] peerID=0xEDF4 nonce=0x701C5FC1 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:48.359]   [BODY] 37-4D-0E-14
+[07:29:48.360]   [DECRYPT] peerID=0xFFF3 nonce=0x2BECD252 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:48.360]   [BODY] BD-1E-A3-9B-D6-BC-D9-1A-87-4D-0E-14
+[07:29:48.870]   [DECRYPT] peerID=0xEDF7 nonce=0x334F4709 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:48.870]   [BODY] 37-4D-0E-14
+[07:29:48.870]   [DECRYPT] peerID=0xFFF2 nonce=0x7A7ABA33 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:48.870]   [BODY] BD-37-21-A1-69-2C-BF-92-9B-4D-0E-14
+[07:29:49.346]   [DECRYPT] peerID=0x950F nonce=0x07339916 cmd=39(0x27) sentTime=True bodyLen=22
+[07:29:49.346]   [BODY] 77-BC-8E-77-96-D4-5B-E7-7F-30-11-3F-1C-99-9E-93-76-94-83-4D-0E-14
+[07:29:49.346]   [DECRYPT] peerID=0xFFF1 nonce=0x19989CB6 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:49.346]   [BODY] BD-79-72-DD-3E-7F-C0-94-80-4D-0E-14
+[07:29:49.851]   [DECRYPT] peerID=0xEDE9 nonce=0xA823F2C7 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:49.851]   [BODY] 37-4D-0E-14
+[07:29:49.851]   [GAME] Sending KeyCheck via CRC-format packet
+[07:29:49.852]   [CRC-PKT] cmd=0x06 body=37B total=46B (magic=CAFE)
+[07:29:49.852]   [KEYCHECK] sent via CAFE, 37B body
+[07:29:49.852]   [CRC-PKT] cmd=0x06 body=37B total=46B (magic=CAFE)
+[07:29:49.852]   [SYNCH] sent SynchVersionS2C
+[07:29:49.852]   [DECRYPT] peerID=0xFFF0 nonce=0x9834166B cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:49.852]   [BODY] BD-90-A7-43-75-3B-3D-DF-7E-4D-0E-14
+[07:29:50.361]   [DECRYPT] peerID=0xEDE8 nonce=0x69ED0580 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:50.361]   [BODY] 37-4D-0E-14
+[07:29:50.362]   [DECRYPT] peerID=0xFFEF nonce=0x9E141BDC cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:50.362]   [BODY] BD-9E-FB-31-EA-D0-CD-C0-DB-4D-0E-14
+[07:29:50.872]   [DECRYPT] peerID=0xEDEB nonce=0x2ABE1D48 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:50.872]   [BODY] 37-4D-0E-14
+[07:29:50.872]   [DECRYPT] peerID=0xFFEE nonce=0x8C8507E9 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:50.872]   [BODY] BD-51-4E-EA-6A-5B-09-89-E3-4D-0E-14
+[07:29:51.346]   [DECRYPT] peerID=0xBA13 nonce=0x50350E4C cmd=12(0x0C) sentTime=False bodyLen=22
+[07:29:51.346]   [BODY] FD-7F-40-E2-F0-8A-DC-68-28-99-9B-50-2F-AE-48-D9-B3-C8-83-4D-0E-14
+[07:29:51.346]   [DECRYPT] peerID=0xFFED nonce=0x6969C9C4 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:51.346]   [BODY] BD-95-BA-90-09-77-65-C9-71-4D-0E-14
+[07:29:51.853]   [DECRYPT] peerID=0xEDED nonce=0x1B05ECDC cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:51.853]   [BODY] 37-4D-0E-14
+[07:29:51.853]   [DECRYPT] peerID=0xFFEC nonce=0x53C5524C cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:51.853]   [BODY] BD-88-16-91-87-DE-F2-56-DA-4D-0E-14
+[07:29:52.363]   [DECRYPT] peerID=0xEDEC nonce=0xDACB1B9B cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:52.363]   [BODY] 37-4D-0E-14
+[07:29:52.364]   [DECRYPT] peerID=0xFFEB nonce=0xE2684D05 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:52.364]   [BODY] BD-AF-48-48-E0-96-C9-51-9B-4D-0E-14
+[07:29:52.874]   [DECRYPT] peerID=0xEDEF nonce=0x99980353 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:52.874]   [BODY] 37-4D-0E-14
+[07:29:52.875]   [DECRYPT] peerID=0xFFEA nonce=0x160B4872 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:52.875]   [BODY] BD-EA-F3-0A-0B-6C-85-97-A3-4D-0E-14
+[07:29:53.346]   [DECRYPT] peerID=0xE717 nonce=0x0AD938F4 cmd=107(0x6B) sentTime=True bodyLen=22
+[07:29:53.346]   [BODY] C2-56-CB-40-40-8A-7F-D1-E0-A9-1F-FB-B1-7E-D5-23-06-85-83-4D-0E-14
+[07:29:53.347]   [DECRYPT] peerID=0xFFE9 nonce=0x3F02B5DB cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:53.347]   [BODY] BD-B0-5D-1E-93-86-8D-BB-10-4D-0E-14
+[07:29:53.855]   [DECRYPT] peerID=0xEDE1 nonce=0xCE6ECEF1 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:53.855]   [BODY] 37-4D-0E-14
+[07:29:53.855]   [DECRYPT] peerID=0xFFE8 nonce=0x2A78885F cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:53.855]   [BODY] BD-B5-69-EF-D4-08-71-E0-7A-4D-0E-14
+[07:29:54.358]   [DECRYPT] peerID=0xEDE0 nonce=0x0FA039B6 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:54.358]   [BODY] 37-4D-0E-14
+[07:29:54.358]   [DECRYPT] peerID=0xFFE7 nonce=0x9385FF3C cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:54.358]   [BODY] BD-18-49-46-DB-1D-B1-43-A3-4D-0E-14
+[07:29:54.860]   [DECRYPT] peerID=0xEDE3 nonce=0x4CF3217E cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:54.860]   [BODY] 37-4D-0E-14
+[07:29:54.861]   [DECRYPT] peerID=0xFFE6 nonce=0x8B6D4B76 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:54.861]   [BODY] BD-D7-A7-65-0A-6F-68-C8-A4-4D-0E-14
+[07:29:55.346]   [DECRYPT] peerID=0x9A1B nonce=0x4A09CDED cmd=27(0x1B) sentTime=False bodyLen=22
+[07:29:55.346]   [BODY] 77-4F-7A-8A-B2-8C-6B-08-E0-4E-44-C6-FF-4B-3F-B0-FF-54-83-4D-0E-14
+[07:29:55.347]   [DECRYPT] peerID=0xFFE5 nonce=0x7A73D5A4 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:55.347]   [BODY] BD-E1-AB-65-15-FC-5D-E8-3A-4D-0E-14
+[07:29:55.859]   [DECRYPT] peerID=0xEDE5 nonce=0x7D48D0EA cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:55.859]   [BODY] 37-4D-0E-14
+[07:29:55.860]   [DECRYPT] peerID=0xFFE4 nonce=0xDF262ED6 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:55.860]   [BODY] BD-6A-32-B3-6E-F1-EB-39-0B-4D-0E-14
+[07:29:56.367]   [DECRYPT] peerID=0xEDE4 nonce=0xBC8627AD cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:56.367]   [BODY] 37-4D-0E-14
+[07:29:56.367]   [DECRYPT] peerID=0xFFE3 nonce=0xE765316F cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:56.367]   [BODY] BD-15-F3-72-41-D5-B1-7D-BD-4D-0E-14
+[07:29:56.875]   [DECRYPT] peerID=0xEDE7 nonce=0xFFD53F65 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:56.875]   [BODY] 37-4D-0E-14
+[07:29:56.875]   [DECRYPT] peerID=0xFFE2 nonce=0xB6C6F4FC cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:56.875]   [BODY] BD-77-2C-2D-F7-6A-85-C7-11-4D-0E-14
+[07:29:57.351]   [DECRYPT] peerID=0x0A1F nonce=0x47B1DCCD cmd=117(0x75) sentTime=False bodyLen=22
+[07:29:57.351]   [BODY] 98-AC-5D-0A-33-2A-BF-C2-9C-E9-53-FD-83-26-3F-5F-15-B5-83-4D-0E-14
+[07:29:57.351]   [DECRYPT] peerID=0xFFE1 nonce=0x62534998 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:57.351]   [BODY] BD-24-D4-33-35-2C-AD-4F-5B-4D-0E-14
+[07:29:57.857]   [DECRYPT] peerID=0xEDD9 nonce=0xFC8C7B73 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:57.857]   [BODY] 37-4D-0E-14
+[07:29:57.859]   [DECRYPT] peerID=0xFFE0 nonce=0x3A0D3482 cmd=97(0x61) sentTime=True bodyLen=12
+[07:29:57.859]   [BODY] BD-E1-6F-43-52-D5-66-E5-35-4D-0E-14
+[07:29:58.366]   [DECRYPT] peerID=0xEDD8 nonce=0x3D428C34 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:58.366]   [BODY] 37-4D-0E-14
+[07:29:58.366]   [DECRYPT] peerID=0xFFDF nonce=0x1ABC95BB cmd=80(0x50) sentTime=True bodyLen=12
+[07:29:58.366]   [BODY] E0-6F-3C-31-16-5E-2B-36-83-4D-0E-14
+[07:29:58.872]   [DECRYPT] peerID=0xEDDB nonce=0x7E1194FC cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:58.872]   [BODY] 37-4D-0E-14
+[07:29:58.873]   [DECRYPT] peerID=0xFFDE nonce=0x2EA86AFF cmd=42(0x2A) sentTime=False bodyLen=12
+[07:29:58.873]   [BODY] 1D-DB-44-90-D0-91-09-2B-AE-4D-0E-14
+[07:29:59.365]   [DECRYPT] peerID=0x0623 nonce=0x504C9C6D cmd=54(0x36) sentTime=True bodyLen=22
+[07:29:59.365]   [BODY] B1-17-77-2D-3F-5B-81-45-48-5B-3A-BF-95-71-02-1E-E0-72-83-4D-0E-14
+[07:29:59.366]   [DECRYPT] peerID=0xFFDD nonce=0xD14C9431 cmd=54(0x36) sentTime=False bodyLen=12
+[07:29:59.366]   [BODY] 9A-3F-EE-BF-10-EE-62-62-B3-4D-0E-14
+[07:29:59.871]   [DECRYPT] peerID=0xEDDD nonce=0x4FAA6568 cmd=32(0x20) sentTime=True bodyLen=4
+[07:29:59.871]   [BODY] 37-4D-0E-14
+[07:29:59.872]   [DECRYPT] peerID=0xFFDC nonce=0xA395F77A cmd=102(0x66) sentTime=True bodyLen=12
+[07:29:59.872]   [BODY] DD-1D-2D-84-E9-65-77-F7-D6-4D-0E-14
+[07:30:00.380]   [DECRYPT] peerID=0xEDDC nonce=0x8E64922F cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:00.380]   [BODY] 37-4D-0E-14
+[07:30:00.380]   [DECRYPT] peerID=0xFFDB nonce=0xE4A24CB1 cmd=9(0x09) sentTime=False bodyLen=12
+[07:30:00.380]   [BODY] BF-58-35-0F-AD-57-8E-4A-C7-4D-0E-14
+[07:30:00.884]   [DECRYPT] peerID=0xEDDF nonce=0xCD378AE7 cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:00.884]   [BODY] 37-4D-0E-14
+[07:30:00.885]   [DECRYPT] peerID=0xFFDA nonce=0x96FFEDC6 cmd=49(0x31) sentTime=False bodyLen=12
+[07:30:00.885]   [BODY] 3F-CF-0C-80-91-0B-FC-67-2D-4D-0E-14
+[07:30:01.375]   [DECRYPT] peerID=0x8027 nonce=0xB4C10C1D cmd=99(0x63) sentTime=False bodyLen=22
+[07:30:01.375]   [BODY] 28-B7-66-D2-6F-18-8A-6A-65-60-F8-EC-32-CC-79-19-6E-1F-83-4D-0E-14
+[07:30:01.375]   [DECRYPT] peerID=0xFFD9 nonce=0x3D8A7A6E cmd=47(0x2F) sentTime=False bodyLen=12
+[07:30:01.375]   [BODY] 44-69-4C-E5-DD-58-73-16-6C-4D-0E-14
+[07:30:01.880]   [DECRYPT] peerID=0xEDD1 nonce=0x9AC14745 cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:01.880]   [BODY] 37-4D-0E-14
+[07:30:01.881]   [DECRYPT] peerID=0xFFD8 nonce=0x26CDDAE9 cmd=35(0x23) sentTime=False bodyLen=12
+[07:30:01.881]   [BODY] 40-F9-6B-79-69-ED-15-9A-69-4D-0E-14
+[07:30:02.388]   [DECRYPT] peerID=0xEDD0 nonce=0x5B0FB002 cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:02.388]   [BODY] 37-4D-0E-14
+[07:30:02.388]   [DECRYPT] peerID=0xFFD7 nonce=0x0E6C078C cmd=75(0x4B) sentTime=True bodyLen=12
+[07:30:02.388]   [BODY] AF-0C-07-B1-4D-C8-E1-52-A9-4D-0E-14
+[07:30:02.896]   [DECRYPT] peerID=0xEDD3 nonce=0x185CA8CA cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:02.896]   [BODY] 37-4D-0E-14
+[07:30:02.897]   [DECRYPT] peerID=0xFFD6 nonce=0x4C9F88CB cmd=3(0x03) sentTime=True bodyLen=12
+[07:30:02.897]   [BODY] AC-6B-5A-F8-40-44-C8-E7-41-4D-0E-14
+[07:30:03.388]   [DECRYPT] peerID=0xF62B nonce=0x93C01694 cmd=96(0x60) sentTime=True bodyLen=22
+[07:30:03.388]   [BODY] 7F-AF-14-4C-CA-F2-AE-30-47-3E-6A-E5-61-38-E6-A1-A1-8A-83-4D-0E-14
+[07:30:03.388]   [DECRYPT] peerID=0xFFD5 nonce=0xCD327403 cmd=52(0x34) sentTime=False bodyLen=12
+[07:30:03.388]   [BODY] F7-2F-D9-CB-E2-F2-CD-02-64-4D-0E-14
+[07:30:03.896]   [DECRYPT] peerID=0xEDD5 nonce=0x29E7595E cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:03.896]   [BODY] 37-4D-0E-14
+[07:30:03.897]   [DECRYPT] peerID=0xFFD4 nonce=0xE5EDDB44 cmd=30(0x1E) sentTime=True bodyLen=12
+[07:30:03.897]   [BODY] 59-5C-1D-47-48-D7-15-02-41-4D-0E-14
+[07:30:04.403]   [DECRYPT] peerID=0xEDD4 nonce=0xE829AE19 cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:04.403]   [BODY] 37-4D-0E-14
+[07:30:04.403]   [DECRYPT] peerID=0xFFD3 nonce=0xF8C84197 cmd=113(0x71) sentTime=False bodyLen=12
+[07:30:04.403]   [BODY] F4-95-64-B8-D9-C7-2E-FC-69-4D-0E-14
+[07:30:04.912]   [DECRYPT] peerID=0xEDD7 nonce=0xAB7AB6D1 cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:04.912]   [BODY] 37-4D-0E-14
+[07:30:04.912]   [DECRYPT] peerID=0xFFD2 nonce=0x923F72D0 cmd=27(0x1B) sentTime=False bodyLen=12
+[07:30:04.912]   [BODY] D3-B0-DA-07-F9-7A-DB-14-E5-4D-0E-14
+[07:30:05.389]   [DECRYPT] peerID=0x142F nonce=0xB18CE693 cmd=64(0x40) sentTime=False bodyLen=22
+[07:30:05.389]   [BODY] CE-10-0E-EB-94-9E-EA-AA-DB-65-85-94-DD-D7-7D-8B-02-EF-83-4D-0E-14
+[07:30:05.390]   [DECRYPT] peerID=0xFFD1 nonce=0xF817DB18 cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:05.390]   [BODY] DF-58-AE-9E-3B-83-43-C8-65-4D-0E-14
+[07:30:05.895]   [DECRYPT] peerID=0xEDC9 nonce=0x3016031F cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:05.895]   [BODY] 37-4D-0E-14
+[07:30:05.895]   [DECRYPT] peerID=0xFFD0 nonce=0x6C3D535F cmd=8(0x08) sentTime=True bodyLen=12
+[07:30:05.895]   [BODY] 9C-67-25-B9-60-BA-EF-04-6D-4D-0E-14
+[07:30:06.401]   [DECRYPT] peerID=0xEDC8 nonce=0xF1D8F458 cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:06.401]   [BODY] 37-4D-0E-14
+[07:30:06.401]   [DECRYPT] peerID=0xFFCF nonce=0xDC6162D6 cmd=59(0x3B) sentTime=True bodyLen=12
+[07:30:06.401]   [BODY] 70-88-61-75-FB-98-69-D4-7E-4D-0E-14
+[07:30:06.907]   [DECRYPT] peerID=0xEDCB nonce=0xB28BEC90 cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:06.907]   [BODY] 37-4D-0E-14
+[07:30:07.402]   [DECRYPT] peerID=0x5833 nonce=0xA22C93A8 cmd=71(0x47) sentTime=False bodyLen=22
+[07:30:07.402]   [BODY] FE-EC-C4-65-4E-85-E4-E3-02-90-9F-E1-AA-29-E4-FE-66-99-83-4D-0E-14
+[07:30:07.402]   [DECRYPT] peerID=0xFFCD nonce=0xABB4ED59 cmd=57(0x39) sentTime=True bodyLen=12
+[07:30:07.402]   [BODY] 6F-9F-6A-86-AB-BA-A6-56-E4-4D-0E-14
+[07:30:07.912]   [DECRYPT] peerID=0xEDCD nonce=0x83301D04 cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:07.912]   [BODY] 37-4D-0E-14
+[07:30:07.912]   [DECRYPT] peerID=0xFFCC nonce=0x663EDF1E cmd=71(0x47) sentTime=True bodyLen=12
+[07:30:07.912]   [BODY] 3C-A6-B8-FE-CF-07-46-69-E3-4D-0E-14
+[07:30:08.418]   [DECRYPT] peerID=0xEDCC nonce=0x42FEEA43 cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:08.418]   [BODY] 37-4D-0E-14
+[07:30:08.418]   [DECRYPT] peerID=0xFFCB nonce=0x78A4BCCD cmd=125(0x7D) sentTime=False bodyLen=12
+[07:30:08.418]   [BODY] 25-F2-B3-7E-AC-56-3F-05-CE-4D-0E-14
+[07:30:08.924]   [DECRYPT] peerID=0xEDCF nonce=0x01ADF28B cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:08.924]   [BODY] 37-4D-0E-14
+[07:30:08.925]   [DECRYPT] peerID=0xFFCA nonce=0xB2B3878A cmd=83(0x53) sentTime=True bodyLen=12
+[07:30:08.925]   [BODY] 7A-96-6D-42-93-17-9C-1F-D3-4D-0E-14
+[07:30:09.418]   [DECRYPT] peerID=0xFFC9 nonce=0xCBDEC642 cmd=19(0x13) sentTime=False bodyLen=12
+[07:30:09.418]   [BODY] A1-5B-81-A1-27-F9-68-B9-FD-4D-0E-14
+[07:30:09.923]   [DECRYPT] peerID=0xEDC1 nonce=0x565B3F29 cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:09.923]   [BODY] 37-4D-0E-14
+[07:30:09.923]   [DECRYPT] peerID=0xFFC8 nonce=0xC75E4005 cmd=65(0x41) sentTime=True bodyLen=12
+[07:30:09.923]   [BODY] DE-79-D3-73-78-C6-90-1A-52-4D-0E-14
+[07:30:10.431]   [DECRYPT] peerID=0xEDC0 nonce=0x9795C86E cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:10.431]   [BODY] 37-4D-0E-14
+[07:30:10.431]   [DECRYPT] peerID=0xFFC7 nonce=0xC595FCE0 cmd=28(0x1C) sentTime=True bodyLen=12
+[07:30:10.431]   [BODY] 2C-9A-82-4F-8B-BC-E5-16-73-4D-0E-14
+[07:30:10.935]   [DECRYPT] peerID=0xEDC3 nonce=0xD4C6D0A6 cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:10.935]   [BODY] 37-4D-0E-14
+[07:30:10.935]   [DECRYPT] peerID=0xFFC6 nonce=0x2A7411A7 cmd=50(0x32) sentTime=False bodyLen=12
+[07:30:10.935]   [BODY] C5-1A-43-9A-2F-24-1D-10-CB-4D-0E-14
+[07:30:11.427]   [DECRYPT] peerID=0x173B nonce=0x9C67B8C2 cmd=60(0x3C) sentTime=True bodyLen=22
+[07:30:11.427]   [BODY] CD-B2-CA-71-84-68-1F-19-5B-2C-0F-78-8E-ED-54-5F-43-3A-83-4D-0E-14
+[07:30:11.428]   [DECRYPT] peerID=0xFFC5 nonce=0x9CD7D36F cmd=58(0x3A) sentTime=False bodyLen=12
+[07:30:11.428]   [BODY] 74-FB-25-E5-29-9C-BA-BC-9C-4D-0E-14
+[07:30:11.933]   [DECRYPT] peerID=0xEDC5 nonce=0xE57D2132 cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:11.933]   [BODY] 37-4D-0E-14
+[07:30:11.933]   [DECRYPT] peerID=0xFFC4 nonce=0x36504828 cmd=26(0x1A) sentTime=True bodyLen=12
+[07:30:11.933]   [BODY] AD-92-37-2F-C4-19-34-A4-2E-4D-0E-14
+[07:30:12.444]   [DECRYPT] peerID=0xEDC4 nonce=0x24B3D675 cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:12.444]   [BODY] 37-4D-0E-14
+[07:30:12.445]   [DECRYPT] peerID=0xFFC3 nonce=0x8F1664FB cmd=106(0x6A) sentTime=False bodyLen=12
+[07:30:12.445]   [BODY] FB-90-9A-81-9A-9A-0B-13-F6-4D-0E-14
+[07:30:12.953]   [DECRYPT] peerID=0xEDC7 nonce=0x67E0CEBD cmd=32(0x20) sentTime=True bodyLen=4
+[07:30:12.953]   [BODY] 37-4D-0E-14
+[07:30:12.954]   [DECRYPT] peerID=0xFFC2 nonce=0x1AE71ABC cmd=12(0x0C) sentTime=True bodyLen=12
+[07:30:12.954]   [BODY] EB-D2-8F-F3-4A-A5-8F-05-7D-4D-0E-14
+[07:30:13.433]   [DECRYPT] peerID=0x083F nonce=0x1F52FFAB cmd=52(0x34) sentTime=False bodyLen=22
+[07:30:13.433]   [BODY] 1D-BE-6A-D7-6D-5F-E9-3A-E9-13-D3-6A-87-E7-FD-6F-59-38-83-4D-0E-14
+[07:30:13.433]   [DECRYPT] peerID=0xFFC1 nonce=0xEA380D74 cmd=87(0x57) sentTime=False bodyLen=12
+[07:30:13.433]   [BODY] B8-24-E2-70-62-60-CB-0E-1E-4D-0E-14
+[07:30:15.437]   [DECRYPT] peerID=0xA740 nonce=0xF6A81068 cmd=104(0x68) sentTime=False bodyLen=22
+[07:30:15.437]   [BODY] A8-5A-40-65-DF-E6-BD-74-8C-AB-7F-CC-EA-B6-C3-3B-3B-BC-83-4D-0E-14
+[07:30:15.438]   [DECRYPT] peerID=0xFFC0 nonce=0xCA510B33 cmd=101(0x65) sentTime=True bodyLen=12
+[07:30:15.438]   [BODY] A2-C1-6F-C1-31-C5-5D-5C-0F-4D-0E-14
+[07:30:17.445]   [DECRYPT] peerID=0x8B41 nonce=0x6AC25D25 cmd=104(0x68) sentTime=True bodyLen=22
+[07:30:17.445]   [BODY] 60-49-31-6B-25-B7-EC-C9-5E-58-5B-87-78-99-2F-0F-AA-87-83-4D-0E-14
+[07:30:17.445]   [DECRYPT] peerID=0xFFBF nonce=0x093959D7 cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:17.445]   [BODY] BD-9C-B4-86-19-6C-A0-35-A6-4D-0E-14
+[07:30:19.451]   [DECRYPT] peerID=0x8142 nonce=0x9A4BAD94 cmd=87(0x57) sentTime=False bodyLen=22
+[07:30:19.451]   [BODY] 63-82-CA-E6-19-B2-53-E5-4F-75-09-F1-27-C0-57-B6-B1-AD-83-4D-0E-14
+[07:30:19.451]   [DECRYPT] peerID=0xFFBE nonce=0xC8F7AE90 cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:19.451]   [BODY] BD-99-A9-51-92-F9-BD-C5-A0-4D-0E-14
+[07:30:21.455]   [DECRYPT] peerID=0x6643 nonce=0x22E2A09B cmd=60(0x3C) sentTime=False bodyLen=22
+[07:30:21.455]   [BODY] C1-6F-FA-D2-20-CD-2B-7E-35-F7-A2-5E-5A-B5-1D-BA-3B-97-83-4D-0E-14
+[07:30:21.456]   [DECRYPT] peerID=0xFFBD nonce=0x8BA4B658 cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:21.456]   [BODY] BD-7E-37-C2-45-7E-E5-9E-C3-4D-0E-14
+[07:30:23.464]   [DECRYPT] peerID=0x9144 nonce=0x7F3A1564 cmd=69(0x45) sentTime=False bodyLen=22
+[07:30:23.464]   [BODY] B7-A5-C5-2C-D4-1C-FD-84-18-97-87-62-4F-21-1D-31-82-AD-83-4D-0E-14
+[07:30:23.465]   [DECRYPT] peerID=0xFFBC nonce=0x4A6A411F cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:23.465]   [BODY] BD-28-D6-9A-B1-3C-37-C9-EB-4D-0E-14
+[07:30:25.466]   [DECRYPT] peerID=0xEC45 nonce=0x272A0CF8 cmd=29(0x1D) sentTime=False bodyLen=22
+[07:30:25.466]   [BODY] 4A-CE-F9-F8-FD-47-1F-D9-A5-27-2B-85-64-28-E7-66-60-AF-83-4D-0E-14
+[07:30:25.466]   [DECRYPT] peerID=0xFFBB nonce=0xBA1F47CC cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:25.466]   [BODY] BD-CA-59-42-EB-C8-8E-5F-E1-4D-0E-14
+[07:30:27.479]   [DECRYPT] peerID=0xF546 nonce=0xAFC66A4A cmd=23(0x17) sentTime=False bodyLen=22
+[07:30:27.479]   [BODY] 57-78-CD-B5-0E-AC-49-68-2D-28-8C-A0-A5-E6-16-1D-E4-63-83-4D-0E-14
+[07:30:27.480]   [DECRYPT] peerID=0xFFBA nonce=0x7BD1B08B cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:27.480]   [BODY] BD-34-52-CE-4A-30-20-75-04-4D-0E-14
+[07:30:29.490]   [DECRYPT] peerID=0x9447 nonce=0x765CFE59 cmd=85(0x55) sentTime=False bodyLen=22
+[07:30:29.490]   [BODY] 22-6F-01-C9-8F-32-5F-4F-29-FA-CC-D6-4A-BB-49-BC-BD-B0-83-4D-0E-14
+[07:30:29.491]   [DECRYPT] peerID=0xFFB9 nonce=0x3882A843 cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:29.491]   [BODY] BD-6E-30-16-1B-FF-93-4B-1A-4D-0E-14
+[07:30:31.498]   [DECRYPT] peerID=0x5948 nonce=0xDE2B72B0 cmd=122(0x7A) sentTime=False bodyLen=22
+[07:30:31.498]   [BODY] BA-C3-58-E6-FC-75-83-C0-F8-A7-07-87-84-75-67-46-FB-31-83-4D-0E-14
+[07:30:31.499]   [DECRYPT] peerID=0xFFB8 nonce=0xF94C5F04 cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:31.499]   [BODY] BD-F1-3B-06-CC-BC-2D-4A-DD-4D-0E-14
+[07:30:33.512]   [DECRYPT] peerID=0x7649 nonce=0xC298C308 cmd=116(0x74) sentTime=False bodyLen=22
+[07:30:33.512]   [BODY] 03-59-7F-A2-19-B7-34-AE-91-D0-02-96-8C-5C-CF-6A-87-EA-83-4D-0E-14
+[07:30:33.513]   [DECRYPT] peerID=0xFFB7 nonce=0x6F7465E1 cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:33.513]   [BODY] BD-CC-15-B1-51-97-4C-56-38-4D-0E-14
+[07:30:35.523]   [DECRYPT] peerID=0x404A nonce=0xFDB623E4 cmd=120(0x78) sentTime=False bodyLen=22
+[07:30:35.523]   [BODY] 30-1D-1B-79-93-14-34-3A-33-E5-2B-54-5E-16-EA-AB-99-A3-83-4D-0E-14
+[07:30:35.523]   [DECRYPT] peerID=0xFFB6 nonce=0xAEBA92A6 cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:35.523]   [BODY] BD-BF-74-D0-43-7D-F7-69-83-4D-0E-14
+[07:30:37.525]   [DECRYPT] peerID=0x3B4B nonce=0x5D922F29 cmd=81(0x51) sentTime=False bodyLen=22
+[07:30:37.525]   [BODY] 84-9C-39-F5-35-6D-22-2A-F9-1C-C7-F2-83-16-76-77-EB-CA-83-4D-0E-14
+[07:30:37.526]   [DECRYPT] peerID=0xFFB5 nonce=0xEDE98A6E cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:37.526]   [BODY] BD-32-D0-77-9E-13-5A-B1-A0-4D-0E-14
+[07:30:39.529]   [DECRYPT] peerID=0x784C nonce=0x97C156B8 cmd=107(0x6B) sentTime=False bodyLen=22
+[07:30:39.529]   [BODY] B5-08-CC-A2-67-0D-9F-E4-CC-FD-1C-80-7E-A7-96-54-91-6A-83-4D-0E-14
+[07:30:39.530]   [DECRYPT] peerID=0xFFB4 nonce=0x2C277D29 cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:39.530]   [BODY] BD-70-0B-77-50-97-D5-B5-3F-4D-0E-14
+[07:30:41.535]   [DECRYPT] peerID=0xFFB3 nonce=0xDC527BFA cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:41.535]   [BODY] BD-E8-C6-7C-B1-AF-63-F2-2A-4D-0E-14
+[LCU] Client handler error: Authentication failed because the remote party sent a TLS alert: 'UnknownCA'.
+[07:30:43.537]   [DECRYPT] peerID=0x284E nonce=0x923B3B0D cmd=111(0x6F) sentTime=False bodyLen=22
+[07:30:43.537]   [BODY] 09-1F-55-49-5F-BF-58-48-C2-96-8D-00-3D-F8-DD-BA-B5-10-83-4D-0E-14
+[07:30:43.537]   [DECRYPT] peerID=0xFFB2 nonce=0x1D9C8CBD cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:43.537]   [BODY] BD-97-5E-2D-16-FA-46-C7-FF-4D-0E-14
+[07:30:45.540]   [DECRYPT] peerID=0x574F nonce=0x6D87371A cmd=82(0x52) sentTime=True bodyLen=22
+[07:30:45.540]   [BODY] 4C-8A-4B-D6-F6-C1-C5-A9-BC-B8-1F-D3-11-52-4B-A5-74-B4-83-4D-0E-14
+[07:30:45.541]   [DECRYPT] peerID=0xFFB1 nonce=0x5ECF9475 cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:45.541]   [BODY] BD-24-AF-9C-4F-E1-67-6C-E5-4D-0E-14
+[07:30:47.551]   [DECRYPT] peerID=0x4850 nonce=0xDE4ED472 cmd=42(0x2A) sentTime=False bodyLen=22
+[07:30:47.551]   [BODY] CA-6D-99-31-34-B6-FC-FB-63-54-D3-EF-A3-D9-58-D0-4C-28-83-4D-0E-14
+[07:30:47.552]   [DECRYPT] peerID=0xFFB0 nonce=0x9F016332 cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:47.552]   [BODY] BD-B4-F3-43-2B-70-E6-18-CE-4D-0E-14
+[07:30:49.567]   [DECRYPT] peerID=0x1451 nonce=0x2C8DC4CF cmd=76(0x4C) sentTime=True bodyLen=22
+[07:30:49.567]   [BODY] 00-1D-3D-31-01-78-C2-89-09-D4-4F-7F-35-DF-F6-27-FC-07-83-4D-0E-14
+[07:30:49.567]   [DECRYPT] peerID=0xFFAF nonce=0xC5A321BB cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:49.567]   [BODY] BD-BC-47-F1-80-F3-DF-44-73-4D-0E-14
+[07:30:51.573]   [DECRYPT] peerID=0x0C52 nonce=0x795288F9 cmd=56(0x38) sentTime=True bodyLen=22
+[07:30:51.573]   [BODY] F3-DB-77-B3-F4-84-BF-C6-2C-31-50-36-58-26-F7-F0-32-D5-83-4D-0E-14
+[07:30:51.573]   [DECRYPT] peerID=0xFFAE nonce=0x046DD6FC cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:51.573]   [BODY] BD-5E-B1-3F-D4-84-EF-5F-50-4D-0E-14
+[07:30:53.576]   [DECRYPT] peerID=0x2153 nonce=0xC2EADF1A cmd=121(0x79) sentTime=True bodyLen=22
+[07:30:53.576]   [BODY] CC-77-85-13-9D-32-97-57-8E-AC-32-F1-00-0C-8E-B1-67-8B-83-4D-0E-14
+[07:30:53.577]   [DECRYPT] peerID=0xFFAD nonce=0x473ECE34 cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:53.577]   [BODY] BD-3C-A7-D5-AC-B1-05-60-70-4D-0E-14
+[07:30:55.581]   [DECRYPT] peerID=0xCC54 nonce=0x641B8B6E cmd=66(0x42) sentTime=False bodyLen=22
+[07:30:55.581]   [BODY] 3E-97-8F-3A-A2-F4-71-71-39-76-9E-BD-83-0E-79-88-E8-D5-83-4D-0E-14
+[07:30:55.581]   [DECRYPT] peerID=0xFFAC nonce=0x86F03973 cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:55.581]   [BODY] BD-4F-A0-AA-35-CE-FF-F0-0A-4D-0E-14
+[07:30:57.596]   [DECRYPT] peerID=0xA155 nonce=0x0E0BBA3E cmd=18(0x12) sentTime=False bodyLen=22
+[07:30:57.596]   [BODY] 84-E8-92-AA-49-D5-49-76-A7-8A-BE-AD-3A-68-07-B1-F7-77-83-4D-0E-14
+[07:30:57.596]   [DECRYPT] peerID=0xFFAB nonce=0x76853FA0 cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:57.596]   [BODY] BD-4A-66-5C-F6-1E-E2-5C-5E-4D-0E-14
+[07:30:59.608]   [DECRYPT] peerID=0x0356 nonce=0xACBC78AC cmd=82(0x52) sentTime=True bodyLen=22
+[07:30:59.608]   [BODY] C4-95-A0-E0-83-AC-20-FD-F1-D5-F1-AF-9C-1E-3B-8C-1E-0C-83-4D-0E-14
+[07:30:59.609]   [DECRYPT] peerID=0xFFAA nonce=0xB74BC8E7 cmd=97(0x61) sentTime=True bodyLen=12
+[07:30:59.609]   [BODY] BD-87-12-94-5C-4B-D7-4E-AE-4D-0E-14
+[07:31:01.622]   [DECRYPT] peerID=0x6557 nonce=0x492F2CDC cmd=102(0x66) sentTime=False bodyLen=22
+[07:31:01.622]   [BODY] C1-3A-60-AE-DB-2C-45-3F-FF-EC-34-8B-EF-DB-E2-7A-C8-5C-83-4D-0E-14
+[07:31:01.622]   [DECRYPT] peerID=0xFFA9 nonce=0xF418D02F cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:01.622]   [BODY] BD-D7-B7-C8-43-82-C2-22-EA-4D-0E-14
+[07:31:03.636]   [DECRYPT] peerID=0x8158 nonce=0xC27B2559 cmd=29(0x1D) sentTime=False bodyLen=22
+[07:31:03.636]   [BODY] 50-6B-C1-19-41-7C-11-54-C1-0E-EB-3A-7B-D3-29-14-48-EC-83-4D-0E-14
+[07:31:03.637]   [DECRYPT] peerID=0xFFA8 nonce=0x35D62768 cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:03.637]   [BODY] BD-92-58-47-2A-A8-2D-54-3A-4D-0E-14
+[07:31:05.651]   [DECRYPT] peerID=0xE159 nonce=0x664FF9A8 cmd=105(0x69) sentTime=True bodyLen=22
+[07:31:05.651]   [BODY] BC-A4-80-D2-81-38-D4-5B-5F-02-CA-36-4D-B1-87-BF-CE-A1-83-4D-0E-14
+[07:31:05.652]   [DECRYPT] peerID=0xFFA7 nonce=0xA3EE1D8D cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:05.652]   [BODY] BD-BF-C0-61-9C-36-90-F1-82-4D-0E-14
+[07:31:07.661]   [DECRYPT] peerID=0x595A nonce=0x611BE2A1 cmd=94(0x5E) sentTime=True bodyLen=22
+[07:31:07.661]   [BODY] CC-92-C2-14-76-6C-EA-8F-23-EF-5B-05-42-3E-D3-95-37-30-83-4D-0E-14
+[07:31:07.662]   [DECRYPT] peerID=0xFFA6 nonce=0x6220EACA cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:07.662]   [BODY] BD-30-1F-F5-55-3A-80-D4-BD-4D-0E-14
+[07:31:09.675]   [DECRYPT] peerID=0x595B nonce=0x792311DD cmd=59(0x3B) sentTime=False bodyLen=22
+[07:31:09.675]   [BODY] 2C-E0-44-53-54-B6-9F-A9-C6-C8-25-FE-A6-B8-EC-F0-96-2E-83-4D-0E-14
+[07:31:09.675]   [DECRYPT] peerID=0xFFA5 nonce=0x2173F202 cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:09.675]   [BODY] BD-56-10-9B-C2-40-AC-E1-E7-4D-0E-14
+[07:31:11.676]   [DECRYPT] peerID=0x3D5C nonce=0x4DDE7A13 cmd=14(0x0E) sentTime=False bodyLen=22
+[07:31:11.676]   [BODY] 06-08-D8-3E-5B-75-73-78-1C-0C-98-A0-0C-DC-33-47-D8-15-83-4D-0E-14
+[07:31:11.676]   [DECRYPT] peerID=0xFFA4 nonce=0xE0BD0545 cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:11.676]   [BODY] BD-97-30-EF-4B-4B-0D-2A-E3-4D-0E-14
+[07:31:13.687]   [DECRYPT] peerID=0x885D nonce=0xF12DA044 cmd=86(0x56) sentTime=True bodyLen=22
+[07:31:13.687]   [BODY] 39-B7-7E-8C-C2-C0-55-9C-3B-17-36-1F-65-F7-F5-9F-F9-A5-83-4D-0E-14
+[07:31:13.688]   [DECRYPT] peerID=0xFFA3 nonce=0x10C80396 cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:13.688]   [BODY] BD-C8-07-89-44-2F-6E-B6-80-4D-0E-14
+[07:31:15.701]   [DECRYPT] peerID=0x5F5E nonce=0xB3F154CB cmd=44(0x2C) sentTime=True bodyLen=22
+[07:31:15.701]   [BODY] 64-91-68-28-F2-5D-56-5C-AA-C6-15-72-3E-97-5F-CD-71-74-83-4D-0E-14
+[07:31:15.702]   [DECRYPT] peerID=0xFFA2 nonce=0xD106F4D1 cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:15.702]   [BODY] BD-97-63-86-0F-DC-19-81-4D-4D-0E-14
+[07:31:17.709]   [DECRYPT] peerID=0xDA5F nonce=0xE75E1582 cmd=101(0x65) sentTime=False bodyLen=22
+[07:31:17.709]   [BODY] A8-A1-36-BA-4C-87-58-35-73-85-8F-3E-8B-A2-D9-F1-1A-65-83-4D-0E-14
+[07:31:17.709]   [DECRYPT] peerID=0xFFA1 nonce=0x9255EC19 cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:17.709]   [BODY] BD-63-D8-7C-C2-48-19-BB-C5-4D-0E-14
+[07:31:19.709]   [DECRYPT] peerID=0xBB60 nonce=0xE766E1BE cmd=83(0x53) sentTime=False bodyLen=22
+[07:31:19.709]   [BODY] FB-F1-07-32-B2-DD-A6-E2-95-A9-C1-5B-B2-C0-EB-B5-65-84-83-4D-0E-14
+[07:31:19.710]   [DECRYPT] peerID=0xFFA0 nonce=0x539B1B5E cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:19.710]   [BODY] BD-F3-77-81-06-82-54-A9-2D-4D-0E-14
+[07:31:21.718]   [DECRYPT] peerID=0xFF9F nonce=0x910CA80F cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:21.718]   [BODY] BD-94-48-A3-1F-B0-87-3B-1C-4D-0E-14
+[07:31:23.723]   [DECRYPT] peerID=0xB062 nonce=0x2CEA3CFE cmd=59(0x3B) sentTime=False bodyLen=22
+[07:31:23.723]   [BODY] AE-9C-A9-BC-62-0C-A7-15-12-26-95-AB-72-31-5D-8C-AF-B2-83-4D-0E-14
+[07:31:23.724]   [DECRYPT] peerID=0xFF9E nonce=0x50C25F48 cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:23.724]   [BODY] BD-3C-12-1B-D7-6F-2D-F6-56-4D-0E-14
+[07:31:25.735]   [DECRYPT] peerID=0xCE63 nonce=0xB9033AFC cmd=11(0x0B) sentTime=True bodyLen=22
+[07:31:25.735]   [BODY] 79-B0-DC-E3-95-02-DD-B4-01-AD-B2-EA-D6-CB-6B-B3-C8-B7-83-4D-0E-14
+[07:31:25.736]   [DECRYPT] peerID=0xFF9D nonce=0x13914780 cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:25.736]   [BODY] BD-C9-50-1F-BF-1E-09-5C-A0-4D-0E-14
+[07:31:27.749]   [DECRYPT] peerID=0x6364 nonce=0x9BE7BB29 cmd=108(0x6C) sentTime=False bodyLen=22
+[07:31:27.749]   [BODY] E8-2B-A8-75-7F-08-CA-52-78-41-3A-AF-82-30-BD-C6-D5-F9-83-4D-0E-14
+[07:31:27.749]   [DECRYPT] peerID=0xFF9C nonce=0xD25FB0C7 cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:27.749]   [BODY] BD-AF-D4-F6-3E-D6-76-13-A7-4D-0E-14
+[07:31:29.762]   [DECRYPT] peerID=0x1265 nonce=0xDA226542 cmd=82(0x52) sentTime=True bodyLen=22
+[07:31:29.762]   [BODY] 6E-25-35-9A-EC-A4-C3-DE-E0-4C-44-4C-8C-5C-CB-74-8B-0B-83-4D-0E-14
+[07:31:29.763]   [DECRYPT] peerID=0xFF9B nonce=0x222AB614 cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:29.763]   [BODY] BD-2C-C0-81-91-C0-D3-98-19-4D-0E-14
+[07:31:31.773]   [DECRYPT] peerID=0x7F66 nonce=0x2F54D1B6 cmd=116(0x74) sentTime=True bodyLen=22
+[07:31:31.773]   [BODY] 49-D5-E0-75-39-8C-6E-A3-77-C1-65-79-EC-0F-CB-BE-12-46-83-4D-0E-14
+[07:31:31.773]   [DECRYPT] peerID=0xFF9A nonce=0xE3E44153 cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:31.773]   [BODY] BD-C3-9F-20-7B-39-5F-63-ED-4D-0E-14
+[07:31:33.775]   [DECRYPT] peerID=0xC467 nonce=0x48F77978 cmd=115(0x73) sentTime=True bodyLen=22
+[07:31:33.775]   [BODY] E7-50-C3-3D-F8-6F-38-84-5A-35-96-CD-DD-1A-27-8F-78-34-83-4D-0E-14
+[07:31:33.775]   [DECRYPT] peerID=0xFF99 nonce=0xA0B7599B cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:33.775]   [BODY] BD-3B-F5-B0-91-EE-01-40-A6-4D-0E-14
+[07:31:35.782]   [DECRYPT] peerID=0x1468 nonce=0x3822DCBC cmd=99(0x63) sentTime=True bodyLen=22
+[07:31:35.782]   [BODY] 53-E4-87-03-0B-91-1F-7B-88-7B-27-57-08-07-39-A3-65-B5-83-4D-0E-14
+[07:31:35.783]   [DECRYPT] peerID=0xFF98 nonce=0x6179AEDC cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:35.783]   [BODY] BD-AB-BA-B4-4D-88-2E-D1-43-4D-0E-14
+[07:31:37.789]   [DECRYPT] peerID=0x4969 nonce=0x4D546C32 cmd=114(0x72) sentTime=True bodyLen=22
+[07:31:37.789]   [BODY] C7-E1-D0-C3-F0-C5-01-4B-64-CB-09-FE-24-E7-F0-BC-38-57-83-4D-0E-14
+[07:31:37.790]   [DECRYPT] peerID=0xFF97 nonce=0xF7419439 cmd=97(0x61) sentTime=True bodyLen=12
+[07:31:37.790]   [BODY] BD-A2-A3-1B-19-C4-89-F1-96-4D-0E-14
+[LCU] Client handler error: Authentication failed because the remote party sent a TLS alert: 'UnknownCA'.
+[LCU] Client handler error: Authentication failed because the remote party sent a TLS alert: 'UnknownCA'.
+[LCU] Client handler error: Authentication failed because the remote party sent a TLS alert: 'UnknownCA'.
+[07:52:58.222] [NEW PEER] 127.0.0.1:62938 → PeerId=1
+[07:52:58.222]   [TOKEN] Connection token: 0xEDE36B43
+[07:52:58.222] [CLIENT] #1 519B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:52:58.222]   [DECRYPT] peerID=0x0000 nonce=0x2EE5E71F cmd=65(0x41) sentTime=True bodyLen=504
+[07:52:58.222]   [BODY] 6D-1F-9D-F7-91-D9-EE-52-DF-16-27-3A-80-B7-ED-67-42-65-C8-12-EE-58-18-30-72-3C-F1-26-B6-58-68-B4-55-44-B3-15-8B-99-D1-D2-73-E1-D5-D4-DC-C7-18-54
+[07:52:58.222]   [HANDSHAKE] ECHO-ONLY mode
+[07:52:58.223]   [CLIENT] Created PeerId=1
+[07:52:58.224] [CLIENT] #2 119B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:52:58.224]   [DECRYPT] peerID=0x0000 nonce=0xFA468D32 cmd=122(0x7A) sentTime=True bodyLen=104
+[07:52:58.224]   [BODY] 7D-F9-68-C9-4B-DA-70-DB-25-24-71-A5-24-BA-23-D4-77-6D-68-B8-B5-3A-39-9B-2B-BD-0F-8C-36-5D-CC-B1-D6-CF-92-63-84-A6-D4-0C-C0-C3-08-03-9F-3C-14-FA
+[07:52:58.225] [CLIENT] #3 519B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:52:58.225]   [DECRYPT] peerID=0x0000 nonce=0xA8E71A51 cmd=2(0x02) sentTime=True bodyLen=504
+[07:52:58.225]   [BODY] F1-A7-B3-0A-19-00-95-3A-A7-2E-F7-BC-9D-03-91-4E-BE-E3-DF-8F-87-E1-50-BF-A6-55-D9-74-E6-D9-C7-E5-F2-6C-77-F3-CF-4D-3E-F7-73-84-9E-A5-05-50-1D-2A
+[07:52:58.226] [CLIENT] #4 119B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:52:58.226]   [DECRYPT] peerID=0x0000 nonce=0x006D39FE cmd=13(0x0D) sentTime=False bodyLen=104
+[07:52:58.226]   [BODY] 81-CB-BC-EF-65-39-51-D0-F8-FF-BD-C9-9D-CC-06-D4-4E-00-1D-5C-9D-BE-E5-46-B6-38-8A-D4-AC-77-E9-11-43-3B-86-5D-CF-77-ED-9E-02-A5-FF-D6-F4-AB-E7-72
+[07:52:58.232] [CLIENT] #5 64B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:52:58.232]   [DECRYPT] peerID=0x5439 nonce=0x4200257D cmd=67(0x43) sentTime=True bodyLen=49
+[07:52:58.232]   [BODY] A0-77-19-63-93-16-88-E5-CC-D9-10-A4-D2-DD-0E-27-F9-56-C5-56-68-69-A5-66-11-5E-10-DD-B8-0B-4B-15-3D-1F-50-89-D1-A1-E4-47-F7-96-C4-F5-69-C7-AA-85
+[07:52:58.233] [CLIENT] #6 34B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:52:58.233]   [DECRYPT] peerID=0x0002 nonce=0xD0E77A3F cmd=62(0x3E) sentTime=False bodyLen=19
+[07:52:58.233]   [BODY] EF-2E-D2-51-4C-37-A0-78-8E-AF-8A-63-E7-9A-5D-4B-35-0E-14
+[07:52:58.234] [CLIENT] #7 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:52:58.234]   [DECRYPT] peerID=0xFFFF nonce=0x8E4F7A62 cmd=97(0x61) sentTime=True bodyLen=12
+[07:52:58.234]   [BODY] BD-34-C5-24-CF-84-F4-DD-0B-4D-0E-14
+[07:52:58.742] [CLIENT] #8 19B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:52:58.742]   [DECRYPT] peerID=0xEDFA nonce=0x27EA9263 cmd=32(0x20) sentTime=True bodyLen=4
+[07:52:58.742]   [BODY] 37-4D-0E-14
+[07:52:58.743] [CLIENT] #9 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:52:58.743]   [DECRYPT] peerID=0xFFFD nonce=0xD5FA8F51 cmd=97(0x61) sentTime=True bodyLen=12
+[07:52:58.743]   [BODY] BF-F2-F5-D0-29-AA-8B-1D-04-4D-0E-14
+[07:52:58.744] [CLIENT] #10 34B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:52:58.744]   [DECRYPT] peerID=0x0004 nonce=0xBF09C4AC cmd=47(0x2F) sentTime=True bodyLen=19
+[07:52:58.744]   [BODY] 2B-6E-B2-E8-89-6E-06-DB-51-82-50-1C-3C-28-46-04-63-0E-14
+[07:52:58.745] [CLIENT] #11 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:52:58.745]   [DECRYPT] peerID=0xFFFC nonce=0xC85097D6 cmd=97(0x61) sentTime=True bodyLen=12
+[07:52:58.745]   [BODY] B9-3B-3B-41-85-C3-50-A0-82-4D-0E-14
+[07:52:59.252] [CLIENT] #12 19B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:52:59.253]   [DECRYPT] peerID=0xEDFC nonce=0x165163F7 cmd=32(0x20) sentTime=True bodyLen=4
+[07:52:59.253]   [BODY] 37-4D-0E-14
+[07:52:59.253] [CLIENT] #13 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:52:59.253]   [DECRYPT] peerID=0xFFFB nonce=0x37F18E80 cmd=97(0x61) sentTime=True bodyLen=12
+[07:52:59.253]   [BODY] B5-8E-A1-70-B5-78-AA-BC-31-4D-0E-14
+[07:52:59.763] [CLIENT] #14 19B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:52:59.763]   [DECRYPT] peerID=0xEDFF nonce=0x55027B3F cmd=32(0x20) sentTime=True bodyLen=4
+[07:52:59.763]   [BODY] 37-4D-0E-14
+[07:52:59.764] [CLIENT] #15 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:52:59.764]   [DECRYPT] peerID=0xFFFA nonce=0x5F8A87C9 cmd=97(0x61) sentTime=True bodyLen=12
+[07:52:59.764]   [BODY] AD-6E-E8-BD-DF-D7-90-53-08-4D-0E-14
+[07:53:00.232] [CLIENT] #16 36B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:53:00.232]   [DECRYPT] peerID=0x7681 nonce=0x0CCB0D7A cmd=95(0x5F) sentTime=True bodyLen=21
+[07:53:00.232]   [BODY] 77-21-C8-4D-B6-AE-27-CA-34-5F-9B-7D-FA-AC-2B-D4-1A-83-4D-0E-14
+[07:53:00.233] [CLIENT] #17 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:53:00.233]   [DECRYPT] peerID=0xFFF9 nonce=0x4EB2621C cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:00.233]   [BODY] 9D-CA-76-DF-1A-B0-57-FA-C4-4D-0E-14
+[07:53:00.734] [CLIENT] #18 19B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:53:00.734]   [DECRYPT] peerID=0xEDF1 nonce=0x02F4B69D cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:00.734]   [BODY] 37-4D-0E-14
+[07:53:00.735] [CLIENT] #19 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:53:00.735]   [DECRYPT] peerID=0xFFF8 nonce=0x2BAA6F60 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:00.735]   [BODY] FD-E8-1E-19-B1-B3-CB-E4-6A-4D-0E-14
+[07:53:01.245] [CLIENT] #20 19B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[07:53:01.245]   [DECRYPT] peerID=0xEDF0 nonce=0xC33A41DA cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:01.245]   [BODY] 37-4D-0E-14
+[07:53:01.246]   [DECRYPT] peerID=0xFFF7 nonce=0xF53FA0F2 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:01.246]   [BODY] 3D-1C-A1-4B-93-58-BC-4A-82-4D-0E-14
+[07:53:01.755]   [DECRYPT] peerID=0xEDF3 nonce=0x80695912 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:01.755]   [BODY] 37-4D-0E-14
+[07:53:01.756]   [DECRYPT] peerID=0xFFF6 nonce=0xAE606912 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:01.756]   [BODY] BD-01-41-60-D9-51-DD-73-A5-4D-0E-14
+[07:53:02.232]   [DECRYPT] peerID=0x520B nonce=0x4CC8F2F6 cmd=29(0x1D) sentTime=False bodyLen=22
+[07:53:02.232]   [BODY] EF-86-FF-81-FC-CC-42-74-8C-66-59-71-1A-17-C4-B7-18-20-83-4D-0E-14
+[07:53:02.233]   [DECRYPT] peerID=0xFFF5 nonce=0x64C618D8 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:02.233]   [BODY] BD-16-20-FE-AC-80-7E-14-45-4D-0E-14
+[07:53:02.738]   [DECRYPT] peerID=0xEDF5 nonce=0xB1D2A886 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:02.738]   [BODY] 37-4D-0E-14
+[07:53:02.739]   [DECRYPT] peerID=0xFFF4 nonce=0xB7E33C9B cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:02.739]   [BODY] BD-0B-68-DE-A5-27-A9-A0-4F-4D-0E-14
+[07:53:03.248]   [DECRYPT] peerID=0xEDF4 nonce=0x701C5FC1 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:03.248]   [BODY] 37-4D-0E-14
+[07:53:03.249]   [DECRYPT] peerID=0xFFF3 nonce=0x63409D41 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:03.249]   [BODY] BD-6B-DC-D6-8A-11-BC-F7-49-4D-0E-14
+[07:53:03.759]   [DECRYPT] peerID=0xEDF7 nonce=0x334F4709 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:03.759]   [BODY] 37-4D-0E-14
+[07:53:03.759]   [DECRYPT] peerID=0xFFF2 nonce=0xEA222515 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:03.759]   [BODY] BD-F9-C4-4C-64-45-66-18-59-4D-0E-14
+[07:53:04.232]   [DECRYPT] peerID=0x9E0F nonce=0x78CD4D84 cmd=64(0x40) sentTime=False bodyLen=22
+[07:53:04.233]   [BODY] 9C-21-FC-D1-BC-02-04-4B-09-BF-68-44-92-A6-9F-1C-16-50-83-4D-0E-14
+[07:53:04.233]   [DECRYPT] peerID=0xFFF1 nonce=0x3929A2FB cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:04.233]   [BODY] BD-FD-2E-B2-EE-B0-1E-70-8B-4D-0E-14
+[07:53:04.740]   [DECRYPT] peerID=0xEDE9 nonce=0xA823F2C7 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:04.740]   [BODY] 37-4D-0E-14
+[07:53:04.741]   [DECRYPT] peerID=0xFFF0 nonce=0xD8566BF1 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:04.741]   [BODY] BD-6C-6A-78-FA-7A-22-79-54-4D-0E-14
+[07:53:04.741]   [GAME] Sending KeyCheck via CRC-format packet
+[07:53:04.741]   [CRC-PKT] cmd=0x06 body=37B total=46B (magic=CAFE)
+[07:53:04.741]   [KEYCHECK] sent via CAFE, 37B body
+[07:53:04.741]   [CRC-PKT] cmd=0x06 body=37B total=46B (magic=CAFE)
+[07:53:04.741]   [SYNCH] sent SynchVersionS2C
+[07:53:05.251]   [DECRYPT] peerID=0xEDE8 nonce=0x69ED0580 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:05.251]   [BODY] 37-4D-0E-14
+[07:53:05.253]   [DECRYPT] peerID=0xFFEF nonce=0xC29654E2 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:05.253]   [BODY] BD-63-1D-E2-73-4F-69-4F-EE-4D-0E-14
+[07:53:05.761]   [DECRYPT] peerID=0xEDEB nonce=0x2ABE1D48 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:05.761]   [BODY] 37-4D-0E-14
+[07:53:05.762]   [DECRYPT] peerID=0xFFEE nonce=0x5FDAEC9B cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:05.762]   [BODY] BD-3B-C7-74-EF-D6-E4-89-6C-4D-0E-14
+[07:53:06.233]   [DECRYPT] peerID=0xD113 nonce=0x23FC4A9F cmd=29(0x1D) sentTime=True bodyLen=22
+[07:53:06.233]   [BODY] 20-FA-5B-C8-C5-E6-61-1B-5F-0A-B1-D2-67-D6-85-36-EE-FB-83-4D-0E-14
+[07:53:06.233]   [DECRYPT] peerID=0xFFED nonce=0xCFD61F21 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:06.233]   [BODY] BD-BE-48-D4-68-15-F6-55-83-4D-0E-14
+[07:53:06.742]   [DECRYPT] peerID=0xEDED nonce=0x1B05ECDC cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:06.742]   [BODY] 37-4D-0E-14
+[07:53:06.743]   [DECRYPT] peerID=0xFFEC nonce=0xA8A73E83 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:06.743]   [BODY] BD-4D-F0-4C-F0-EE-22-A8-80-4D-0E-14
+[07:53:07.253]   [DECRYPT] peerID=0xEDEC nonce=0xDACB1B9B cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:07.253]   [BODY] 37-4D-0E-14
+[07:53:07.254]   [DECRYPT] peerID=0xFFEB nonce=0xA3B0549F cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:07.254]   [BODY] BD-31-A7-63-90-18-EC-FA-4F-4D-0E-14
+[07:53:07.764]   [DECRYPT] peerID=0xEDEF nonce=0x99980353 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:07.764]   [BODY] 37-4D-0E-14
+[07:53:07.765]   [DECRYPT] peerID=0xFFEA nonce=0x23A6BA42 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:07.765]   [BODY] BD-3F-14-4A-D1-1C-5D-33-5B-4D-0E-14
+[07:53:08.233]   [DECRYPT] peerID=0xCA17 nonce=0xCD3F6A7D cmd=104(0x68) sentTime=False bodyLen=22
+[07:53:08.233]   [BODY] FA-E5-C2-F4-66-23-EB-7F-50-21-20-E7-E7-0B-8E-74-F9-81-83-4D-0E-14
+[07:53:08.234]   [DECRYPT] peerID=0xFFE9 nonce=0x555850BA cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:08.234]   [BODY] BD-B1-1E-FE-93-34-60-AE-58-4D-0E-14
+[07:53:08.735]   [DECRYPT] peerID=0xEDE1 nonce=0xCE6ECEF1 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:08.735]   [BODY] 37-4D-0E-14
+[07:53:08.736]   [DECRYPT] peerID=0xFFE8 nonce=0xFECC429C cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:08.736]   [BODY] BD-40-3A-89-24-A6-63-83-6A-4D-0E-14
+[07:53:09.245]   [DECRYPT] peerID=0xEDE0 nonce=0x0FA039B6 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:09.245]   [BODY] 37-4D-0E-14
+[07:53:09.246]   [DECRYPT] peerID=0xFFE7 nonce=0xBC40B2BA cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:09.246]   [BODY] BD-55-8E-65-D1-CE-0F-90-AC-4D-0E-14
+[07:53:09.756]   [DECRYPT] peerID=0xEDE3 nonce=0x4CF3217E cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:09.756]   [BODY] 37-4D-0E-14
+[07:53:09.757]   [DECRYPT] peerID=0xFFE6 nonce=0x524B087B cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:09.757]   [BODY] BD-75-74-C8-07-0F-4B-58-CE-4D-0E-14
+[07:53:10.234]   [DECRYPT] peerID=0x8E1B nonce=0x58E85EA9 cmd=113(0x71) sentTime=False bodyLen=22
+[07:53:10.234]   [BODY] 94-E3-1C-C0-86-75-6B-99-4F-C7-98-54-2E-A4-F1-A3-9E-72-83-4D-0E-14
+[07:53:10.234]   [DECRYPT] peerID=0xFFE5 nonce=0xC83E53BE cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:10.234]   [BODY] BD-91-04-BB-0C-33-04-8E-E7-4D-0E-14
+[07:53:10.737]   [DECRYPT] peerID=0xEDE5 nonce=0x7D48D0EA cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:10.737]   [BODY] 37-4D-0E-14
+[07:53:10.738]   [DECRYPT] peerID=0xFFE4 nonce=0xBBBD22E3 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:10.738]   [BODY] BD-5B-26-FD-AA-8F-58-A5-F5-4D-0E-14
+[07:53:11.248]   [DECRYPT] peerID=0xEDE4 nonce=0xBC8627AD cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:11.248]   [BODY] 37-4D-0E-14
+[07:53:11.248]   [DECRYPT] peerID=0xFFE3 nonce=0x2F532805 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:11.248]   [BODY] BD-1E-10-68-99-DB-D4-53-3C-4D-0E-14
+[07:53:11.758]   [DECRYPT] peerID=0xEDE7 nonce=0xFFD53F65 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:11.758]   [BODY] 37-4D-0E-14
+[07:53:11.759]   [DECRYPT] peerID=0xFFE2 nonce=0x26ABC628 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:11.759]   [BODY] BD-CF-BD-1A-17-BB-36-9B-2A-4D-0E-14
+[07:53:12.234]   [DECRYPT] peerID=0xA31F nonce=0x60CBF163 cmd=126(0x7E) sentTime=True bodyLen=22
+[07:53:12.234]   [BODY] ED-21-7C-45-D1-FF-E1-3A-42-D2-4B-8A-0D-D4-9D-F2-CF-4B-83-4D-0E-14
+[07:53:12.234]   [DECRYPT] peerID=0xFFE1 nonce=0xF595EC34 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:12.234]   [BODY] BD-0E-5C-F0-80-B8-FF-3F-6F-4D-0E-14
+[07:53:12.739]   [DECRYPT] peerID=0xEDD9 nonce=0xFC8C7B73 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:12.739]   [BODY] 37-4D-0E-14
+[07:53:12.740]   [DECRYPT] peerID=0xFFE0 nonce=0xA39DBEDF cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:12.740]   [BODY] BD-37-42-69-BC-01-C8-07-31-4D-0E-14
+[07:53:13.250]   [DECRYPT] peerID=0xEDD8 nonce=0x3D428C34 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:13.250]   [BODY] 37-4D-0E-14
+[07:53:13.250]   [DECRYPT] peerID=0xFFDF nonce=0xF89A87D3 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:13.250]   [BODY] BD-20-04-55-66-70-C3-E7-F5-4D-0E-14
+[07:53:13.760]   [DECRYPT] peerID=0xEDDB nonce=0x7E1194FC cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:13.760]   [BODY] 37-4D-0E-14
+[07:53:13.761]   [DECRYPT] peerID=0xFFDE nonce=0xDB7262FC cmd=80(0x50) sentTime=True bodyLen=12
+[07:53:13.761]   [BODY] E0-23-7C-DE-23-19-0A-A3-37-4D-0E-14
+[07:53:14.234]   [DECRYPT] peerID=0x4223 nonce=0xB79D2B5D cmd=37(0x25) sentTime=True bodyLen=22
+[07:53:14.234]   [BODY] EC-AE-93-C6-8E-88-68-54-43-17-08-06-68-28-97-F6-82-3E-83-4D-0E-14
+[07:53:14.235]   [DECRYPT] peerID=0xFFDD nonce=0x6DFB7237 cmd=42(0x2A) sentTime=False bodyLen=12
+[07:53:14.235]   [BODY] 1D-23-02-9B-17-33-26-17-E5-4D-0E-14
+[07:53:14.738]   [DECRYPT] peerID=0xEDDD nonce=0x4FAA6568 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:14.738]   [BODY] 37-4D-0E-14
+[07:53:14.740]   [DECRYPT] peerID=0xFFDC nonce=0x10826376 cmd=54(0x36) sentTime=False bodyLen=12
+[07:53:14.740]   [BODY] 9A-77-00-BE-64-AE-9C-65-84-4D-0E-14
+[07:53:15.248]   [DECRYPT] peerID=0xEDDC nonce=0x8E64922F cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:15.249]   [BODY] 37-4D-0E-14
+[07:53:15.249]   [DECRYPT] peerID=0xFFDB nonce=0x53E0F1A9 cmd=102(0x66) sentTime=True bodyLen=12
+[07:53:15.249]   [BODY] DD-2C-83-46-C9-8C-5A-00-6D-4D-0E-14
+[07:53:15.759]   [DECRYPT] peerID=0xEDDF nonce=0xCD378AE7 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:15.759]   [BODY] 37-4D-0E-14
+[07:53:15.760]   [DECRYPT] peerID=0xFFDA nonce=0x256CBBF6 cmd=9(0x09) sentTime=False bodyLen=12
+[07:53:15.760]   [BODY] BF-78-69-2F-89-C5-A9-00-78-4D-0E-14
+[07:53:16.235]   [DECRYPT] peerID=0x1B27 nonce=0x0D66B3F9 cmd=95(0x5F) sentTime=False bodyLen=22
+[07:53:16.235]   [BODY] 35-DB-B8-70-09-C8-92-1E-A1-55-5A-A7-6E-94-F8-95-FA-D2-83-4D-0E-14
+[07:53:16.235]   [DECRYPT] peerID=0xFFD9 nonce=0xD5ACF50E cmd=49(0x31) sentTime=False bodyLen=12
+[07:53:16.235]   [BODY] 3F-A5-02-8C-69-55-21-BC-A9-4D-0E-14
+[07:53:16.740]   [DECRYPT] peerID=0xEDD1 nonce=0x9AC14745 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:16.740]   [BODY] 37-4D-0E-14
+[07:53:16.741]   [DECRYPT] peerID=0xFFD8 nonce=0xFC448D29 cmd=47(0x2F) sentTime=False bodyLen=12
+[07:53:16.741]   [BODY] 44-CA-70-A1-40-B1-65-06-23-4D-0E-14
+[07:53:17.251]   [DECRYPT] peerID=0xEDD0 nonce=0x5B0FB002 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:17.251]   [BODY] 37-4D-0E-14
+[07:53:17.251]   [DECRYPT] peerID=0xFFD7 nonce=0xB0F5E00C cmd=35(0x23) sentTime=False bodyLen=12
+[07:53:17.251]   [BODY] 40-2B-42-EF-5E-7E-3A-F1-0A-4D-0E-14
+[07:53:17.751]   [DECRYPT] peerID=0xEDD3 nonce=0x185CA8CA cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:17.752]   [BODY] 37-4D-0E-14
+[07:53:17.752]   [DECRYPT] peerID=0xFFD6 nonce=0xCFA2F0CB cmd=75(0x4B) sentTime=True bodyLen=12
+[07:53:17.752]   [BODY] AF-3D-D6-36-51-BB-52-EF-82-4D-0E-14
+[07:53:18.235]   [DECRYPT] peerID=0x922B nonce=0x2E87D2D7 cmd=106(0x6A) sentTime=False bodyLen=22
+[07:53:18.235]   [BODY] 74-63-0D-CC-CE-4D-2B-08-58-13-B6-69-DA-4B-04-FA-09-E4-83-4D-0E-14
+[07:53:18.235]   [DECRYPT] peerID=0xFFD5 nonce=0x0FCC9003 cmd=3(0x03) sentTime=True bodyLen=12
+[07:53:18.235]   [BODY] AC-71-7F-87-21-08-4B-1D-12-4D-0E-14
+[07:53:18.743]   [DECRYPT] peerID=0xEDD5 nonce=0x29E7595E cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:18.743]   [BODY] 37-4D-0E-14
+[07:53:18.743]   [DECRYPT] peerID=0xFFD4 nonce=0x0CFC8344 cmd=52(0x34) sentTime=False bodyLen=12
+[07:53:18.743]   [BODY] F7-09-15-F3-32-74-F8-A5-29-4D-0E-14
+[07:53:19.253]   [DECRYPT] peerID=0xEDD4 nonce=0xE829AE19 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:19.253]   [BODY] 37-4D-0E-14
+[07:53:19.254]   [DECRYPT] peerID=0xFFD3 nonce=0x1598DD97 cmd=30(0x1E) sentTime=True bodyLen=12
+[07:53:19.254]   [BODY] 59-85-A5-93-D4-9A-EB-11-F7-4D-0E-14
+[07:53:19.763]   [DECRYPT] peerID=0xEDD7 nonce=0xAB7AB6D1 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:19.764]   [BODY] 37-4D-0E-14
+[07:53:19.764]   [DECRYPT] peerID=0xFFD2 nonce=0x3906B6D0 cmd=113(0x71) sentTime=False bodyLen=12
+[07:53:19.764]   [BODY] F4-36-6F-E6-CE-31-87-28-A0-4D-0E-14
+[07:53:20.235]   [DECRYPT] peerID=0xA42F nonce=0xE27B2627 cmd=74(0x4A) sentTime=False bodyLen=22
+[07:53:20.235]   [BODY] 58-0E-9E-F0-2B-7B-F7-4E-DD-30-B8-6E-ED-08-11-0F-19-BC-83-4D-0E-14
+[07:53:20.235]   [DECRYPT] peerID=0xFFD1 nonce=0xD16C6A18 cmd=27(0x1B) sentTime=False bodyLen=12
+[07:53:20.235]   [BODY] D3-67-5E-72-5C-70-BB-3C-20-4D-0E-14
+[07:53:20.736]   [DECRYPT] peerID=0xEDC9 nonce=0x3016031F cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:20.736]   [BODY] 37-4D-0E-14
+[07:53:20.738]   [DECRYPT] peerID=0xFFD0 nonce=0x39D92C5F cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:20.738]   [BODY] DF-52-68-0B-E8-DB-4B-46-C6-4D-0E-14
+[07:53:21.246]   [DECRYPT] peerID=0xEDC8 nonce=0xF1D8F458 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:21.246]   [BODY] 37-4D-0E-14
+[07:53:21.757]   [DECRYPT] peerID=0xEDCB nonce=0xB28BEC90 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:21.757]   [BODY] 37-4D-0E-14
+[07:53:21.757]   [DECRYPT] peerID=0xFFCE nonce=0x1DAF9591 cmd=59(0x3B) sentTime=True bodyLen=12
+[07:53:21.757]   [BODY] 70-DF-04-B9-0B-31-49-FE-5F-4D-0E-14
+[07:53:22.235]   [DECRYPT] peerID=0xE433 nonce=0xD9C24BC2 cmd=14(0x0E) sentTime=False bodyLen=22
+[07:53:22.235]   [BODY] B8-7D-6D-58-21-F5-F7-B6-1A-CD-DB-5C-A9-62-52-E9-59-E8-83-4D-0E-14
+[07:53:22.739]   [DECRYPT] peerID=0xEDCD nonce=0x83301D04 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:22.739]   [BODY] 37-4D-0E-14
+[07:53:22.739]   [DECRYPT] peerID=0xFFCC nonce=0x6A7A1A1E cmd=57(0x39) sentTime=True bodyLen=12
+[07:53:22.739]   [BODY] 6F-AD-E8-1F-E2-F5-86-E7-80-4D-0E-14
+[07:53:23.253]   [DECRYPT] peerID=0xEDCC nonce=0x42FEEA43 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:23.253]   [BODY] 37-4D-0E-14
+[07:53:23.254]   [DECRYPT] peerID=0xFFCB nonce=0x964BD9CD cmd=71(0x47) sentTime=True bodyLen=12
+[07:53:23.254]   [BODY] 3C-76-5B-8C-33-76-61-2C-EC-4D-0E-14
+[07:53:23.766]   [DECRYPT] peerID=0xEDCF nonce=0x01ADF28B cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:23.766]   [BODY] 37-4D-0E-14
+[07:53:23.767]   [DECRYPT] peerID=0xFFCA nonce=0xB96A4B8A cmd=125(0x7D) sentTime=False bodyLen=12
+[07:53:23.767]   [BODY] 25-2C-03-A3-D2-E9-DD-31-DF-4D-0E-14
+[07:53:24.236]   [DECRYPT] peerID=0x6437 nonce=0x271CCED5 cmd=42(0x2A) sentTime=True bodyLen=22
+[07:53:24.236]   [BODY] DC-FF-C2-2D-38-00-6F-42-0D-B9-35-13-DF-68-59-D7-99-E2-83-4D-0E-14
+[07:53:24.236]   [DECRYPT] peerID=0xFFC9 nonce=0xF1E09F42 cmd=83(0x53) sentTime=True bodyLen=12
+[07:53:24.237]   [BODY] 7A-60-49-BA-10-1B-B4-63-EB-4D-0E-14
+[07:53:24.745]   [DECRYPT] peerID=0xEDC1 nonce=0x565B3F29 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:24.745]   [BODY] 37-4D-0E-14
+[07:53:24.746]   [DECRYPT] peerID=0xFFC8 nonce=0x0A103105 cmd=19(0x13) sentTime=False bodyLen=12
+[07:53:24.746]   [BODY] A1-E2-84-A1-12-9E-2E-0E-3C-4D-0E-14
+[07:53:25.259]   [DECRYPT] peerID=0xEDC0 nonce=0x9795C86E cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:25.259]   [BODY] 37-4D-0E-14
+[07:53:25.260]   [DECRYPT] peerID=0xFFC7 nonce=0x51667AE0 cmd=65(0x41) sentTime=True bodyLen=12
+[07:53:25.260]   [BODY] DE-8C-4A-B2-BB-CF-A4-B3-E7-4D-0E-14
+[07:53:25.771]   [DECRYPT] peerID=0xEDC3 nonce=0xD4C6D0A6 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:25.771]   [BODY] 37-4D-0E-14
+[07:53:25.771]   [DECRYPT] peerID=0xFFC6 nonce=0x045B0BA7 cmd=28(0x1C) sentTime=True bodyLen=12
+[07:53:25.771]   [BODY] 2C-69-27-4C-92-D6-75-25-5B-4D-0E-14
+[07:53:26.237]   [DECRYPT] peerID=0x8F3B nonce=0xA13622FB cmd=45(0x2D) sentTime=True bodyLen=22
+[07:53:26.237]   [BODY] C1-0F-8C-6A-FE-2C-A0-FC-58-89-D8-34-4A-91-01-5D-CB-87-83-4D-0E-14
+[07:53:26.237]   [DECRYPT] peerID=0xFFC5 nonce=0x6927096F cmd=50(0x32) sentTime=False bodyLen=12
+[07:53:26.237]   [BODY] C5-F0-5D-D1-C0-91-F1-F6-27-4D-0E-14
+[07:53:26.748]   [DECRYPT] peerID=0xEDC5 nonce=0xE57D2132 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:26.748]   [BODY] 37-4D-0E-14
+[07:53:26.749]   [DECRYPT] peerID=0xFFC4 nonce=0x5D192428 cmd=58(0x3A) sentTime=False bodyLen=12
+[07:53:26.749]   [BODY] 74-8A-70-C3-20-6A-10-B7-1B-4D-0E-14
+[07:53:27.261]   [DECRYPT] peerID=0xEDC4 nonce=0x24B3D675 cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:27.261]   [BODY] 37-4D-0E-14
+[07:53:27.261]   [DECRYPT] peerID=0xFFC3 nonce=0xC6254EFB cmd=26(0x1A) sentTime=True bodyLen=12
+[07:53:27.261]   [BODY] AD-32-18-E8-8A-ED-02-DB-44-4D-0E-14
+[07:53:27.771]   [DECRYPT] peerID=0xEDC7 nonce=0x67E0CEBD cmd=32(0x20) sentTime=True bodyLen=4
+[07:53:27.771]   [BODY] 37-4D-0E-14
+[07:53:27.772]   [DECRYPT] peerID=0xFFC2 nonce=0x4ED893BC cmd=106(0x6A) sentTime=False bodyLen=12
+[07:53:27.772]   [BODY] FB-5A-26-8A-E0-72-12-86-E6-4D-0E-14
+[07:53:28.239]   [DECRYPT] peerID=0xFFC1 nonce=0x59B40274 cmd=12(0x0C) sentTime=True bodyLen=12
+[07:53:28.239]   [BODY] EB-A0-AD-BA-95-D0-FE-E0-EC-4D-0E-14
+[07:53:30.239]   [DECRYPT] peerID=0x5A40 nonce=0xA5D69B96 cmd=19(0x13) sentTime=False bodyLen=22
+[07:53:30.239]   [BODY] 57-3A-F3-AB-88-7A-10-CF-4D-E2-23-F5-4D-D5-F5-DA-8F-68-83-4D-0E-14
+[07:53:30.239]   [DECRYPT] peerID=0xFFC0 nonce=0x2BF6FA33 cmd=87(0x57) sentTime=False bodyLen=12
+[07:53:30.239]   [BODY] B8-5A-6A-28-4C-67-58-A2-36-4D-0E-14
+[07:53:32.239]   [DECRYPT] peerID=0x5D41 nonce=0x09DF24B8 cmd=126(0x7E) sentTime=True bodyLen=22
+[07:53:32.239]   [BODY] 26-BE-28-3D-B5-92-64-42-7E-7C-C5-B5-E7-9E-5D-AD-CD-C4-83-4D-0E-14
+[07:53:32.240]   [DECRYPT] peerID=0xFFBF nonce=0x8FB09BD7 cmd=101(0x65) sentTime=True bodyLen=12
+[07:53:32.240]   [BODY] A2-91-40-98-B8-B6-AA-06-D8-4D-0E-14
+[07:53:34.254]   [DECRYPT] peerID=0xFFBE nonce=0xC8F7AE90 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:34.254]   [BODY] BD-99-A9-51-92-F9-BD-C5-A0-4D-0E-14
+[07:53:36.268]   [DECRYPT] peerID=0x0A43 nonce=0x4F90B4CB cmd=114(0x72) sentTime=False bodyLen=22
+[07:53:36.268]   [BODY] 4E-33-91-89-86-9D-11-3B-13-4E-FE-C4-BE-36-C7-65-22-C5-83-4D-0E-14
+[07:53:36.269]   [DECRYPT] peerID=0xFFBD nonce=0x8BA4B658 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:36.269]   [BODY] BD-7E-37-C2-45-7E-E5-9E-C3-4D-0E-14
+[07:53:38.281]   [DECRYPT] peerID=0xFFBC nonce=0x4A6A411F cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:38.281]   [BODY] BD-28-D6-9A-B1-3C-37-C9-EB-4D-0E-14
+[07:53:40.281]   [DECRYPT] peerID=0x3D45 nonce=0x5EB34C9A cmd=102(0x66) sentTime=False bodyLen=22
+[07:53:40.281]   [BODY] 40-8F-8D-67-31-2B-E4-6E-27-E5-51-49-12-56-38-70-F6-18-83-4D-0E-14
+[07:53:40.281]   [DECRYPT] peerID=0xFFBB nonce=0xBA1F47CC cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:40.281]   [BODY] BD-CA-59-42-EB-C8-8E-5F-E1-4D-0E-14
+[07:53:42.283]   [DECRYPT] peerID=0x2546 nonce=0x12FA77E3 cmd=120(0x78) sentTime=True bodyLen=22
+[07:53:42.283]   [BODY] FC-8A-29-82-38-8D-E1-73-7B-2E-4B-16-95-9C-DA-CA-63-4B-83-4D-0E-14
+[07:53:42.284]   [DECRYPT] peerID=0xFFBA nonce=0x7BD1B08B cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:42.284]   [BODY] BD-34-52-CE-4A-30-20-75-04-4D-0E-14
+[07:53:44.293]   [DECRYPT] peerID=0xED47 nonce=0x4B759B3E cmd=84(0x54) sentTime=True bodyLen=22
+[07:53:44.293]   [BODY] AE-F8-27-42-50-4A-5F-73-B9-0E-DC-02-C0-4F-44-17-4E-76-83-4D-0E-14
+[07:53:44.294]   [DECRYPT] peerID=0xFFB9 nonce=0x3882A843 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:44.294]   [BODY] BD-6E-30-16-1B-FF-93-4B-1A-4D-0E-14
+[07:53:46.303]   [DECRYPT] peerID=0xD048 nonce=0x6251FC24 cmd=50(0x32) sentTime=False bodyLen=22
+[07:53:46.303]   [BODY] 24-18-C7-BE-B1-0D-A0-D3-CF-55-57-A5-4E-7C-19-26-54-6C-83-4D-0E-14
+[07:53:46.304]   [DECRYPT] peerID=0xFFB8 nonce=0xF94C5F04 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:46.304]   [BODY] BD-F1-3B-06-CC-BC-2D-4A-DD-4D-0E-14
+[07:53:48.317]   [DECRYPT] peerID=0x7549 nonce=0x7A67CF14 cmd=50(0x32) sentTime=True bodyLen=22
+[07:53:48.317]   [BODY] 84-6E-00-57-63-C0-23-4B-7C-16-DD-AB-CD-BE-06-27-4A-A4-83-4D-0E-14
+[07:53:48.317]   [DECRYPT] peerID=0xFFB7 nonce=0x6F7465E1 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:48.317]   [BODY] BD-CC-15-B1-51-97-4C-56-38-4D-0E-14
+[07:53:50.329]   [DECRYPT] peerID=0xA04A nonce=0x4C7E5BF8 cmd=18(0x12) sentTime=False bodyLen=22
+[07:53:50.329]   [BODY] A0-04-89-BC-D9-ED-D3-BA-37-00-94-96-99-FF-7C-55-85-11-83-4D-0E-14
+[07:53:50.329]   [DECRYPT] peerID=0xFFB6 nonce=0xAEBA92A6 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:50.329]   [BODY] BD-BF-74-D0-43-7D-F7-69-83-4D-0E-14
+[07:53:52.342]   [DECRYPT] peerID=0x054B nonce=0x27E7A2A9 cmd=40(0x28) sentTime=True bodyLen=22
+[07:53:52.342]   [BODY] 6E-D2-32-19-56-BE-F0-C8-8F-FF-10-13-3C-AB-48-D9-B6-FC-83-4D-0E-14
+[07:53:52.343]   [DECRYPT] peerID=0xFFB5 nonce=0xEDE98A6E cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:52.343]   [BODY] BD-32-D0-77-9E-13-5A-B1-A0-4D-0E-14
+[07:53:54.351]   [DECRYPT] peerID=0x894C nonce=0xC9BC1C21 cmd=66(0x42) sentTime=True bodyLen=22
+[07:53:54.351]   [BODY] 35-2C-33-4D-DB-01-33-64-F8-29-4F-08-7A-13-57-16-6F-19-83-4D-0E-14
+[07:53:54.352]   [DECRYPT] peerID=0xFFB4 nonce=0x2C277D29 cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:54.352]   [BODY] BD-70-0B-77-50-97-D5-B5-3F-4D-0E-14
+[07:53:56.365]   [DECRYPT] peerID=0xDE4D nonce=0xE6E14F1B cmd=34(0x22) sentTime=False bodyLen=22
+[07:53:56.365]   [BODY] BF-3B-C4-7F-A2-97-2F-74-EB-6D-31-41-4D-2B-B1-93-E8-AB-83-4D-0E-14
+[07:53:56.365]   [DECRYPT] peerID=0xFFB3 nonce=0xDC527BFA cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:56.365]   [BODY] BD-E8-C6-7C-B1-AF-63-F2-2A-4D-0E-14
+[LCU] Client handler error: Authentication failed because the remote party sent a TLS alert: 'UnknownCA'.
+[07:53:58.370]   [DECRYPT] peerID=0xAD4E nonce=0xAACED7AA cmd=111(0x6F) sentTime=False bodyLen=22
+[07:53:58.370]   [BODY] BE-01-16-AD-30-F5-80-BC-12-88-55-6C-DE-9B-3A-77-C6-4B-83-4D-0E-14
+[07:53:58.371]   [DECRYPT] peerID=0xFFB2 nonce=0x1D9C8CBD cmd=97(0x61) sentTime=True bodyLen=12
+[07:53:58.371]   [BODY] BD-97-5E-2D-16-FA-46-C7-FF-4D-0E-14
+[07:54:00.376]   [DECRYPT] peerID=0xFFB1 nonce=0x5ECF9475 cmd=97(0x61) sentTime=True bodyLen=12
+[07:54:00.376]   [BODY] BD-24-AF-9C-4F-E1-67-6C-E5-4D-0E-14
+[07:54:02.376]   [DECRYPT] peerID=0x7A50 nonce=0xDDDAAD64 cmd=85(0x55) sentTime=True bodyLen=22
+[07:54:02.376]   [BODY] EC-CB-A8-3E-FB-6F-3A-77-57-11-1E-5B-69-01-2B-4E-4F-F6-83-4D-0E-14
+[07:54:02.377]   [DECRYPT] peerID=0xFFB0 nonce=0x9F016332 cmd=97(0x61) sentTime=True bodyLen=12
+[07:54:02.377]   [BODY] BD-B4-F3-43-2B-70-E6-18-CE-4D-0E-14

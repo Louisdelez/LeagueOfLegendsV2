@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C19E1709-D0CC-4064-A37B-B16CAE5A1298}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoLServer.Core", "src\LoLServer.Core\LoLServer.Core.csproj", "{DE3918B2-5EC9-4D00-B821-DCE98691E160}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoLServer.Console", "src\LoLServer.Console\LoLServer.Console.csproj", "{6C9ADAB0-624B-4CDB-A930-04595B6AC352}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoLServer.Launcher", "src\LoLServer.Launcher\LoLServer.Launcher.csproj", "{5ED99196-CE19-4D48-B922-C383FA609C98}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DE3918B2-5EC9-4D00-B821-DCE98691E160}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE3918B2-5EC9-4D00-B821-DCE98691E160}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE3918B2-5EC9-4D00-B821-DCE98691E160}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE3918B2-5EC9-4D00-B821-DCE98691E160}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C9ADAB0-624B-4CDB-A930-04595B6AC352}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C9ADAB0-624B-4CDB-A930-04595B6AC352}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C9ADAB0-624B-4CDB-A930-04595B6AC352}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C9ADAB0-624B-4CDB-A930-04595B6AC352}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5ED99196-CE19-4D48-B922-C383FA609C98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5ED99196-CE19-4D48-B922-C383FA609C98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5ED99196-CE19-4D48-B922-C383FA609C98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5ED99196-CE19-4D48-B922-C383FA609C98}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{DE3918B2-5EC9-4D00-B821-DCE98691E160} = {C19E1709-D0CC-4064-A37B-B16CAE5A1298}
+		{6C9ADAB0-624B-4CDB-A930-04595B6AC352} = {C19E1709-D0CC-4064-A37B-B16CAE5A1298}
+		{5ED99196-CE19-4D48-B922-C383FA609C98} = {C19E1709-D0CC-4064-A37B-B16CAE5A1298}
+	EndGlobalSection
+EndGlobal

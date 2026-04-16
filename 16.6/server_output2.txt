@@ -1,0 +1,526 @@
+
+  ╔═══════════════════════════════════════════╗
+  ║     LoL Private Server v0.1.0             ║
+  ║     Compatible with modern LoL client     ║
+  ╚═══════════════════════════════════════════╝
+
+Loading config from D:\LeagueOfLegendsV2\server\src\LoLServer.Console\bin\Debug\net8.0\gameconfig.json
+Server port: 5119
+Client path: /media/louisdelez/VM/LeagueOfLegendsV2/client/Game
+Game version: 16.6.1
+Map: 11
+Mode: Raw UDP (modern client)
+Raw capture: False
+
+[LOBBY] Web lobby running at http://localhost:8888/
+[LOBBY] Players can join at http://<YOUR_IP>:8888/
+[LCU] Using custom cert from D:\LeagueOfLegendsV2\server_tls.pfx (CN=CN=localhost)
+[LCU] Certificate saved to D:\LeagueOfLegendsV2\fakeLcu.crt
+[LCU] Certificate already in store, skipping install
+[LCU] Fake RiotClient (TLS) running on port 50456
+
+Log file: D:\LeagueOfLegendsV2\server\src\LoLServer.Console\bin\Debug\net8.0\logs\server_20260403_060532.log
+Press Ctrl+C to stop the server.
+
+[06:05:32.391] === LoL Private Server (Double CFB Mode) ===
+[06:05:32.393] Port: 5119
+[06:05:32.393] Blowfish Key: 17BLOhi6KZsTtldTsizvHg== (16 bytes)
+[06:05:32.393] BF_encrypt(zeros) = F9-ED-26-C0-F2-2A-52-B4
+[06:05:32.394] P[0] = 0xBBCD2876 (client has 0xBBCD2876)
+[06:05:32.394] SessionID: 0xDEADBEEF
+[06:05:32.394] Players: 2
+[06:05:32.394] [OK] Listening on UDP port 5119
+[06:05:32.394] Waiting for LoL client connection...
+[06:05:36.876] [NEW PEER] 127.0.0.1:54424 → PeerId=0
+[06:05:36.877]   [TOKEN] Connection token: 0xEDE36B43
+[06:05:36.877] [CLIENT] #1 519B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:36.878]   [DECRYPT] peerID=0xF187 nonce=0xDCAF5AFF cmd=33 sentTime=False bodyLen=504
+[06:05:36.878]   [BODY] E0-4E-E5-89-9D-08-90-33-FE-60-0C-BB-4C-52-13-78-9B-57-6A-42-13-D3-46-4F-6C-DD-73-A3-3D-56-D9-12-8F-BB-72-44-BB-4B-17-2D-18-CB-70-FC-7A-CD-8F-F1
+[06:05:36.879]   [HANDSHAKE] ECHO-ONLY mode
+[06:05:36.883]   [CLIENT] Created PeerId=0
+[06:05:36.886] [CLIENT] #2 119B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:36.886]   [DECRYPT] peerID=0xC585 nonce=0x72532B0D cmd=66 sentTime=True bodyLen=104
+[06:05:36.886]   [BODY] 5D-A2-D8-79-F4-6A-CF-D3-37-95-BA-EC-32-CE-45-8E-03-7F-FB-17-71-2E-F6-BD-98-0C-76-C9-EB-7C-C5-F9-79-4D-7E-41-C0-66-C3-2D-5C-06-EF-24-BC-C0-B2-C8
+[06:05:36.887] [CLIENT] #3 519B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:36.887]   [DECRYPT] peerID=0x8343 nonce=0x6E3F05B8 cmd=53 sentTime=True bodyLen=504
+[06:05:36.887]   [BODY] 11-7D-08-5C-BD-D5-A7-98-52-11-B8-D1-FE-3D-F0-64-2B-67-B0-95-D1-2E-D0-9F-04-FD-DC-79-87-32-9D-EA-E5-60-29-42-01-49-67-F9-E6-B1-C4-CB-C3-01-81-EF
+[06:05:36.888] [CLIENT] #4 119B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:36.888]   [DECRYPT] peerID=0x2423 nonce=0xD66F1124 cmd=13 sentTime=False bodyLen=104
+[06:05:36.888]   [BODY] 5C-5A-1B-F2-9D-0F-91-2D-B3-34-05-63-16-E0-A5-AD-14-43-0D-FD-23-97-EF-EE-F2-1B-08-3E-CF-EE-CD-FF-1E-59-AB-E1-5F-31-9D-06-F6-37-D9-70-6F-43-D1-20
+[06:05:36.897] [CLIENT] #5 64B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:36.897]   [DECRYPT] peerID=0xAEAC nonce=0x0DB1713D cmd=43 sentTime=False bodyLen=49
+[06:05:36.897]   [BODY] 9D-85-25-CD-AB-99-10-15-A7-9B-B2-7A-1E-76-B9-74-E2-57-3D-76-C3-02-15-5B-11-C2-2D-AB-4C-4B-DA-B5-58-FC-21-12-97-D7-C9-EC-10-F2-78-AE-6B-29-66-C9
+[06:05:36.897] [CLIENT] #6 34B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:36.897]   [DECRYPT] peerID=0x5116 nonce=0xFE02A7BB cmd=96 sentTime=True bodyLen=19
+[06:05:36.897]   [BODY] 7E-94-E3-7E-36-B6-CE-BA-4F-E1-E2-17-BF-BE-1E-DE-EE-B8-A8
+[06:05:36.898] [CLIENT] #7 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:36.899]   [DECRYPT] peerID=0x1605 nonce=0x96A9979D cmd=97 sentTime=True bodyLen=12
+[06:05:36.899]   [BODY] BF-D4-18-54-B8-94-44-0B-69-EC-57-9A
+[06:05:36.899] [CLIENT] #8 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:36.899]   [DECRYPT] peerID=0x1605 nonce=0x96A9979D cmd=97 sentTime=True bodyLen=12
+[06:05:36.899]   [BODY] BF-D4-18-54-B8-94-44-0B-69-EC-57-9A
+[06:05:36.906] [CLIENT] #9 64B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:36.907]   [DECRYPT] peerID=0x122E nonce=0x60146B19 cmd=51 sentTime=False bodyLen=49
+[06:05:36.907]   [BODY] 07-B3-38-77-6A-57-42-E3-59-D7-69-94-E8-83-77-10-20-5C-74-27-7A-F4-65-36-A9-5B-2E-8C-CC-91-28-A1-97-15-48-B1-74-81-31-FC-10-4C-75-C0-32-C5-18-F1
+[06:05:36.908] [CLIENT] #10 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:36.908]   [DECRYPT] peerID=0x6109 nonce=0x099E608F cmd=97 sentTime=True bodyLen=12
+[06:05:36.908]   [BODY] B9-0A-90-D2-5E-08-20-BF-75-EC-57-9A
+[06:05:37.417] [CLIENT] #11 19B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:37.417]   [DECRYPT] peerID=0x5600 nonce=0xD79F9469 cmd=32 sentTime=True bodyLen=4
+[06:05:37.417]   [BODY] 37-36-D9-81
+[06:05:37.418] [CLIENT] #12 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:37.418]   [DECRYPT] peerID=0xE607 nonce=0xC7848828 cmd=97 sentTime=True bodyLen=12
+[06:05:37.418]   [BODY] B5-39-53-DE-72-D2-D4-46-3E-EC-57-9A
+[06:05:37.927] [CLIENT] #13 19B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:37.927]   [DECRYPT] peerID=0xC871 nonce=0x165163C0 cmd=32 sentTime=True bodyLen=4
+[06:05:37.927]   [BODY] 37-65-E3-3A
+[06:05:37.928] [CLIENT] #14 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:37.928]   [DECRYPT] peerID=0xAB57 nonce=0x9E447011 cmd=97 sentTime=True bodyLen=12
+[06:05:37.928]   [BODY] AD-42-D5-5B-8F-CE-52-43-E3-EC-57-9A
+[06:05:38.438] [CLIENT] #15 19B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:38.438]   [DECRYPT] peerID=0x47F1 nonce=0x55027B9C cmd=32 sentTime=True bodyLen=4
+[06:05:38.438]   [BODY] 37-7C-9A-25
+[06:05:38.439] [CLIENT] #16 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:38.439]   [DECRYPT] peerID=0x47A3 nonce=0x0DE17A2C cmd=97 sentTime=True bodyLen=12
+[06:05:38.439]   [BODY] 9D-99-C4-D9-E0-E5-3D-D0-17-EC-57-9A
+[06:05:38.897] [CLIENT] #17 36B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:38.897]   [DECRYPT] peerID=0x99F9 nonce=0x669CDE36 cmd=84 sentTime=False bodyLen=21
+[06:05:38.897]   [BODY] 02-39-E0-A0-99-05-F6-99-CE-70-69-6E-CE-BB-CB-A8-1B-A9-D6-DC-26
+[06:05:38.898] [CLIENT] #18 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:38.898]   [DECRYPT] peerID=0x9F9B nonce=0xEA6498DA cmd=97 sentTime=True bodyLen=12
+[06:05:38.898]   [BODY] FD-77-09-DC-BA-79-B5-44-20-EC-57-9A
+[06:05:39.400] [CLIENT] #19 19B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:39.400]   [DECRYPT] peerID=0x24EB nonce=0x02F4B608 cmd=32 sentTime=True bodyLen=4
+[06:05:39.400]   [BODY] 37-D2-EA-11
+[06:05:39.401] [CLIENT] #20 27B LNPBlob sessID=0xDEADBEEF token=0xEDE36B43
+[06:05:39.401]   [DECRYPT] peerID=0x6C95 nonce=0x63079A77 cmd=97 sentTime=True bodyLen=12
+[06:05:39.401]   [BODY] 3D-D8-8B-37-C5-2D-89-B0-38-EC-57-9A
+[06:05:39.914]   [DECRYPT] peerID=0x8918 nonce=0xC33A4143 cmd=32 sentTime=True bodyLen=4
+[06:05:39.914]   [BODY] 37-67-0B-2C
+[06:05:39.915]   [DECRYPT] peerID=0xE807 nonce=0x6FAE9E46 cmd=97 sentTime=True bodyLen=12
+[06:05:39.915]   [BODY] BD-FF-DF-34-2F-BF-E7-AB-9A-CA-FE-C3
+[06:05:40.428]   [DECRYPT] peerID=0x083A nonce=0x80695933 cmd=32 sentTime=True bodyLen=4
+[06:05:40.428]   [BODY] 37-91-DB-E5
+[06:05:40.428]   [DECRYPT] peerID=0x6C67 nonce=0x27950035 cmd=97 sentTime=True bodyLen=12
+[06:05:40.428]   [BODY] BD-C9-D9-54-67-1E-D8-8C-44-3B-09-06
+[06:05:40.909]   [DECRYPT] peerID=0x6620 nonce=0x1A389264 cmd=54 sentTime=False bodyLen=22
+[06:05:40.909]   [BODY] 15-34-80-65-E0-79-25-5C-74-6D-9F-9C-2E-1B-99-53-F2-0D-48-B5-DB-99
+[06:05:40.910]   [DECRYPT] peerID=0x5865 nonce=0x762DCB9A cmd=97 sentTime=True bodyLen=12
+[06:05:40.910]   [BODY] BD-C7-BB-93-53-4D-A2-71-AD-26-28-66
+[06:05:41.424]   [DECRYPT] peerID=0xA3C6 nonce=0xB1D2A898 cmd=32 sentTime=True bodyLen=4
+[06:05:41.424]   [BODY] 37-D8-06-C3
+[06:05:41.424]   [DECRYPT] peerID=0x9324 nonce=0x93359B0F cmd=97 sentTime=True bodyLen=12
+[06:05:41.424]   [BODY] BD-28-96-98-9B-85-5B-F6-20-B7-E2-E5
+[06:05:41.936]   [DECRYPT] peerID=0x3721 nonce=0x701C5F0F cmd=32 sentTime=True bodyLen=4
+[06:05:41.936]   [BODY] 37-BE-88-30
+[06:05:41.937]   [DECRYPT] peerID=0x6554 nonce=0x2BECD232 cmd=97 sentTime=True bodyLen=12
+[06:05:41.937]   [BODY] BD-8E-29-33-5D-45-38-4F-0A-59-9C-E9
+[06:05:42.449]   [DECRYPT] peerID=0x28EA nonce=0x334F47DD cmd=32 sentTime=True bodyLen=4
+[06:05:42.449]   [BODY] 37-56-EE-64
+[06:05:42.450]   [DECRYPT] peerID=0x2DD5 nonce=0x7A7ABA12 cmd=97 sentTime=True bodyLen=12
+[06:05:42.450]   [BODY] BD-CB-73-42-5E-5E-3C-F9-BB-F5-0C-43
+[06:05:42.916]   [DECRYPT] peerID=0x4EB6 nonce=0x437B2ACE cmd=77 sentTime=True bodyLen=22
+[06:05:42.917]   [BODY] 2A-4B-A9-3D-E3-54-8B-31-57-BF-88-F8-70-93-C9-CE-71-32-E3-85-A2-EA
+[06:05:42.917]   [DECRYPT] peerID=0x6CC5 nonce=0x19989C1F cmd=97 sentTime=True bodyLen=12
+[06:05:42.917]   [BODY] BD-F7-C9-8D-5F-4B-2E-A0-EB-97-27-7D
+[06:05:43.430]   [DECRYPT] peerID=0x8778 nonce=0xA823F223 cmd=32 sentTime=True bodyLen=4
+[06:05:43.430]   [BODY] 37-55-15-34
+[06:05:43.430]   [GAME] Sending KeyCheck via CRC-format packet
+[06:05:43.431]   [CRC-PKT] cmd=0x06 body=37B total=46B (magic=CAFE)
+[06:05:43.431]   [KEYCHECK] sent via CAFE, 37B body
+[06:05:43.431]   [CRC-PKT] cmd=0x06 body=37B total=46B (magic=CAFE)
+[06:05:43.431]   [SYNCH] sent SynchVersionS2C
+[06:05:43.431]   [DECRYPT] peerID=0xB395 nonce=0x98341678 cmd=97 sentTime=True bodyLen=12
+[06:05:43.431]   [BODY] BD-12-A2-EE-08-2F-F6-48-54-3E-71-FD
+[06:05:43.943]   [DECRYPT] peerID=0xC9C5 nonce=0x69ED0567 cmd=32 sentTime=True bodyLen=4
+[06:05:43.943]   [BODY] 37-2E-CE-C1
+[06:05:43.943]   [DECRYPT] peerID=0x3D17 nonce=0x9E141B05 cmd=97 sentTime=True bodyLen=12
+[06:05:43.943]   [BODY] BD-DE-14-BB-F0-8E-7B-4A-24-6B-EE-BC
+[06:05:44.457]   [DECRYPT] peerID=0x6D2B nonce=0x2ABE1D98 cmd=32 sentTime=True bodyLen=4
+[06:05:44.457]   [BODY] 37-8D-47-8B
+[06:05:44.457]   [DECRYPT] peerID=0x19A8 nonce=0x8C850787 cmd=97 sentTime=True bodyLen=12
+[06:05:44.457]   [BODY] BD-9C-6A-B8-EA-F2-9F-DD-BF-F5-F5-9C
+[06:05:44.923]   [DECRYPT] peerID=0x1873 nonce=0x840181AC cmd=92 sentTime=False bodyLen=22
+[06:05:44.923]   [BODY] DE-53-B0-95-E2-61-48-C0-56-D8-B9-B8-95-CE-4D-CC-42-67-92-59-75-07
+[06:05:44.924]   [DECRYPT] peerID=0x26FE nonce=0x6969C91A cmd=97 sentTime=True bodyLen=12
+[06:05:44.924]   [BODY] BD-3A-8A-43-10-E1-7B-FC-B0-93-39-AA
+[06:05:45.436]   [DECRYPT] peerID=0x5DEA nonce=0x1B05ECF4 cmd=32 sentTime=True bodyLen=4
+[06:05:45.436]   [BODY] 37-F8-DE-41
+[06:05:45.437]   [DECRYPT] peerID=0xA99F nonce=0x53C5525B cmd=97 sentTime=True bodyLen=12
+[06:05:45.437]   [BODY] BD-16-28-9D-5B-55-EE-A6-A8-76-CD-03
+[06:05:45.950]   [DECRYPT] peerID=0x241F nonce=0xDACB1BE6 cmd=32 sentTime=True bodyLen=4
+[06:05:45.950]   [BODY] 37-C8-0D-11
+[06:05:45.951]   [DECRYPT] peerID=0xB251 nonce=0xE2684DF0 cmd=97 sentTime=True bodyLen=12
+[06:05:45.951]   [BODY] BD-08-07-60-FA-EC-28-17-9E-47-60-5E
+[06:05:46.463]   [DECRYPT] peerID=0xA52F nonce=0x999803C9 cmd=32 sentTime=True bodyLen=4
+[06:05:46.463]   [BODY] 37-18-50-0B
+[06:05:46.464]   [DECRYPT] peerID=0xBC81 nonce=0x160B48CC cmd=97 sentTime=True bodyLen=12
+[06:05:46.464]   [BODY] BD-24-34-DE-36-80-84-7A-9D-4F-23-D7
+[06:05:46.929]   [DECRYPT] peerID=0x666C nonce=0x340BC2F9 cmd=110 sentTime=True bodyLen=22
+[06:05:46.929]   [BODY] 41-21-41-84-78-4E-C8-D7-EF-0E-5E-6B-FE-7F-BA-37-A0-80-1A-F3-A6-3E
+[06:05:46.929]   [DECRYPT] peerID=0xF821 nonce=0x3F02B583 cmd=97 sentTime=True bodyLen=12
+[06:05:46.930]   [BODY] BD-9F-88-6E-84-B7-6B-F9-13-4A-2E-0D
+[06:05:47.442]   [DECRYPT] peerID=0xA627 nonce=0xCE6ECE7B cmd=32 sentTime=True bodyLen=4
+[06:05:47.442]   [BODY] 37-FA-C0-39
+[06:05:47.443]   [DECRYPT] peerID=0x7DE4 nonce=0x2A78882A cmd=97 sentTime=True bodyLen=12
+[06:05:47.443]   [BODY] BD-34-F7-E4-75-26-ED-AE-6B-C0-71-BF
+[06:05:47.955]   [DECRYPT] peerID=0x7C40 nonce=0x0FA039C5 cmd=32 sentTime=True bodyLen=4
+[06:05:47.955]   [BODY] 37-23-1A-3C
+[06:05:47.956]   [DECRYPT] peerID=0x8BA1 nonce=0x9385FF32 cmd=97 sentTime=True bodyLen=12
+[06:05:47.956]   [BODY] BD-5F-4B-1F-1B-F3-F9-43-A3-81-C6-B3
+[06:05:48.469]   [DECRYPT] peerID=0xAF92 nonce=0x4CF321B2 cmd=32 sentTime=True bodyLen=4
+[06:05:48.469]   [BODY] 37-52-D6-A3
+[06:05:48.470]   [DECRYPT] peerID=0x2A5B nonce=0x8B6D4B66 cmd=97 sentTime=True bodyLen=12
+[06:05:48.470]   [BODY] BD-BD-BE-40-24-6A-31-64-ED-CC-42-A7
+[06:05:48.935]   [DECRYPT] peerID=0xD557 nonce=0x8C35AD6B cmd=93 sentTime=True bodyLen=22
+[06:05:48.935]   [BODY] 44-4E-B6-41-9D-17-1D-33-99-3A-B2-09-14-93-87-B7-74-38-EE-1E-BB-DA
+[06:05:48.936]   [DECRYPT] peerID=0x7A9B nonce=0x7A73D5A9 cmd=97 sentTime=True bodyLen=12
+[06:05:48.936]   [BODY] BD-6B-61-FF-63-EF-E1-72-37-5A-66-FC
+[06:05:49.449]   [DECRYPT] peerID=0x3691 nonce=0x7D48D0E6 cmd=32 sentTime=True bodyLen=4
+[06:05:49.449]   [BODY] 37-12-73-6C
+[06:05:49.449]   [DECRYPT] peerID=0x78BC nonce=0xDF262E59 cmd=97 sentTime=True bodyLen=12
+[06:05:49.449]   [BODY] BD-3E-84-24-79-7A-DE-DF-2E-EA-BD-54
+[06:05:49.962]   [DECRYPT] peerID=0x96E8 nonce=0xBC86274D cmd=32 sentTime=True bodyLen=4
+[06:05:49.962]   [BODY] 37-18-AB-85
+[06:05:49.963]   [DECRYPT] peerID=0xFF7F nonce=0xE7653193 cmd=97 sentTime=True bodyLen=12
+[06:05:49.963]   [BODY] BD-1C-08-F5-21-4F-38-17-86-C4-85-ED
+[06:05:50.475]   [DECRYPT] peerID=0x8562 nonce=0xFFD53F97 cmd=32 sentTime=True bodyLen=4
+[06:05:50.475]   [BODY] 37-74-0C-12
+[06:05:50.476]   [DECRYPT] peerID=0x35E0 nonce=0xB6C6F4BC cmd=97 sentTime=True bodyLen=12
+[06:05:50.476]   [BODY] BD-23-5E-1E-41-80-E3-C8-EC-D1-B4-82
+[06:05:50.942]   [DECRYPT] peerID=0xAB6D nonce=0x199811E0 cmd=95 sentTime=True bodyLen=22
+[06:05:50.942]   [BODY] 34-D2-8F-1D-79-34-4D-5F-F7-66-3E-AA-FF-CB-88-13-8F-8A-4B-59-78-4A
+[06:05:50.943]   [DECRYPT] peerID=0xDAC1 nonce=0x6253491F cmd=97 sentTime=True bodyLen=12
+[06:05:50.943]   [BODY] BD-71-CA-E1-89-DA-ED-70-CC-84-34-CB
+[06:05:51.455]   [DECRYPT] peerID=0x77AA nonce=0xFC8C7BCA cmd=32 sentTime=True bodyLen=4
+[06:05:51.455]   [BODY] 37-92-54-85
+[06:05:51.456]   [DECRYPT] peerID=0x08C9 nonce=0x3A0D345F cmd=97 sentTime=True bodyLen=12
+[06:05:51.456]   [BODY] BD-F8-32-C5-16-5A-0A-2A-52-F9-70-44
+[06:05:51.969]   [DECRYPT] peerID=0x4271 nonce=0x3D428C68 cmd=32 sentTime=True bodyLen=4
+[06:05:51.969]   [BODY] 37-3A-B8-76
+[06:05:51.970]   [DECRYPT] peerID=0x53CF nonce=0x1ABC95CD cmd=80 sentTime=True bodyLen=12
+[06:05:51.970]   [BODY] E0-5D-CE-BD-B4-08-25-18-6B-88-C2-4F
+[06:05:52.482]   [DECRYPT] peerID=0xEB8D nonce=0x7E119481 cmd=32 sentTime=True bodyLen=4
+[06:05:52.482]   [BODY] 37-D6-5B-E7
+[06:05:52.483]   [DECRYPT] peerID=0x4914 nonce=0x2EA86A54 cmd=42 sentTime=False bodyLen=12
+[06:05:52.483]   [BODY] 1D-67-0E-16-49-56-1D-04-62-1A-33-96
+[06:05:52.949]   [DECRYPT] peerID=0x675A nonce=0x4B176A79 cmd=65 sentTime=True bodyLen=22
+[06:05:52.949]   [BODY] E3-59-99-D0-63-08-27-26-F9-EE-F9-E1-91-DC-57-23-D1-DE-2B-CC-7F-67
+[06:05:52.949]   [DECRYPT] peerID=0xC6D6 nonce=0xD14C9427 cmd=54 sentTime=False bodyLen=12
+[06:05:52.949]   [BODY] 9A-A7-1B-FF-CF-62-D2-58-D2-1F-9B-02
+[06:05:53.463]   [DECRYPT] peerID=0xAEEF nonce=0x4FAA659E cmd=32 sentTime=True bodyLen=4
+[06:05:53.463]   [BODY] 37-D4-80-50
+[06:05:53.463]   [DECRYPT] peerID=0x1186 nonce=0xA395F7F0 cmd=102 sentTime=True bodyLen=12
+[06:05:53.463]   [BODY] DD-76-12-31-BC-7C-43-DD-0D-18-3D-1A
+[06:05:53.975]   [DECRYPT] peerID=0x5328 nonce=0x8E6492FC cmd=32 sentTime=True bodyLen=4
+[06:05:53.975]   [BODY] 37-A8-FD-C0
+[06:05:53.976]   [DECRYPT] peerID=0xE980 nonce=0xE4A24CDB cmd=9 sentTime=False bodyLen=12
+[06:05:53.976]   [BODY] BF-BA-F0-ED-79-E7-6D-BA-AD-AB-C8-12
+[06:05:54.489]   [DECRYPT] peerID=0x8AEE nonce=0xCD378A95 cmd=32 sentTime=True bodyLen=4
+[06:05:54.489]   [BODY] 37-B2-40-B9
+[06:05:54.490]   [DECRYPT] peerID=0x18A1 nonce=0x96FFED15 cmd=49 sentTime=False bodyLen=12
+[06:05:54.490]   [BODY] 3F-7B-94-D1-AB-06-91-02-9D-A8-33-BC
+[06:05:54.955]   [DECRYPT] peerID=0xB7B4 nonce=0x3F5CEF83 cmd=21 sentTime=True bodyLen=22
+[06:05:54.955]   [BODY] 70-A1-D3-AA-50-80-A8-B3-35-F8-16-3F-7B-0C-45-E5-95-02-4C-DA-30-71
+[06:05:54.956]   [DECRYPT] peerID=0x5187 nonce=0x3D8A7AC7 cmd=47 sentTime=False bodyLen=12
+[06:05:54.956]   [BODY] 44-2D-D0-DA-22-72-B7-1E-13-F3-63-D9
+[06:05:55.469]   [DECRYPT] peerID=0x1C87 nonce=0x9AC14774 cmd=32 sentTime=True bodyLen=4
+[06:05:55.469]   [BODY] 37-A2-DC-31
+[06:05:55.470]   [DECRYPT] peerID=0xA963 nonce=0x26CDDA4C cmd=35 sentTime=False bodyLen=12
+[06:05:55.470]   [BODY] 40-2A-D7-22-90-28-7D-F4-9F-4D-7D-65
+[06:05:55.983]   [DECRYPT] peerID=0x76AB nonce=0x5B0FB0E1 cmd=32 sentTime=True bodyLen=4
+[06:05:55.983]   [BODY] 37-D4-C2-98
+[06:05:55.984]   [DECRYPT] peerID=0x3C9D nonce=0x0E6C0797 cmd=75 sentTime=True bodyLen=12
+[06:05:55.984]   [BODY] AF-27-FD-7F-92-16-E8-86-42-97-DB-73
+[06:05:56.495]   [DECRYPT] peerID=0xE31B nonce=0x185CA850 cmd=32 sentTime=True bodyLen=4
+[06:05:56.495]   [BODY] 37-2A-E1-8F
+[06:05:56.496]   [DECRYPT] peerID=0xAA5A nonce=0x4C9F88B5 cmd=3 sentTime=True bodyLen=12
+[06:05:56.496]   [BODY] AC-1F-FD-A8-8F-55-71-F9-1F-C3-F1-21
+[06:05:56.963]   [DECRYPT] peerID=0x0108 nonce=0x9D2F46BE cmd=119 sentTime=True bodyLen=22
+[06:05:56.963]   [BODY] 89-40-9A-9E-35-05-FB-F8-7B-16-F3-2B-8D-E4-ED-1E-28-43-55-74-5A-B0
+[06:05:56.963]   [DECRYPT] peerID=0x76A6 nonce=0xCD3274A2 cmd=52 sentTime=False bodyLen=12
+[06:05:56.964]   [BODY] F7-24-1D-48-4C-78-9C-C6-81-F7-FB-03
+[06:05:57.476]   [DECRYPT] peerID=0x1C54 nonce=0x29E759B4 cmd=32 sentTime=True bodyLen=4
+[06:05:57.476]   [BODY] 37-67-E6-59
+[06:05:57.476]   [DECRYPT] peerID=0xEEEE nonce=0xE5EDDBE9 cmd=30 sentTime=True bodyLen=12
+[06:05:57.476]   [BODY] 59-AC-09-83-BC-62-AF-F2-B3-8E-77-E0
+[06:05:57.988]   [DECRYPT] peerID=0xD44A nonce=0xE829AED3 cmd=32 sentTime=True bodyLen=4
+[06:05:57.988]   [BODY] 37-0F-AD-1D
+[06:05:57.989]   [DECRYPT] peerID=0x6107 nonce=0xF8C84186 cmd=113 sentTime=False bodyLen=12
+[06:05:57.989]   [BODY] F4-9E-85-7F-6F-FC-56-7C-E4-56-1E-D7
+[06:05:58.501]   [DECRYPT] peerID=0xE6F0 nonce=0xAB7AB6FB cmd=32 sentTime=True bodyLen=4
+[06:05:58.501]   [BODY] 37-D3-CB-96
+[06:05:58.502]   [DECRYPT] peerID=0xEAC1 nonce=0x923F721A cmd=27 sentTime=False bodyLen=12
+[06:05:58.502]   [BODY] D3-58-56-54-56-D0-01-8F-68-4A-A7-14
+[06:05:58.968]   [DECRYPT] peerID=0x3344 nonce=0x34F2ABE2 cmd=47 sentTime=True bodyLen=22
+[06:05:58.968]   [BODY] 41-63-FE-01-A6-2E-15-1A-B4-53-3E-76-57-06-1E-9A-BD-AC-01-E2-E9-51
+[06:05:58.969]   [DECRYPT] peerID=0x77EB nonce=0xF817DB06 cmd=97 sentTime=True bodyLen=12
+[06:05:58.969]   [BODY] DF-CE-E7-DD-D9-7C-DF-45-97-0D-18-F4
+[06:05:59.480]   [DECRYPT] peerID=0x1FD5 nonce=0x301603EE cmd=32 sentTime=True bodyLen=4
+[06:05:59.480]   [BODY] 37-28-8B-67
+[06:05:59.481]   [DECRYPT] peerID=0x566D nonce=0x6C3D5358 cmd=8 sentTime=True bodyLen=12
+[06:05:59.481]   [BODY] 9C-66-3C-9E-1C-4E-72-90-83-DB-31-32
+[06:05:59.993]   [DECRYPT] peerID=0xF2D7 nonce=0xF1D8F4C5 cmd=32 sentTime=True bodyLen=4
+[06:05:59.993]   [BODY] 37-FC-1D-2A
+[06:05:59.994]   [DECRYPT] peerID=0xBE72 nonce=0xDC6162B5 cmd=59 sentTime=True bodyLen=12
+[06:05:59.994]   [BODY] 70-FF-7B-94-44-C9-8E-AA-C2-08-AA-7D
+[06:06:00.506]   [DECRYPT] peerID=0x15D1 nonce=0xB28BECA3 cmd=32 sentTime=True bodyLen=4
+[06:06:00.506]   [BODY] 37-57-30-54
+[06:06:00.507]   [DECRYPT] peerID=0x6F6E nonce=0xF1274A1A cmd=6 sentTime=True bodyLen=12
+[06:06:00.507]   [BODY] 26-A4-98-6A-1F-66-D6-49-AC-2F-EF-D8
+[06:06:00.507]   [RELIABLE] cmd=0x06 bodyLen=12
+[06:06:00.507]   [DATA] len=9892 first4=98-6A-1F-66
+[06:06:00.972]   [DECRYPT] peerID=0xBFF2 nonce=0x65F1E8A4 cmd=30 sentTime=True bodyLen=22
+[06:06:00.972]   [BODY] 8F-06-E6-F8-4C-E7-7A-C8-E6-7B-17-E3-14-85-5B-C8-19-12-B9-14-6C-23
+[06:06:00.973]   [DECRYPT] peerID=0x1E95 nonce=0xABB4ED64 cmd=57 sentTime=True bodyLen=12
+[06:06:00.973]   [BODY] 6F-39-8D-34-55-29-78-C4-CF-21-B4-DD
+[06:06:01.486]   [DECRYPT] peerID=0x43F3 nonce=0x83301D20 cmd=32 sentTime=True bodyLen=4
+[06:06:01.486]   [BODY] 37-E5-26-7C
+[06:06:01.489]   [DECRYPT] peerID=0x9429 nonce=0x663EDF15 cmd=71 sentTime=True bodyLen=12
+[06:06:01.489]   [BODY] 3C-64-DC-F8-74-24-C6-CA-CD-98-9F-48
+[06:06:01.998]   [DECRYPT] peerID=0xB232 nonce=0x42FEEA74 cmd=32 sentTime=True bodyLen=4
+[06:06:01.998]   [BODY] 37-DA-CD-D5
+[06:06:01.999]   [DECRYPT] peerID=0x3802 nonce=0x78A4BC2C cmd=125 sentTime=False bodyLen=12
+[06:06:01.999]   [BODY] 25-E0-BD-7E-CA-59-7A-60-BD-A0-59-FC
+[06:06:02.509]   [DECRYPT] peerID=0xC545 nonce=0x01ADF241 cmd=32 sentTime=True bodyLen=4
+[06:06:02.509]   [BODY] 37-56-9A-64
+[06:06:02.510]   [DECRYPT] peerID=0xC58A nonce=0xB2B387E6 cmd=83 sentTime=True bodyLen=12
+[06:06:02.510]   [BODY] 7A-84-97-4C-04-35-90-34-0C-FA-CD-C3
+[06:06:02.976]   [DECRYPT] peerID=0x91EA nonce=0xA1780D24 cmd=41 sentTime=False bodyLen=22
+[06:06:02.976]   [BODY] 77-F6-8C-AD-11-60-74-D2-14-AC-80-EC-25-34-35-86-A4-8F-63-98-9C-7B
+[06:06:02.976]   [DECRYPT] peerID=0xF4AF nonce=0xCBDEC6A0 cmd=19 sentTime=False bodyLen=12
+[06:06:02.976]   [BODY] A1-EA-93-EC-53-51-12-33-B5-65-1E-33
+[06:06:03.488]   [DECRYPT] peerID=0xEFB3 nonce=0x565B3FE5 cmd=32 sentTime=True bodyLen=4
+[06:06:03.488]   [BODY] 37-53-64-BE
+[06:06:03.489]   [DECRYPT] peerID=0xC1F8 nonce=0xC75E4010 cmd=65 sentTime=True bodyLen=12
+[06:06:03.489]   [BODY] DE-A5-9F-69-2D-97-19-B3-64-EB-A4-E8
+[06:06:04.001]   [DECRYPT] peerID=0x412D nonce=0x9795C8D9 cmd=32 sentTime=True bodyLen=4
+[06:06:04.001]   [BODY] 37-44-D8-2A
+[06:06:04.002]   [DECRYPT] peerID=0xE61E nonce=0xC595FCE2 cmd=28 sentTime=True bodyLen=12
+[06:06:04.002]   [BODY] 2C-0E-BD-62-74-74-B6-A6-26-6F-78-C3
+[06:06:04.514]   [DECRYPT] peerID=0x0220 nonce=0xD4C6D0BD cmd=32 sentTime=True bodyLen=4
+[06:06:04.514]   [BODY] 37-B7-4A-D3
+[06:06:04.514]   [DECRYPT] peerID=0x54C4 nonce=0x2A741109 cmd=50 sentTime=False bodyLen=12
+[06:06:04.515]   [BODY] C5-41-1D-4C-0B-E3-68-A9-8A-5A-27-1E
+[06:06:04.980]   [DECRYPT] peerID=0x615E nonce=0x87F09510 cmd=77 sentTime=False bodyLen=22
+[06:06:04.980]   [BODY] 76-9B-CC-E4-40-6F-EA-1F-5F-C5-30-3E-29-5A-2B-80-EA-41-B7-43-E5-A0
+[06:06:04.980]   [DECRYPT] peerID=0x0401 nonce=0x9CD7D314 cmd=58 sentTime=False bodyLen=12
+[06:06:04.980]   [BODY] 74-93-C7-F8-BF-88-F1-11-C1-52-EE-03
+[06:06:05.493]   [DECRYPT] peerID=0xB0EB nonce=0xE57D2101 cmd=32 sentTime=True bodyLen=4
+[06:06:05.493]   [BODY] 37-F3-E0-C3
+[06:06:05.493]   [DECRYPT] peerID=0x91D9 nonce=0x3650488B cmd=26 sentTime=True bodyLen=12
+[06:06:05.493]   [BODY] AD-B6-37-FD-90-58-0F-37-3D-98-37-F0
+[06:06:06.006]   [DECRYPT] peerID=0xBCAC nonce=0x24B3D61F cmd=32 sentTime=True bodyLen=4
+[06:06:06.006]   [BODY] 37-41-60-94
+[06:06:06.007]   [DECRYPT] peerID=0x5BC9 nonce=0x8F16647C cmd=106 sentTime=False bodyLen=12
+[06:06:06.007]   [BODY] FB-3F-8D-9E-17-78-E2-FC-BC-D6-3C-E3
+[06:06:06.520]   [DECRYPT] peerID=0xF405 nonce=0x67E0CE3F cmd=32 sentTime=True bodyLen=4
+[06:06:06.520]   [BODY] 37-EA-05-8B
+[06:06:06.520]   [DECRYPT] peerID=0xFB21 nonce=0x1AE71AE3 cmd=12 sentTime=True bodyLen=12
+[06:06:06.520]   [BODY] EB-F0-96-FF-1C-F7-FC-C0-85-09-8D-D6
+[06:06:06.986]   [DECRYPT] peerID=0x06C2 nonce=0x18CD2B0C cmd=29 sentTime=True bodyLen=22
+[06:06:06.986]   [BODY] 4D-77-07-75-86-A9-FF-FD-95-CB-7D-13-8A-B3-FD-65-C0-72-E9-3F-1B-7C
+[06:06:06.987]   [DECRYPT] peerID=0xF2CF nonce=0xEA380D93 cmd=87 sentTime=False bodyLen=12
+[06:06:06.987]   [BODY] B8-62-D4-46-B0-B9-BA-2E-30-BE-70-AD
+[06:06:08.991]   [DECRYPT] peerID=0x34BE nonce=0xC87DAC39 cmd=106 sentTime=False bodyLen=22
+[06:06:08.991]   [BODY] FE-7E-56-92-25-6D-19-44-5B-4A-C5-EC-85-13-98-54-92-11-4F-BF-68-0A
+[06:06:08.992]   [DECRYPT] peerID=0x3C2A nonce=0xCA510B3F cmd=101 sentTime=True bodyLen=12
+[06:06:08.992]   [BODY] A2-90-EF-21-D8-A4-96-B1-B5-7B-67-8D
+[06:06:10.998]   [DECRYPT] peerID=0x47F4 nonce=0x54BF61F3 cmd=50 sentTime=False bodyLen=22
+[06:06:10.998]   [BODY] 24-B7-93-C3-EF-F4-23-7E-A2-A2-AF-0F-DC-26-16-CE-A8-20-23-3A-DC-CC
+[06:06:10.998]   [DECRYPT] peerID=0x901F nonce=0x093959F5 cmd=97 sentTime=True bodyLen=12
+[06:06:10.998]   [BODY] BD-A9-8F-5B-B8-DF-43-DA-35-EC-57-9A
+[06:06:13.004]   [DECRYPT] peerID=0x9886 nonce=0x6251E3F4 cmd=27 sentTime=False bodyLen=22
+[06:06:13.004]   [BODY] EF-51-98-EA-1C-AB-B5-3C-87-60-DB-B3-85-C3-60-91-6F-70-E3-5C-8C-1D
+[06:06:13.005]   [DECRYPT] peerID=0xD063 nonce=0xC8F7AE6C cmd=97 sentTime=True bodyLen=12
+[06:06:13.005]   [BODY] BD-26-1F-9A-FC-F4-48-6B-DA-EC-57-9A
+[06:06:15.009]   [DECRYPT] peerID=0xC379 nonce=0x93E0AD12 cmd=35 sentTime=True bodyLen=22
+[06:06:15.010]   [BODY] 42-1B-3D-4D-78-AE-5A-4E-EB-29-AE-EB-75-59-C7-4F-E4-91-37-7A-8A-D1
+[06:06:15.010]   [DECRYPT] peerID=0x153D nonce=0x8BA4B6D9 cmd=97 sentTime=True bodyLen=12
+[06:06:15.010]   [BODY] BD-D1-5D-32-16-3D-66-92-6F-EC-57-9A
+[06:06:17.016]   [DECRYPT] peerID=0x88F3 nonce=0x56ABA600 cmd=79 sentTime=True bodyLen=22
+[06:06:17.016]   [BODY] 11-BD-3C-02-04-A7-07-5A-0B-76-CE-96-38-2A-45-45-07-55-7C-DE-12-6E
+[06:06:17.017]   [DECRYPT] peerID=0x30C1 nonce=0x4A6A4177 cmd=97 sentTime=True bodyLen=12
+[06:06:17.017]   [BODY] BD-E4-E2-29-91-98-D2-E8-34-EC-57-9A
+[06:06:19.021]   [DECRYPT] peerID=0x43CB nonce=0x4B0CD4F7 cmd=78 sentTime=True bodyLen=22
+[06:06:19.021]   [BODY] 7A-58-A7-59-AE-6A-06-55-16-8B-6B-95-51-34-37-72-99-C8-BD-CD-54-B6
+[06:06:19.021]   [DECRYPT] peerID=0xA9BD nonce=0xBA1F4724 cmd=97 sentTime=True bodyLen=12
+[06:06:19.021]   [BODY] BD-4E-29-97-9B-4C-E9-A9-6B-EC-57-9A
+[06:06:21.026]   [DECRYPT] peerID=0x8654 nonce=0x4455E52B cmd=31 sentTime=True bodyLen=22
+[06:06:21.026]   [BODY] 98-44-B6-13-0F-51-8C-DE-A7-0A-9D-9B-2E-F9-10-5D-F3-59-BB-38-79-CE
+[06:06:21.027]   [DECRYPT] peerID=0xC523 nonce=0x7BD1B018 cmd=97 sentTime=True bodyLen=12
+[06:06:21.027]   [BODY] BD-CB-6A-34-E3-02-72-F3-BE-EC-57-9A
+[06:06:23.032]   [DECRYPT] peerID=0x48FF nonce=0xACA7749A cmd=110 sentTime=True bodyLen=22
+[06:06:23.032]   [BODY] 17-0B-F1-EC-E8-0F-57-09-04-AF-DB-8A-67-82-41-49-4F-51-67-09-A9-BC
+[06:06:23.033]   [DECRYPT] peerID=0xA729 nonce=0x3882A856 cmd=97 sentTime=True bodyLen=12
+[06:06:23.033]   [BODY] BD-5F-C4-1B-96-5A-CF-A6-F5-EC-57-9A
+[06:06:25.038]   [DECRYPT] peerID=0x31EC nonce=0x5CB7B625 cmd=33 sentTime=False bodyLen=22
+[06:06:25.038]   [BODY] E5-0A-BB-4F-3F-DE-10-0B-F0-1F-0C-D1-4A-0D-D0-A7-34-09-10-55-36-03
+[06:06:25.039]   [DECRYPT] peerID=0x4961 nonce=0xF94C5F40 cmd=97 sentTime=True bodyLen=12
+[06:06:25.039]   [BODY] BD-7A-AD-B0-11-AF-F4-45-AF-EC-57-9A
+[06:06:27.045]   [DECRYPT] peerID=0x3232 nonce=0x9DDC8CA2 cmd=6 sentTime=False bodyLen=22
+[06:06:27.045]   [BODY] FA-EC-47-64-FE-D3-D1-6D-DC-52-E2-92-61-54-78-0A-83-1F-F0-80-AA-7C
+[06:06:27.045]   [RELIABLE] cmd=0x06 bodyLen=22
+[06:06:27.045]   [DATA] len=64236 first4=47-64-FE-D3
+[06:06:27.046]   [DECRYPT] peerID=0x8E43 nonce=0x6F74653D cmd=97 sentTime=True bodyLen=12
+[06:06:27.046]   [BODY] BD-4C-BB-22-2F-43-E6-8E-B5-EC-57-9A
+[06:06:29.051]   [DECRYPT] peerID=0x8D8D nonce=0x103B4186 cmd=38 sentTime=True bodyLen=22
+[06:06:29.051]   [BODY] 12-6B-05-68-82-82-90-55-CF-F7-36-AE-71-CF-B1-02-39-F1-44-DF-0D-65
+[06:06:29.052]   [DECRYPT] peerID=0x697E nonce=0xAEBA92C0 cmd=97 sentTime=True bodyLen=12
+[06:06:29.052]   [BODY] BD-65-D6-CB-F7-B7-00-CA-89-EC-57-9A
+[06:06:31.051]   [DECRYPT] peerID=0xC689 nonce=0xC1382D6F cmd=9 sentTime=False bodyLen=22
+[06:06:31.052]   [BODY] 81-BF-4E-3A-CD-D9-7C-37-B2-72-35-AF-C5-0E-63-EE-4B-60-25-59-D7-08
+[06:06:31.052]   [DECRYPT] peerID=0x67EF nonce=0xEDE98AD4 cmd=97 sentTime=True bodyLen=12
+[06:06:31.052]   [BODY] BD-5B-AF-04-81-F7-11-15-D4-EC-57-9A
+[06:06:33.058]   [DECRYPT] peerID=0xACFF nonce=0x18C3FD8C cmd=12 sentTime=True bodyLen=22
+[06:06:33.058]   [BODY] 09-FB-95-93-E8-B8-9E-B7-33-62-8A-25-0F-07-BD-7C-45-C5-81-D6-B7-BE
+[06:06:33.059]   [DECRYPT] peerID=0x24C5 nonce=0x2C277DF8 cmd=97 sentTime=True bodyLen=12
+[06:06:33.059]   [BODY] BD-71-4F-2B-38-77-19-44-F0-EC-57-9A
+[06:06:35.064]   [DECRYPT] peerID=0x41E6 nonce=0x5FC2E015 cmd=86 sentTime=True bodyLen=22
+[06:06:35.064]   [BODY] B4-DB-F0-C2-1D-67-C5-9D-7D-0D-69-52-7E-A1-67-7C-3E-A8-D1-40-DC-3B
+[06:06:35.065]   [DECRYPT] peerID=0xF80D nonce=0xDC527B17 cmd=97 sentTime=True bodyLen=12
+[06:06:35.065]   [BODY] BD-DC-43-C0-E9-14-88-95-FD-EC-57-9A
+[06:06:37.068]   [DECRYPT] peerID=0x3903 nonce=0x002656ED cmd=10 sentTime=True bodyLen=22
+[06:06:37.069]   [BODY] 9D-33-B8-3C-77-FC-F2-0A-18-FA-85-4C-EF-78-AA-11-87-60-ED-E9-10-61
+[06:06:37.069]   [DECRYPT] peerID=0x95E4 nonce=0x1D9C8CDF cmd=97 sentTime=True bodyLen=12
+[06:06:37.069]   [BODY] BD-54-4F-4A-C7-D4-F7-5B-72-EC-57-9A
+[06:06:39.076]   [DECRYPT] peerID=0xE935 nonce=0x297288F6 cmd=17 sentTime=True bodyLen=22
+[06:06:39.076]   [BODY] E4-75-92-AF-82-D2-1B-C4-A3-08-F8-B8-03-44-68-46-04-25-45-95-48-F4
+[06:06:39.076]   [DECRYPT] peerID=0x46E4 nonce=0x5ECF946F cmd=97 sentTime=True bodyLen=12
+[06:06:39.076]   [BODY] BD-5F-37-28-12-66-15-2C-FE-EC-57-9A
+[06:06:41.080]   [DECRYPT] peerID=0xEF52 nonce=0x7E2D0D99 cmd=30 sentTime=False bodyLen=22
+[06:06:41.080]   [BODY] 0D-E1-E6-55-23-12-F2-9B-48-8D-C3-2E-A3-67-59-97-FC-C2-E7-89-71-63
+[06:06:41.080]   [DECRYPT] peerID=0xDBB6 nonce=0x9F016307 cmd=97 sentTime=True bodyLen=12
+[06:06:41.080]   [BODY] BD-62-6A-A4-E2-6D-B4-D3-D7-EC-57-9A
+[06:06:43.092]   [DECRYPT] peerID=0x4A8B nonce=0xB39B37EE cmd=105 sentTime=False bodyLen=22
+[06:06:43.092]   [BODY] 95-F5-85-AE-DB-8B-59-F0-14-97-7B-96-75-B8-4E-4D-35-09-1F-60-41-F0
+[06:06:43.093]   [DECRYPT] peerID=0xB909 nonce=0xC5A32137 cmd=97 sentTime=True bodyLen=12
+[06:06:43.093]   [BODY] BD-2B-6D-00-AE-79-6B-58-DB-EC-57-9A
+[06:06:45.093]   [DECRYPT] peerID=0xAEB4 nonce=0x1C90E3E7 cmd=80 sentTime=False bodyLen=22
+[06:06:45.093]   [BODY] 76-9F-98-0C-0A-BC-30-5A-2D-99-B3-55-D1-70-01-48-B7-BF-50-26-36-71
+[06:06:45.094]   [DECRYPT] peerID=0x2337 nonce=0x046DD609 cmd=97 sentTime=True bodyLen=12
+[06:06:45.094]   [BODY] BD-1E-96-8C-68-44-7A-FD-FD-EC-57-9A
+[06:06:47.107]   [DECRYPT] peerID=0x8628 nonce=0xAEB1AA0F cmd=45 sentTime=True bodyLen=22
+[06:06:47.107]   [BODY] F2-F4-7E-C4-60-B5-F9-83-01-CE-8A-27-27-16-66-76-06-7C-61-C1-50-C2
+[06:06:47.108]   [DECRYPT] peerID=0x6930 nonce=0x473ECE11 cmd=97 sentTime=True bodyLen=12
+[06:06:47.108]   [BODY] BD-E8-46-74-BB-43-8C-57-7C-EC-57-9A
+[06:06:49.117]   [DECRYPT] peerID=0xC297 nonce=0xFE7778C5 cmd=115 sentTime=False bodyLen=22
+[06:06:49.117]   [BODY] 97-56-A8-C4-C5-57-19-E7-10-2F-D9-98-5A-30-00-A9-40-A4-0B-67-F7-A8
+[06:06:49.117]   [DECRYPT] peerID=0xAC00 nonce=0x86F0398D cmd=97 sentTime=True bodyLen=12
+[06:06:49.117]   [BODY] BD-75-98-B9-8A-29-37-5E-AB-EC-57-9A
+[06:06:51.118]   [DECRYPT] peerID=0xB093 nonce=0xCBF64B40 cmd=53 sentTime=True bodyLen=22
+[06:06:51.118]   [BODY] A8-0D-20-5D-5C-05-C6-9A-E1-59-20-25-DB-5E-75-87-B6-A7-C8-3F-13-9B
+[06:06:51.119]   [DECRYPT] peerID=0x1705 nonce=0x76853F3E cmd=97 sentTime=True bodyLen=12
+[06:06:51.119]   [BODY] BD-38-5C-CB-12-10-BD-23-EB-EC-57-9A
+[06:06:53.131]   [DECRYPT] peerID=0x5ACF nonce=0x173E3C92 cmd=76 sentTime=True bodyLen=22
+[06:06:53.131]   [BODY] 25-43-A9-D0-FB-7D-53-FC-A5-E9-D3-33-C6-E2-28-FA-AA-BA-F9-54-76-5D
+[06:06:53.132]   [DECRYPT] peerID=0x541C nonce=0xB74BC89D cmd=97 sentTime=True bodyLen=12
+[06:06:53.132]   [BODY] BD-D1-4E-D9-58-9B-BB-C0-62-EC-57-9A
+[06:06:55.146]   [DECRYPT] peerID=0xA83F nonce=0xF418D057 cmd=97 sentTime=True bodyLen=12
+[06:06:55.146]   [BODY] BD-D1-F3-8E-09-49-F2-8D-E6-EC-57-9A
+[06:06:57.151]   [DECRYPT] peerID=0xDA69 nonce=0x572810DF cmd=91 sentTime=False bodyLen=22
+[06:06:57.151]   [BODY] F9-EF-C5-AA-5B-89-A9-D9-FD-5F-E8-48-AA-53-7B-5F-AB-A0-E5-82-9B-65
+[06:06:57.152]   [DECRYPT] peerID=0x6D1A nonce=0x35D627EE cmd=97 sentTime=True bodyLen=12
+[06:06:57.152]   [BODY] BD-F2-52-70-DE-5B-09-75-62-EC-57-9A
+[06:06:59.166]   [DECRYPT] peerID=0x7C18 nonce=0xB4A11099 cmd=62 sentTime=False bodyLen=22
+[06:06:59.166]   [BODY] FD-D6-CF-D0-54-B4-46-53-6B-A8-9A-CE-49-62-64-B2-A4-90-B9-2D-7E-D5
+[06:06:59.167]   [DECRYPT] peerID=0x2BED nonce=0xA3EE1DFF cmd=97 sentTime=True bodyLen=12
+[06:06:59.167]   [BODY] BD-A0-9F-37-5B-02-21-9A-9F-EC-57-9A
+[06:07:01.180]   [DECRYPT] peerID=0x03A5 nonce=0xA118261A cmd=73 sentTime=False bodyLen=22
+[06:07:01.180]   [BODY] 6F-F5-9E-3A-63-53-6A-8A-32-EA-21-80-DF-83-53-AE-DD-87-C4-F9-65-7B
+[06:07:01.180]   [DECRYPT] peerID=0x73B7 nonce=0x6220EA7E cmd=97 sentTime=True bodyLen=12
+[06:07:01.180]   [BODY] BD-CC-C8-F9-DD-E8-31-31-F3-EC-57-9A
+[06:07:03.186]   [DECRYPT] peerID=0x5BD2 nonce=0x94D48C94 cmd=6 sentTime=True bodyLen=22
+[06:07:03.186]   [BODY] 4E-27-A2-35-22-47-E2-64-3E-50-52-6C-F2-CA-FA-EE-F1-C9-47-C2-0D-E5
+[06:07:03.186]   [RELIABLE] cmd=0x06 bodyLen=22
+[06:07:03.186]   [DATA] len=20007 first4=A2-35-22-47
+[06:07:03.187]   [DECRYPT] peerID=0xE251 nonce=0x2173F227 cmd=97 sentTime=True bodyLen=12
+[06:07:03.187]   [BODY] BD-07-94-D1-D5-8F-C4-DD-E1-EC-57-9A
+[06:07:05.190]   [DECRYPT] peerID=0x160E nonce=0x46BE07ED cmd=109 sentTime=True bodyLen=22
+[06:07:05.190]   [BODY] 99-B5-16-7D-63-72-2A-57-E2-93-5E-18-4D-70-EF-9B-B0-99-77-E1-A4-38
+[06:07:05.191]   [DECRYPT] peerID=0x8672 nonce=0xE0BD05D7 cmd=97 sentTime=True bodyLen=12
+[06:07:05.191]   [BODY] BD-A2-BA-EE-50-99-E3-56-22-EC-57-9A
+[06:07:07.192]   [DECRYPT] peerID=0x23ED nonce=0x748E8745 cmd=64 sentTime=True bodyLen=22
+[06:07:07.192]   [BODY] 5B-E7-1C-5C-57-6D-BA-87-A3-A6-9E-2A-D4-48-BC-23-BE-A1-45-08-1A-9D
+[06:07:07.193]   [DECRYPT] peerID=0xC86E nonce=0x10C803EC cmd=97 sentTime=True bodyLen=12
+[06:07:07.193]   [BODY] BD-BB-12-76-CD-A5-7B-38-FC-EC-57-9A
+[06:07:09.194]   [DECRYPT] peerID=0xDBF3 nonce=0xFD5C0ECF cmd=8 sentTime=True bodyLen=22
+[06:07:09.194]   [BODY] 6B-12-19-FF-9F-06-46-17-9E-1A-FB-CC-FF-CC-0C-BE-16-1E-E1-E4-AA-F4
+[06:07:09.194]   [DECRYPT] peerID=0x81DC nonce=0xD106F40E cmd=97 sentTime=True bodyLen=12
+[06:07:09.194]   [BODY] BD-5F-BC-ED-55-BA-22-27-88-EC-57-9A
+[06:07:11.200]   [DECRYPT] peerID=0x27CB nonce=0xDA28F221 cmd=123 sentTime=False bodyLen=22
+[06:07:11.200]   [BODY] 3A-51-BA-DF-18-DA-FD-A8-44-EA-28-3A-70-D3-EF-29-33-66-08-01-56-3E
+[06:07:11.201]   [DECRYPT] peerID=0x169E nonce=0x9255EC0D cmd=97 sentTime=True bodyLen=12
+[06:07:11.201]   [BODY] BD-70-65-48-27-28-56-E1-94-EC-57-9A
+[06:07:13.207]   [DECRYPT] peerID=0xB22B nonce=0xB5B031BB cmd=17 sentTime=False bodyLen=22
+[06:07:13.207]   [BODY] 60-D5-5B-46-59-52-5D-A1-9D-9D-0D-0B-3B-34-45-78-30-AB-15-BC-50-7C
+[06:07:13.207]   [DECRYPT] peerID=0xD1B3 nonce=0x539B1B96 cmd=97 sentTime=True bodyLen=12
+[06:07:13.207]   [BODY] BD-D5-0B-F7-E8-05-E8-8C-D7-EC-57-9A
+[06:07:15.213]   [DECRYPT] peerID=0xD232 nonce=0x958D1309 cmd=127 sentTime=False bodyLen=22
+[06:07:15.213]   [BODY] 50-5E-28-D1-65-CC-BC-5A-20-01-18-8E-45-86-E1-1D-61-6A-4F-CE-2E-C7
+[06:07:15.214]   [DECRYPT] peerID=0x7538 nonce=0x910CA88D cmd=97 sentTime=True bodyLen=12
+[06:07:15.214]   [BODY] BD-50-BF-24-9D-A3-C0-1E-F5-EC-57-9A
+[06:07:17.221]   [DECRYPT] peerID=0xF099 nonce=0x6412EA79 cmd=77 sentTime=False bodyLen=22
+[06:07:17.221]   [BODY] D1-22-57-E9-50-8C-4A-DC-4B-23-AC-1E-1E-D1-B9-04-17-C2-16-B8-D1-3F
+[06:07:17.222]   [DECRYPT] peerID=0x07CB nonce=0x50C25F7E cmd=97 sentTime=True bodyLen=12
+[06:07:17.222]   [BODY] BD-7E-40-4F-5D-C8-8C-8E-B9-EC-57-9A
+[06:07:19.227]   [DECRYPT] peerID=0x1858 nonce=0x4A4E1FB4 cmd=49 sentTime=False bodyLen=22
+[06:07:19.227]   [BODY] 3E-4D-93-92-6E-BB-65-AD-7F-07-3B-15-16-05-6E-5A-A6-1F-D9-7B-FE-B6
+[06:07:19.227]   [DECRYPT] peerID=0x69ED nonce=0x13914741 cmd=97 sentTime=True bodyLen=12
+[06:07:19.228]   [BODY] BD-98-65-EC-69-AB-9F-1A-31-EC-57-9A
+[06:07:21.235]   [DECRYPT] peerID=0x0BEC nonce=0xD25FB099 cmd=97 sentTime=True bodyLen=12
+[06:07:21.235]   [BODY] BD-12-D4-FB-CE-A5-83-99-9A-EC-57-9A
+[06:07:23.248]   [DECRYPT] peerID=0xEFE7 nonce=0x211BE387 cmd=36 sentTime=True bodyLen=22
+[06:07:23.248]   [BODY] 7F-8A-BB-D8-A8-45-88-0B-D4-CE-E8-C2-A8-31-96-B5-A9-B6-9E-F7-97-6B
+[06:07:23.249]   [DECRYPT] peerID=0xAC00 nonce=0x222AB63B cmd=97 sentTime=True bodyLen=12
+[06:07:23.249]   [BODY] BD-F4-AE-86-A2-CB-32-C9-60-EC-57-9A
+[06:07:25.263]   [DECRYPT] peerID=0x8F86 nonce=0xCED2CD39 cmd=104 sentTime=False bodyLen=22
+[06:07:25.263]   [BODY] 31-FC-21-BF-86-EE-8B-9C-EB-1D-6E-61-D1-99-60-F9-92-4F-C2-24-B0-F4
+[06:07:25.264]   [DECRYPT] peerID=0xC238 nonce=0xE3E44104 cmd=97 sentTime=True bodyLen=12
+[06:07:25.264]   [BODY] BD-F9-A1-5E-0F-73-84-72-AC-EC-57-9A
+[06:07:27.266]   [DECRYPT] peerID=0xC65C nonce=0x3EBB4DEC cmd=67 sentTime=False bodyLen=22
+[06:07:27.266]   [BODY] 98-15-73-F5-31-32-DF-9E-6E-84-3C-A7-17-24-3F-B8-54-39-AA-DD-17-37
+[06:07:27.267]   [DECRYPT] peerID=0xD700 nonce=0xA0B75977 cmd=97 sentTime=True bodyLen=12
+[06:07:27.267]   [BODY] BD-4A-50-49-52-11-CA-F0-55-EC-57-9A
+[06:07:29.267]   [DECRYPT] peerID=0xB85B nonce=0xFDA6E676 cmd=63 sentTime=False bodyLen=22
+[06:07:29.267]   [BODY] 75-DE-43-0F-43-C7-9D-ED-A8-C6-7E-B6-81-6C-CD-FE-BE-A6-65-C3-21-E2
+[06:07:29.268]   [DECRYPT] peerID=0xE75F nonce=0x6179AE6F cmd=97 sentTime=True bodyLen=12
+[06:07:29.268]   [BODY] BD-CD-AF-81-B8-9B-84-6B-50-EC-57-9A
+[06:07:31.271]   [DECRYPT] peerID=0x2226 nonce=0x726CA73D cmd=97 sentTime=True bodyLen=22
+[06:07:31.271]   [BODY] E8-4E-12-42-A9-54-50-45-39-CB-41-76-C7-0F-51-B0-B8-8C-61-4D-A7-AC
+[06:07:31.272]   [DECRYPT] peerID=0x58F0 nonce=0xF741941B cmd=97 sentTime=True bodyLen=12
+[06:07:31.272]   [BODY] BD-D7-2D-03-51-3D-BD-C8-56-EC-57-9A
+[06:07:33.272]   [DECRYPT] peerID=0x1556 nonce=0x5CD956BD cmd=69 sentTime=False bodyLen=22
+[06:07:33.272]   [BODY] 55-E2-FF-49-07-17-F9-6E-F9-4A-EE-64-4A-D4-7A-90-F7-E7-B6-C3-4D-4E
+[06:07:33.273]   [DECRYPT] peerID=0xA929 nonce=0x368F639A cmd=97 sentTime=True bodyLen=12
+[06:07:33.273]   [BODY] BD-EE-07-1E-F3-06-9A-F4-FD-EC-57-9A
+[06:07:35.285]   [DECRYPT] peerID=0x49DD nonce=0x85E5E028 cmd=97 sentTime=True bodyLen=22
+[06:07:35.285]   [BODY] 64-95-45-16-0F-13-1E-29-64-05-4D-6B-F2-8F-F0-F2-8F-E0-1E-B3-03-38
+[06:07:35.286]   [DECRYPT] peerID=0x60A2 nonce=0x75DC7B19 cmd=97 sentTime=True bodyLen=12
+[06:07:35.286]   [BODY] BD-A7-B4-D8-7A-E8-D0-AC-6D-EC-57-9A
+[06:07:37.286]   [DECRYPT] peerID=0x3303 nonce=0xEEDF4D1C cmd=11 sentTime=False bodyLen=22
+[06:07:37.286]   [BODY] 64-84-D3-D9-9A-48-2D-EC-0B-B3-48-01-76-2D-E0-0A-59-60-00-9D-36-BA
+[06:07:37.286]   [DECRYPT] peerID=0xC6F1 nonce=0xB4128CDF cmd=97 sentTime=True bodyLen=12
+[06:07:37.286]   [BODY] BD-60-52-FE-82-09-EB-14-ED-EC-57-9A
+[06:07:39.290]   [DECRYPT] peerID=0xA8EF nonce=0x168C6AC1 cmd=20 sentTime=False bodyLen=22
+[06:07:39.290]   [BODY] 53-F5-EE-DE-29-89-06-80-B8-06-80-8C-C4-9E-26-09-C0-CD-C3-47-8E-5F
+[06:07:39.290]   [DECRYPT] peerID=0xD4DB nonce=0x44678AA7 cmd=97 sentTime=True bodyLen=12
+[06:07:39.290]   [BODY] BD-07-2B-99-E3-83-93-1A-8E-EC-57-9A
+[06:07:41.293]   [DECRYPT] peerID=0x78E5 nonce=0x239D6D0E cmd=70 sentTime=True bodyLen=22
+[06:07:41.293]   [BODY] 0A-78-E8-43-A5-48-4E-14-1E-ED-CE-9E-6B-71-69-8D-9E-AA-4B-31-75-ED
+[06:07:41.294]   [DECRYPT] peerID=0x3E87 nonce=0x85A97DD2 cmd=97 sentTime=True bodyLen=12
+[06:07:41.294]   [BODY] BD-DE-86-04-76-BC-D6-31-38-EC-57-9A
+[06:07:43.295]   [DECRYPT] peerID=0x38BC nonce=0xEF29CE18 cmd=105 sentTime=True bodyLen=22
+[06:07:43.295]   [BODY] DA-8F-73-44-39-3E-9D-4C-BD-34-00-7D-64-6C-E1-F4-EE-F4-24-C3-44-EB
+[06:07:43.296]   [DECRYPT] peerID=0x1FC3 nonce=0xC6FA6566 cmd=97 sentTime=True bodyLen=12
+[06:07:43.296]   [BODY] BD-D3-75-71-FE-0A-84-6F-AB-EC-57-9A
+[06:07:45.297]   [DECRYPT] peerID=0x7939 nonce=0x2B798B4D cmd=6 sentTime=True bodyLen=22
+[06:07:45.297]   [BODY] 9B-6E-FE-61-6C-75-52-38-8F-B0-BE-A3-F5-38-6C-A2-93-9E-05-47-F8-FA
+[06:07:45.297]   [RELIABLE] cmd=0x06 bodyLen=22
+[06:07:45.297]   [DATA] len=39790 first4=FE-61-6C-75
+[06:07:45.298]   [DECRYPT] peerID=0xF7F6 nonce=0x0734929A cmd=97 sentTime=True bodyLen=12
+[06:07:45.298]   [BODY] BD-D6-D8-9E-2D-85-CE-FC-28-EC-57-9A
+[06:07:47.299]   [DECRYPT] peerID=0x4612 nonce=0xE11A031F cmd=21 sentTime=True bodyLen=22
+[06:07:47.299]   [BODY] A0-7A-44-26-CF-F2-0D-3F-9A-8D-DB-41-58-03-75-F4-FC-CA-D4-BD-DE-CC
+[06:07:47.299]   [DECRYPT] peerID=0xD53E nonce=0x5D96D091 cmd=97 sentTime=True bodyLen=12
+[06:07:47.299]   [BODY] BD-16-D4-8B-02-C2-9C-55-37-EC-57-9A
