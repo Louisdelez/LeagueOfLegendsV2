@@ -3360,6 +3360,460 @@ static int SafeRead8(void *addr, UINT64 *out) {
     return 1;
 }
 
+// === ENQUEUE PROBE (RVA 0x573160) ===
+// Goal: capture the 56-byte queue record format the dispatcher expects.
+// Strategy:
+//   1. Dump raw bytes of 6 critical packet-processing functions (safe, read-only)
+//      so we can reverse the transformation offline if INT3 fails.
+//   2. Attempt inline INT3 hook on enqueue. If Vanguard lets the 1-byte
+//      VirtualProtect through, VEH logs arg registers + record bytes at each call.
+//   3. If INT3 install fails, the byte dump alone is still actionable.
+static volatile BYTE *g_enqAddr = NULL;
+static volatile BYTE   g_enqOrigByte = 0x00;
+static volatile int    g_enqHits = 0;
+static FILE           *g_enqLog = NULL;
+
+static LONG WINAPI EnqueueProbeVEH(PEXCEPTION_POINTERS exc) {
+    DWORD code = exc->ExceptionRecord->ExceptionCode;
+    UINT64 rip = exc->ContextRecord->Rip;
+
+    if (code == EXCEPTION_BREAKPOINT && g_enqAddr && rip == (UINT64)g_enqAddr) {
+        // Win64 calling convention: RCX=this, RDX=arg2, R8=arg3, R9=arg4
+        void   *pThis = (void*)exc->ContextRecord->Rcx;
+        void   *pArg2 = (void*)exc->ContextRecord->Rdx;
+        UINT64  arg3  = exc->ContextRecord->R8;
+        UINT64  arg4  = exc->ContextRecord->R9;
+        UINT64  rsp   = exc->ContextRecord->Rsp;
+        UINT64  ret   = (!IsBadReadPtr((void*)rsp, 8)) ? *(UINT64*)rsp : 0;
+
+        if (g_enqLog && g_enqHits < 200) {
+            HMODULE hExeLog = GetModuleHandleA(NULL);
+            UINT64 retRva = ret - (UINT64)hExeLog;
+            fprintf(g_enqLog, "[ENQ #%d] rcx=%p rdx=%p r8=%llX r9=%llX ret=%llX (rva=0x%llX)\n",
+                    g_enqHits, pThis, pArg2, arg3, arg4, ret, retRva);
+            if (pArg2 && !IsBadReadPtr(pArg2, 64)) {
+                fprintf(g_enqLog, "  rdx[0..63]: ");
+                for (int i = 0; i < 64; i++) fprintf(g_enqLog, "%02X ", ((BYTE*)pArg2)[i]);
+                fprintf(g_enqLog, "\n");
+            }
+            if (pThis && !IsBadReadPtr(pThis, 48)) {
+                fprintf(g_enqLog, "  rcx[0..47]: ");
+                for (int i = 0; i < 48; i++) fprintf(g_enqLog, "%02X ", ((BYTE*)pThis)[i]);
+                fprintf(g_enqLog, "\n");
+            }
+            fflush(g_enqLog);
+        }
+        g_enqHits++;
+
+        // Restore original byte, request single-step, VEH will re-patch afterwards.
+        DWORD oldProt;
+        if (VirtualProtect((void*)g_enqAddr, 1, PAGE_EXECUTE_READWRITE, &oldProt)) {
+            *(BYTE*)g_enqAddr = g_enqOrigByte;
+            VirtualProtect((void*)g_enqAddr, 1, oldProt, &oldProt);
+            FlushInstructionCache(GetCurrentProcess(), (void*)g_enqAddr, 1);
+            exc->ContextRecord->EFlags |= 0x100; // TF
+        }
+        return EXCEPTION_CONTINUE_EXECUTION;
+    }
+    if (code == EXCEPTION_SINGLE_STEP && g_enqAddr) {
+        // If the byte at enqueue is currently not 0xCC, we restored it; re-patch.
+        BYTE cur = *(volatile BYTE*)g_enqAddr;
+        if (cur != 0xCC) {
+            DWORD oldProt;
+            if (VirtualProtect((void*)g_enqAddr, 1, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                *(BYTE*)g_enqAddr = 0xCC;
+                VirtualProtect((void*)g_enqAddr, 1, oldProt, &oldProt);
+                FlushInstructionCache(GetCurrentProcess(), (void*)g_enqAddr, 1);
+            }
+            return EXCEPTION_CONTINUE_EXECUTION;
+        }
+    }
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+static void DumpFuncBytes(FILE *f, const char *name, BYTE *addr, SIZE_T len) {
+    if (!f) return;
+    if (!addr || IsBadReadPtr(addr, len)) {
+        fprintf(f, "[DUMP] %s at %p: UNREADABLE\n", name, addr);
+        fflush(f);
+        return;
+    }
+    fprintf(f, "[DUMP] %s at %p (%llu bytes):\n", name, addr, (UINT64)len);
+    for (SIZE_T i = 0; i < len; i += 16) {
+        fprintf(f, "  %04llX: ", (UINT64)i);
+        for (SIZE_T j = 0; j < 16 && i + j < len; j++)
+            fprintf(f, "%02X ", addr[i + j]);
+        fprintf(f, "\n");
+    }
+    fflush(f);
+}
+
+static void InstallEnqueueProbe(BYTE *hExe) {
+    char lp[MAX_PATH];
+    snprintf(lp, MAX_PATH, "%s\\enqueue_probe.log", logDir);
+    g_enqLog = fopen(lp, "w");
+    if (!g_enqLog) {
+        if (logfile) { fprintf(logfile, "[EnqProbe] cannot open enqueue_probe.log\n"); fflush(logfile); }
+        return;
+    }
+    fprintf(g_enqLog, "=== Enqueue Probe Log ===\nPID=%lu hExe=%p\n",
+            GetCurrentProcessId(), hExe);
+
+    // Step 1: Dump function bytes (safe, read-only)
+    DumpFuncBytes(g_enqLog, "enqueue        (0x573160)", hExe + 0x573160, 256);
+    DumpFuncBytes(g_enqLog, "packet_proc    (0x57AF90)", hExe + 0x57AF90, 512);
+    DumpFuncBytes(g_enqLog, "consumer       (0x5883D0)", hExe + 0x5883D0, 512);
+    DumpFuncBytes(g_enqLog, "packet_handler (0x588F70)", hExe + 0x588F70, 512);
+    DumpFuncBytes(g_enqLog, "dispatcher     (0x955C20)", hExe + 0x955C20, 128);
+    DumpFuncBytes(g_enqLog, "crc_decrypt    (0x5725F0)", hExe + 0x5725F0, 256);
+
+    // Sub-parsers called by packet_proc — each failure sets a specific error byte
+    // in *this (byte 0x06 = init fail; 0x07-0x0A = successive stage fails).
+    DumpFuncBytes(g_enqLog, "pp_init        (0x5900B0) err=0x06", hExe + 0x5900B0, 512);
+    DumpFuncBytes(g_enqLog, "pp_stage1      (0x589FC0) err=0x07", hExe + 0x589FC0, 1024);
+    DumpFuncBytes(g_enqLog, "pp_stage2      (0x57D260) err=0x08", hExe + 0x57D260, 1024);
+    DumpFuncBytes(g_enqLog, "pp_stage3      (0x578660) err=0x09", hExe + 0x578660, 1024);
+    DumpFuncBytes(g_enqLog, "pp_stage4      (0x57D4E0) err=0x0A", hExe + 0x57D4E0, 512);
+
+    // Inner decoders used by the stage loops (compute from CALL rel32 observed in stage2)
+    // stage2 calls decode_item at RVA 0x5639A0 (16-byte record decoder)
+    DumpFuncBytes(g_enqLog, "decode_item_stage2 (0x5639A0)", hExe + 0x5639A0, 512);
+
+    // === Scan .text for callers of packet_proc (RVA 0x57AF90) ===
+    // Find every E8 instruction with rel32 targeting packet_proc.
+    // For each caller, dump the 128 bytes BEFORE the call (to see arg setup)
+    // and the 64 bytes AFTER (to see result handling).
+    {
+        BYTE *textBase = (BYTE*)hExe + 0x1000;
+        SIZE_T textSize = 0x1900000; // ~25 MB, generous upper bound
+        UINT64 target = 0x57AF90;
+        int callersFound = 0;
+        fprintf(g_enqLog, "\n=== packet_proc callers scan ===\n");
+        for (SIZE_T i = 0; i + 5 < textSize && callersFound < 8; i++) {
+            if (textBase[i] != 0xE8) continue; // CALL rel32 opcode
+            INT32 rel = *(INT32*)(textBase + i + 1);
+            // Absolute target RVA = (i + 0x1000 = i_rva) + 5 + rel
+            UINT64 callerRva = 0x1000 + i;
+            UINT64 targetRva = callerRva + 5 + (INT64)rel;
+            if (targetRva != target) continue;
+            callersFound++;
+            BYTE *callerAddr = textBase + i;
+            fprintf(g_enqLog, "\n[Caller #%d] CALL to packet_proc at RVA 0x%llX\n",
+                    callersFound, callerRva);
+            // Dump 128 bytes BEFORE the call
+            SIZE_T before = (i >= 128) ? 128 : i;
+            fprintf(g_enqLog, "  Context (%llu bytes before + call + 64 after):\n", (UINT64)before);
+            BYTE *ctxStart = callerAddr - before;
+            for (SIZE_T j = 0; j < before + 5 + 64; j += 16) {
+                fprintf(g_enqLog, "  %04llX: ", (UINT64)(callerRva - before + j));
+                for (SIZE_T k = 0; k < 16 && j + k < before + 5 + 64; k++) {
+                    BYTE b = ctxStart[j + k];
+                    fprintf(g_enqLog, "%02X ", b);
+                    if (j + k == before) fprintf(g_enqLog, "<CALL ");
+                    if (j + k == before + 4) fprintf(g_enqLog, "> ");
+                }
+                fprintf(g_enqLog, "\n");
+            }
+            fflush(g_enqLog);
+        }
+        fprintf(g_enqLog, "\n=== Total packet_proc callers: %d ===\n", callersFound);
+        fflush(g_enqLog);
+    }
+
+    // Find & dump the caller function's entry point (scan backwards for prologue)
+    // The single caller is at RVA 0x58568B. Walk backwards until we find a typical
+    // function start (push rbp, sub rsp, or ret followed by int3 padding).
+    {
+        BYTE *callerAddr = (BYTE*)hExe + 0x58568B;
+        BYTE *scanAddr = callerAddr;
+        BYTE *funcStart = NULL;
+        // Look backwards for a common prologue: 48 89 5C 24 XX (mov [rsp+X], rbx) or
+        // 40 55 (push rbp with REX) or 40 53 (push rbx) after CC CC padding or C3 ret.
+        for (int i = 0; i < 0x2000; i++) {
+            BYTE *p = callerAddr - i;
+            if (IsBadReadPtr(p - 3, 3)) break;
+            // End-of-previous-function marker: RET (C3) followed by INT3 (CC)
+            if (p[-1] == 0xCC && p[-2] == 0xCC && (p[0] == 0x48 || p[0] == 0x40)) {
+                funcStart = p;
+                break;
+            }
+            // Or direct: C3 then prologue
+            if (p[-1] == 0xC3 && (p[0] == 0x48 || p[0] == 0x40)) {
+                funcStart = p;
+                break;
+            }
+        }
+        fprintf(g_enqLog, "\n=== Caller function entry ===\n");
+        if (funcStart) {
+            UINT64 startRva = funcStart - (BYTE*)hExe;
+            SIZE_T span = callerAddr - funcStart + 128;
+            fprintf(g_enqLog, "Caller function starts at RVA 0x%llX (size=%llu bytes to call+128)\n",
+                    startRva, (UINT64)span);
+            if (span < 2048) {
+                DumpFuncBytes(g_enqLog, "packet_proc_caller", funcStart, span);
+            } else {
+                fprintf(g_enqLog, "Span too large, dumping first 2048 bytes only\n");
+                DumpFuncBytes(g_enqLog, "packet_proc_caller_head", funcStart, 2048);
+            }
+        } else {
+            fprintf(g_enqLog, "Could not locate caller function start\n");
+        }
+        fflush(g_enqLog);
+    }
+
+    // Dump 2KB BEFORE 0x5853C0 to find the real function entry point
+    DumpFuncBytes(g_enqLog, "pre-wrapper region (0x584C00)", hExe + 0x584C00, 2048);
+
+    // Dump 3KB around the wrapper caller at 0x5904C0 (the actual call) to see its function body
+    DumpFuncBytes(g_enqLog, "caller_region (0x58FC00)", hExe + 0x58FC00, 3072);
+
+    // === Dump wrapper's internal helpers ===
+    // Computed from CALL rel32 inside wrapper at RVA 0x5853C0:
+    //   offset 0x2F  → 0x58A910 (helper validating 2-byte buffer)
+    //   offset 0x1E4 → 0x579CB1 (earlier helper)
+    //   offset 0x1F9 → 0x589D11 (helper that fills [rbp-0x40] buffer)
+    DumpFuncBytes(g_enqLog, "wrapper_helper1 (0x58A910)", hExe + 0x58A910, 512);
+    DumpFuncBytes(g_enqLog, "wrapper_helper2 (0x579CB1)", hExe + 0x579CB1, 512);
+    DumpFuncBytes(g_enqLog, "wrapper_helper3 (0x589D11)", hExe + 0x589D11, 512);
+
+    // === Scan .text for callers of the wrapper (RVA 0x5853C0) ===
+    {
+        BYTE *textBase = (BYTE*)hExe + 0x1000;
+        SIZE_T textSize = 0x1900000;
+        UINT64 target = 0x5853C0;
+        int wrapperCallers = 0;
+        fprintf(g_enqLog, "\n=== wrapper (0x5853C0) callers scan ===\n");
+        for (SIZE_T i = 0; i + 5 < textSize && wrapperCallers < 8; i++) {
+            if (textBase[i] != 0xE8) continue;
+            INT32 rel = *(INT32*)(textBase + i + 1);
+            UINT64 callerRva = 0x1000 + i;
+            UINT64 targetRva = callerRva + 5 + (INT64)rel;
+            if (targetRva != target) continue;
+            wrapperCallers++;
+            BYTE *callerAddr = textBase + i;
+            fprintf(g_enqLog, "\n[WrapperCaller #%d] CALL to wrapper at RVA 0x%llX\n",
+                    wrapperCallers, callerRva);
+            SIZE_T before = (i >= 96) ? 96 : i;
+            BYTE *ctxStart = callerAddr - before;
+            for (SIZE_T j = 0; j < before + 5 + 32; j += 16) {
+                fprintf(g_enqLog, "  %04llX: ", (UINT64)(callerRva - before + j));
+                for (SIZE_T k = 0; k < 16 && j + k < before + 5 + 32; k++) {
+                    fprintf(g_enqLog, "%02X ", ctxStart[j + k]);
+                }
+                fprintf(g_enqLog, "\n");
+            }
+            fflush(g_enqLog);
+        }
+        fprintf(g_enqLog, "\n=== Total wrapper callers: %d ===\n", wrapperCallers);
+        fflush(g_enqLog);
+    }
+
+    // === Scan .text for callers of the caller function (RVA 0x5903F0) ===
+    // This identifies the function that invokes the wrapper's caller.
+    {
+        BYTE *textBase = (BYTE*)hExe + 0x1000;
+        SIZE_T textSize = 0x1900000;
+        UINT64 target2 = 0x5903F0;
+        int callers2 = 0;
+        fprintf(g_enqLog, "\n=== caller-of-caller (0x5903F0) scan ===\n");
+        for (SIZE_T i = 0; i + 5 < textSize && callers2 < 10; i++) {
+            if (textBase[i] != 0xE8) continue;
+            INT32 rel = *(INT32*)(textBase + i + 1);
+            UINT64 callerRva = 0x1000 + i;
+            UINT64 targetRva = callerRva + 5 + (INT64)rel;
+            if (targetRva != target2) continue;
+            callers2++;
+            BYTE *callerAddr = textBase + i;
+            fprintf(g_enqLog, "\n[CallerOfCaller #%d] CALL to 0x5903F0 at RVA 0x%llX\n",
+                    callers2, callerRva);
+            SIZE_T before = (i >= 128) ? 128 : i;
+            for (SIZE_T j = 0; j < before + 5 + 32; j += 16) {
+                fprintf(g_enqLog, "  %04llX: ", (UINT64)(callerRva - before + j));
+                for (SIZE_T k = 0; k < 16 && j + k < before + 5 + 32; k++) {
+                    fprintf(g_enqLog, "%02X ", callerAddr[-(INT64)before + j + k]);
+                }
+                fprintf(g_enqLog, "\n");
+            }
+            fflush(g_enqLog);
+        }
+        fprintf(g_enqLog, "\n=== Total caller-of-caller: %d ===\n", callers2);
+        fflush(g_enqLog);
+    }
+
+    // === Search .rdata/.data for qword pointers to the wrapper (0x5853C0) ===
+    // If the wrapper is registered in a dispatch table, its absolute address
+    // appears as a qword somewhere in .rdata or .data. Finding it reveals the table.
+    {
+        UINT64 wrapperVA = (UINT64)hExe + 0x5853C0;
+        fprintf(g_enqLog, "\n=== Scanning for wrapper pointer (%p) in .rdata/.data ===\n",
+                (void*)wrapperVA);
+
+        // Parse PE headers to find .rdata and .data sections
+        IMAGE_DOS_HEADER *dos = (IMAGE_DOS_HEADER*)hExe;
+        IMAGE_NT_HEADERS64 *nt = (IMAGE_NT_HEADERS64*)((BYTE*)hExe + dos->e_lfanew);
+        IMAGE_SECTION_HEADER *sections = IMAGE_FIRST_SECTION(nt);
+        int matches = 0;
+        for (WORD s = 0; s < nt->FileHeader.NumberOfSections && matches < 16; s++) {
+            char name[9] = {0};
+            memcpy(name, sections[s].Name, 8);
+            // Only scan .rdata, .data, and similar data sections (skip .text)
+            if (strncmp(name, ".rdata", 6) != 0 && strncmp(name, ".data", 5) != 0) continue;
+            BYTE *base = (BYTE*)hExe + sections[s].VirtualAddress;
+            SIZE_T size = sections[s].Misc.VirtualSize;
+            fprintf(g_enqLog, "Scanning section %s at %p size=0x%llX\n",
+                    name, base, (UINT64)size);
+            // Scan 8-byte aligned
+            for (SIZE_T off = 0; off + 8 <= size; off += 8) {
+                if (IsBadReadPtr(base + off, 8)) break;
+                UINT64 val = *(UINT64*)(base + off);
+                if (val != wrapperVA) continue;
+                matches++;
+                UINT64 tableRva = (UINT64)(sections[s].VirtualAddress) + off;
+                fprintf(g_enqLog, "\n[Match #%d] Wrapper ptr found at RVA 0x%llX (%s+0x%llX)\n",
+                        matches, tableRva, name, (UINT64)off);
+                // Dump 32 qwords around the match (16 before + the match + 15 after)
+                SIZE_T startOff = (off >= 128) ? off - 128 : 0;
+                SIZE_T endOff = (off + 256 > size) ? size : off + 256;
+                for (SIZE_T q = startOff; q + 8 <= endOff; q += 8) {
+                    UINT64 qval = *(UINT64*)(base + q);
+                    UINT64 qRva = sections[s].VirtualAddress + q;
+                    // Annotate if the qword looks like a function pointer into .text
+                    const char *note = "";
+                    UINT64 relToText = qval - (UINT64)hExe;
+                    if (qval >= (UINT64)hExe && qval < (UINT64)hExe + 0x2000000) {
+                        note = " (→ code?)";
+                    }
+                    if (qval == wrapperVA) note = " ← WRAPPER!";
+                    fprintf(g_enqLog, "  %08llX: %016llX  (rva=0x%llX)%s\n",
+                            qRva, qval, qval >= (UINT64)hExe ? relToText : 0, note);
+                }
+                fflush(g_enqLog);
+            }
+        }
+        fprintf(g_enqLog, "\n=== Total .rdata/.data matches: %d ===\n", matches);
+        fflush(g_enqLog);
+    }
+
+    // Extended dumps for context
+    DumpFuncBytes(g_enqLog, "packet_handler_ext (0x588F70+0x200)", hExe + 0x588F70 + 0x200, 512);
+    DumpFuncBytes(g_enqLog, "consumer_ext       (0x5883D0+0x200)", hExe + 0x5883D0 + 0x200, 512);
+
+    // Step 2: Register VEH (at front so we see BP before cert VEH)
+    AddVectoredExceptionHandler(1, EnqueueProbeVEH);
+
+    // Step 3: Attempt INT3 install
+    BYTE *target = hExe + 0x573160;
+    if (IsBadReadPtr(target, 1)) {
+        fprintf(g_enqLog, "[EnqProbe] enqueue @ %p unreadable — aborting INT3\n", target);
+        fflush(g_enqLog);
+        return;
+    }
+    g_enqOrigByte = *target;
+    fprintf(g_enqLog, "[EnqProbe] enqueue first byte = 0x%02X (saved)\n", g_enqOrigByte);
+
+    DWORD oldProt = 0;
+    BOOL ok = VirtualProtect(target, 1, PAGE_EXECUTE_READWRITE, &oldProt);
+    if (!ok) {
+        DWORD err = GetLastError();
+        fprintf(g_enqLog, "[EnqProbe] VirtualProtect err=%lu — INT3 hook blocked by Vanguard.\n", err);
+        fprintf(g_enqLog, "[EnqProbe] Use the hex dumps above to reverse the format offline.\n");
+        fflush(g_enqLog);
+        return;
+    }
+    *target = 0xCC;
+    VirtualProtect(target, 1, oldProt, &oldProt);
+    FlushInstructionCache(GetCurrentProcess(), target, 1);
+    g_enqAddr = target;
+    fprintf(g_enqLog, "[EnqProbe] *** INT3 installed at RVA 0x573160 (VA=%p) ***\n", target);
+    fflush(g_enqLog);
+}
+
+// Periodic heap scan for parser state objects.
+// A parser state written by packet_proc has its first byte set by one of:
+//   mov [rbx], 0x06   (init failed)
+//   mov [rbx], 0x07   (stage1 failed)
+//   mov [rbx], 0x08   (stage2 failed)
+//   mov [rbx], 0x09   (stage3 failed)
+//   mov [rbx], 0x0A   (stage4 failed)
+//   mov [rbx], 0x00   (success — last path in packet_proc)
+// The object lives on the heap, first byte in {0..0xA}, followed by structured data.
+// We scan heap regions every 1s and log any byte that TRANSITIONS between runs —
+// that tells us which stage actually ran on our traffic.
+static DWORD WINAPI ParserStateScanThread(LPVOID param) {
+    HMODULE hExe = GetModuleHandleA(NULL);
+    Sleep(5000); // let CertThread finish first
+
+    if (!g_enqLog) return 0;
+    fprintf(g_enqLog, "[ParserScan] thread started\n");
+    fflush(g_enqLog);
+
+    // Track candidate object addresses across passes. When a candidate's
+    // first byte changes to 6-0xA or back to 0, log the transition.
+    // Use a small hashmap-like array keyed by address.
+    #define CANDS 128
+    static UINT64 candAddr[CANDS] = {0};
+    static BYTE   candByte[CANDS] = {0};
+    static int    candCount = 0;
+
+    for (int iter = 0; iter < 60; iter++) {
+        Sleep(1000);
+        MEMORY_BASIC_INFORMATION mbi;
+        BYTE *scan = NULL;
+        int found = 0;
+        while (VirtualQuery(scan, &mbi, sizeof(mbi))) {
+            scan = (BYTE*)mbi.BaseAddress + mbi.RegionSize;
+            if (mbi.State != MEM_COMMIT) continue;
+            if (!(mbi.Protect & (PAGE_READWRITE | PAGE_EXECUTE_READWRITE))) continue;
+            if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) continue;
+            if (mbi.Type != MEM_PRIVATE) continue;  // heap only
+            if (mbi.RegionSize > 0x10000000) continue; // skip huge regions
+            BYTE *base = (BYTE*)mbi.BaseAddress;
+            SIZE_T sz = mbi.RegionSize;
+
+            // Scan at 16-byte boundaries (objects typically aligned)
+            for (SIZE_T off = 0; off + 0x28 < sz; off += 16) {
+                BYTE b0 = base[off];
+                if (b0 > 0x0C) continue; // widen to catch 0x0C (outer caller error)
+                // Filter: must have a plausible pointer at +0x08
+                UINT64 p1 = *(UINT64*)(base + off + 8);
+                if (p1 < 0x10000 || p1 > 0x7FFFFFFFFFFF) continue;
+                // Pointer should be readable
+                if (IsBadReadPtr((void*)p1, 8)) continue;
+
+                UINT64 addr = (UINT64)(base + off);
+                // Find or insert in cand list
+                int slot = -1;
+                for (int i = 0; i < candCount; i++) {
+                    if (candAddr[i] == addr) { slot = i; break; }
+                }
+                if (slot < 0 && candCount < CANDS) {
+                    slot = candCount++;
+                    candAddr[slot] = addr;
+                    candByte[slot] = 0xFF; // sentinel
+                }
+                if (slot < 0) continue;
+                if (candByte[slot] != b0) {
+                    // Transition — log it
+                    fprintf(g_enqLog, "[ParserScan] iter=%d addr=%p %02X→%02X +8=%p +10=%016llX\n",
+                            iter, (void*)addr, candByte[slot], b0, (void*)p1,
+                            *(UINT64*)(base + off + 16));
+                    candByte[slot] = b0;
+                    found++;
+                    if (found > 5) break; // rate-limit per iter
+                }
+            }
+            if (found > 5) break;
+        }
+        if (iter % 5 == 0) {
+            fprintf(g_enqLog, "[ParserScan] iter=%d tracked=%d\n", iter, candCount);
+            fflush(g_enqLog);
+        }
+    }
+    fprintf(g_enqLog, "[ParserScan] thread exit\n");
+    fflush(g_enqLog);
+    return 0;
+}
+
 static DWORD WINAPI CertInjectionThread(LPVOID param) {
     if (logfile) { fprintf(logfile, "[CertThread] STARTED\n"); fflush(logfile); }
     HMODULE hExe = GetModuleHandleA(NULL);
@@ -3895,6 +4349,10 @@ static DWORD WINAPI CertInjectionThread(LPVOID param) {
             }
         }
     }
+
+    // === ENQUEUE PROBE ===
+    InstallEnqueueProbe((BYTE*)hExe);
+    CreateThread(NULL, 0, ParserStateScanThread, NULL, 0, NULL);
 
     // === BORINGSSL CERT VERIFY BYPASS (approach: patch verify result check) ===
     // The game uses BoringSSL (statically linked) for TLS to FakeLCU.

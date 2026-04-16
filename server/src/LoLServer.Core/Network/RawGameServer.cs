@@ -406,15 +406,46 @@ public class RawGameServer : IGameServer, IDisposable
     // ========================================================================
 
     /// <summary>
-    /// Send a game packet via cmd=2 (game data path → handler +0x168).
-    /// Sends RAW game data (no batch framing) — the handler at +0x168 may expect
-    /// either batch-framed or raw GamePacket format.
+    /// Send a game packet via cmd=3 (SEND_UNRELIABLE).
+    /// Targets the full parse chain reversed from client binary:
+    ///   Wrapper stream B header: [0x01][0x02][u16 A][u16 B][u16 C]  (8 bytes)
+    ///   Then inner packet_proc TLV:
+    ///     [0x00 + 16-byte header]   → pp_init
+    ///     [0x01 + u32 count]        → pp_stage1
+    ///     [0x02 + u32 N + 16×N items + 0x18] → pp_stage2
+    ///     [0x03 + data]             → pp_stage3
     /// </summary>
     private void SendGamePacket(PeerInfo peer, byte[] gameData, string description)
     {
-        // Send raw game data via cmd=2 (no batch framing)
-        SendCrcPacket(peer, 0x02, gameData);
-        Log($"  [GAME-PKT] {description}: {gameData.Length}B raw, cmd=0x02");
+        var pkt = new System.IO.MemoryStream();
+
+        // Wrapper stream B header (from wrapper_helper3 at RVA 0x589D11)
+        pkt.WriteByte(0x01);
+        pkt.WriteByte(0x02);
+        pkt.Write(BitConverter.GetBytes((ushort)0), 0, 2); // u16 A
+        pkt.Write(BitConverter.GetBytes((ushort)0), 0, 2); // u16 B
+        pkt.Write(BitConverter.GetBytes((ushort)0), 0, 2); // u16 C
+
+        // Inner TLV for packet_proc
+        // pp_init: 0x00 tag + 16-byte header
+        pkt.WriteByte(0x00);
+        for (int i = 0; i < 15; i++) pkt.WriteByte(0x00);
+        // pp_stage1: 0x01 tag + u32 count=0
+        pkt.WriteByte(0x01);
+        pkt.Write(BitConverter.GetBytes((uint)0), 0, 4);
+        // pp_stage2: 0x02 tag + u32 N=1 + 16B item + 0x18
+        pkt.WriteByte(0x02);
+        pkt.Write(BitConverter.GetBytes((uint)1), 0, 4);
+        byte[] item = new byte[16];
+        Array.Copy(gameData, 0, item, 0, Math.Min(gameData.Length, 16));
+        pkt.Write(item, 0, 16);
+        pkt.WriteByte(0x18);
+        // pp_stage3: 0x03 tag
+        pkt.WriteByte(0x03);
+
+        var data = pkt.ToArray();
+        SendCrcPacket(peer, 0x03, data);
+        Log($"  [GAME-PKT-FULL] {description}: {gameData.Length}B data → {data.Length}B full packet, cmd=0x03");
     }
 
     /// <summary>
