@@ -57,3 +57,7 @@ ghidra_11.3.2.zip
 nethook_logs/
 *.log
 /tmp/
+
+# LENet-patched build outputs
+4.20/LENet-patched/bin/
+4.20/LENet-patched/obj/

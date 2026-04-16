@@ -38,7 +38,7 @@ namespace PacketDefinitions420
         public void InitServer(ushort port, string[] blowfishKeys, Game game, NetworkHandler<ICoreRequest> netReq, NetworkHandler<ICoreRequest> netResp)
         {
             _game = game;
-            _server = new Host(Version.Seasson8_Server, new Address(_serverHost, port), 32, 32, 0, 0);
+            _server = new Host(Version.Patch713, new Address(_serverHost, port), 32, 32, 0, 0);
 
             BlowFish[] blowfishes = new BlowFish[blowfishKeys.Length];
             for(int i = 0; i < blowfishKeys.Length; i++)
