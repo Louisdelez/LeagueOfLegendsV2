@@ -3477,7 +3477,10 @@ static void InstallEnqueueProbe(BYTE *hExe) {
 
     // Inner decoders used by the stage loops (compute from CALL rel32 observed in stage2)
     // stage2 calls decode_item at RVA 0x5639A0 (16-byte record decoder)
-    DumpFuncBytes(g_enqLog, "decode_item_stage2 (0x5639A0)", hExe + 0x5639A0, 512);
+    DumpFuncBytes(g_enqLog, "decode_item_stage2 (0x5639A0)", hExe + 0x5639A0, 1024);
+
+    // Also dump the helper immediately following decode_item (same area) — likely related
+    DumpFuncBytes(g_enqLog, "decode_item_area_ext (0x5639A0+0x400)", hExe + 0x5639A0 + 0x400, 1024);
 
     // === Scan .text for callers of packet_proc (RVA 0x57AF90) ===
     // Find every E8 instruction with rel32 targeting packet_proc.
@@ -3605,6 +3608,196 @@ static void InstallEnqueueProbe(BYTE *hExe) {
             fflush(g_enqLog);
         }
         fprintf(g_enqLog, "\n=== Total wrapper callers: %d ===\n", wrapperCallers);
+        fflush(g_enqLog);
+    }
+
+    // === Scan .rdata for FLOW state strings to locate state machine ===
+    // The r3d log outputs strings like "Pushing LoadingScreen", "GameSession",
+    // "Bootstrap" etc. These are in .rdata with xrefs from state transition code.
+    {
+        const char *states[] = {
+            "LoadingScreen", "GameSession", "LoLCommon", "Patching", "Bootstrap",
+            "ChampSelect", "InGame"
+        };
+        int numStates = sizeof(states) / sizeof(states[0]);
+        fprintf(g_enqLog, "\n=== FLOW state string scan in .rdata ===\n");
+
+        IMAGE_DOS_HEADER *dos = (IMAGE_DOS_HEADER*)hExe;
+        IMAGE_NT_HEADERS64 *nt = (IMAGE_NT_HEADERS64*)((BYTE*)hExe + dos->e_lfanew);
+        IMAGE_SECTION_HEADER *sections = IMAGE_FIRST_SECTION(nt);
+        for (WORD s = 0; s < nt->FileHeader.NumberOfSections; s++) {
+            char name[9] = {0};
+            memcpy(name, sections[s].Name, 8);
+            if (strncmp(name, ".rdata", 6) != 0) continue;
+            BYTE *base = (BYTE*)hExe + sections[s].VirtualAddress;
+            SIZE_T size = sections[s].Misc.VirtualSize;
+            for (int si = 0; si < numStates; si++) {
+                const char *s1 = states[si];
+                SIZE_T slen = strlen(s1);
+                int found = 0;
+                for (SIZE_T off = 0; off + slen < size && found < 3; off++) {
+                    if (memcmp(base + off, s1, slen) != 0) continue;
+                    // Must be null-terminated or followed by non-alnum
+                    BYTE nextB = base[off + slen];
+                    if (nextB != 0 && (nextB >= 'A' && nextB <= 'z')) continue;
+                    UINT64 strRva = sections[s].VirtualAddress + off;
+                    fprintf(g_enqLog, "  \"%s\" found at RVA 0x%llX  VA=%p\n",
+                            s1, strRva, base + off);
+                    found++;
+                }
+            }
+        }
+        fprintf(g_enqLog, "=== State string scan done ===\n");
+        fflush(g_enqLog);
+    }
+
+    // === Xref scan: find code that references "LoadingScreen" string (RVA 0x1950630) ===
+    // Look for `lea reg, [rip+disp32]` instructions where target RVA = 0x1950630.
+    // LEA RIP-relative encoding: 48 8D XX XX (4-byte mod/rm with rip-relative) then 4-byte disp.
+    // Actually: 48 8D 0D XX XX XX XX = lea rcx, [rip+disp32]
+    //          48 8D 15 XX XX XX XX = lea rdx, [rip+disp32]
+    //          48 8D 05 XX XX XX XX = lea rax, [rip+disp32]
+    {
+        BYTE *textBase = (BYTE*)hExe + 0x1000;
+        SIZE_T textSize = 0x1900000;
+        UINT64 strRva = 0x1950630; // "LoadingScreen"
+        int xrefs = 0;
+        fprintf(g_enqLog, "\n=== Xref scan for \"LoadingScreen\" string (RVA 0x%llX) ===\n", strRva);
+        for (SIZE_T i = 0; i + 7 < textSize && xrefs < 12; i++) {
+            // Match patterns: 48 8D (05|0D|15|1D|25|2D|35|3D) XX XX XX XX
+            //                 4C 8D (05|0D|15|1D|25|2D|35|3D) XX XX XX XX for r8..r15
+            if (textBase[i] != 0x48 && textBase[i] != 0x4C) continue;
+            if (textBase[i+1] != 0x8D) continue;
+            BYTE modrm = textBase[i+2];
+            // rip-relative: mod=00, rm=5
+            if ((modrm & 0xC7) != 0x05) continue;
+            INT32 disp = *(INT32*)(textBase + i + 3);
+            UINT64 instrRva = 0x1000 + i;
+            UINT64 targetRva = instrRva + 7 + (INT64)disp; // 7 = instruction length
+            if (targetRva != strRva) continue;
+            xrefs++;
+            fprintf(g_enqLog, "  [Xref #%d] LEA at RVA 0x%llX (bytes: %02X %02X %02X %02X %02X %02X %02X)\n",
+                    xrefs, instrRva,
+                    textBase[i], textBase[i+1], textBase[i+2],
+                    textBase[i+3], textBase[i+4], textBase[i+5], textBase[i+6]);
+            // Dump 32 bytes of context around the xref
+            SIZE_T before = (i >= 32) ? 32 : i;
+            fprintf(g_enqLog, "    Context:\n");
+            for (SIZE_T j = 0; j < before + 7 + 24; j += 16) {
+                fprintf(g_enqLog, "    %04llX: ", (UINT64)(instrRva - before + j));
+                for (SIZE_T k = 0; k < 16 && j + k < before + 7 + 24; k++) {
+                    fprintf(g_enqLog, "%02X ", textBase[i - before + j + k]);
+                }
+                fprintf(g_enqLog, "\n");
+            }
+            fflush(g_enqLog);
+        }
+        fprintf(g_enqLog, "=== Total xrefs: %d ===\n", xrefs);
+        fflush(g_enqLog);
+    }
+
+    // Dump around Xref #2 (0x630BE7) — state registration site
+    DumpFuncBytes(g_enqLog, "state_register_fn (0x630B00)", hExe + 0x630B00, 1024);
+
+    // Also search .rdata for the tiny getter function at 0x619AB0
+    // (if it's part of a vtable, we find all state vtables here)
+    {
+        UINT64 getterVA = (UINT64)hExe + 0x619AB0;
+        fprintf(g_enqLog, "\n=== Search .rdata for getter 0x619AB0 (LoadingScreen name fn) ===\n");
+        IMAGE_DOS_HEADER *dos = (IMAGE_DOS_HEADER*)hExe;
+        IMAGE_NT_HEADERS64 *nt = (IMAGE_NT_HEADERS64*)((BYTE*)hExe + dos->e_lfanew);
+        IMAGE_SECTION_HEADER *sections = IMAGE_FIRST_SECTION(nt);
+        int matches = 0;
+        for (WORD s = 0; s < nt->FileHeader.NumberOfSections && matches < 8; s++) {
+            char name[9] = {0};
+            memcpy(name, sections[s].Name, 8);
+            if (strncmp(name, ".rdata", 6) != 0 && strncmp(name, ".data", 5) != 0) continue;
+            BYTE *sbase = (BYTE*)hExe + sections[s].VirtualAddress;
+            SIZE_T ssize = sections[s].Misc.VirtualSize;
+            for (SIZE_T off = 0; off + 8 <= ssize; off += 8) {
+                UINT64 val = *(UINT64*)(sbase + off);
+                if (val != getterVA) continue;
+                matches++;
+                UINT64 foundRva = sections[s].VirtualAddress + off;
+                fprintf(g_enqLog, "  [Match #%d] @ RVA 0x%llX (%s+0x%llX)\n",
+                        matches, foundRva, name, (UINT64)off);
+                // Dump 64 qwords around the match
+                SIZE_T startOff = (off >= 64) ? off - 64 : 0;
+                SIZE_T endOff = (off + 128 > ssize) ? ssize : off + 128;
+                for (SIZE_T q = startOff; q + 8 <= endOff; q += 8) {
+                    UINT64 qval = *(UINT64*)(sbase + q);
+                    UINT64 qRva = sections[s].VirtualAddress + q;
+                    UINT64 toText = qval >= (UINT64)hExe ? qval - (UINT64)hExe : 0;
+                    const char *mark = (qval == getterVA) ? " ← GETTER" : "";
+                    fprintf(g_enqLog, "    %08llX: %016llX (rva=0x%llX)%s\n",
+                            qRva, qval, toText, mark);
+                }
+                fflush(g_enqLog);
+            }
+        }
+        fprintf(g_enqLog, "=== Total getter vtable matches: %d ===\n", matches);
+        fflush(g_enqLog);
+    }
+
+    // === Dump flowPtr structure fully (256 bytes) — state machine may live here ===
+    {
+        UINT64 *flowPtrAddr = (UINT64*)((BYTE*)hExe + 0x1DA5228);
+        UINT64 flowPtr = *flowPtrAddr;
+        if (flowPtr != 0 && !IsBadReadPtr((void*)flowPtr, 256)) {
+            fprintf(g_enqLog, "\n=== flowPtr struct dump (@ VA %p) ===\n", (void*)flowPtr);
+            for (int d = 0; d < 256; d += 16) {
+                fprintf(g_enqLog, "  +%03X: ", d);
+                for (int j = 0; j < 16; j++) {
+                    fprintf(g_enqLog, "%02X ", *(BYTE*)(flowPtr + d + j));
+                }
+                // ASCII rendition
+                fprintf(g_enqLog, "  |");
+                for (int j = 0; j < 16; j++) {
+                    BYTE b = *(BYTE*)(flowPtr + d + j);
+                    fprintf(g_enqLog, "%c", (b >= 32 && b < 127) ? b : '.');
+                }
+                fprintf(g_enqLog, "|\n");
+            }
+            fflush(g_enqLog);
+        }
+    }
+
+    // === Scan .text for callers of dispatcher (0x955C20) and consumer (0x5883D0) ===
+    // These are the REAL game packet path, distinct from the wrapper/packet_proc
+    // chain which is a structured-object deserializer.
+    {
+        BYTE *textBase = (BYTE*)hExe + 0x1000;
+        SIZE_T textSize = 0x1900000;
+        UINT64 dispTarget = 0x955C20;
+        UINT64 consTarget = 0x5883D0;
+        int dispCount = 0, consCount = 0;
+        fprintf(g_enqLog, "\n=== dispatcher + consumer callers scan ===\n");
+        for (SIZE_T i = 0; i + 5 < textSize && (dispCount + consCount) < 16; i++) {
+            if (textBase[i] != 0xE8) continue;
+            INT32 rel = *(INT32*)(textBase + i + 1);
+            UINT64 callerRva = 0x1000 + i;
+            UINT64 targetRva = callerRva + 5 + (INT64)rel;
+            const char *which = NULL;
+            int *cnt = NULL;
+            if (targetRva == dispTarget) { which = "DISP"; cnt = &dispCount; }
+            else if (targetRva == consTarget) { which = "CONS"; cnt = &consCount; }
+            else continue;
+            (*cnt)++;
+            BYTE *callerAddr = textBase + i;
+            fprintf(g_enqLog, "\n[%s #%d] CALL at RVA 0x%llX\n",
+                    which, *cnt, callerRva);
+            SIZE_T before = (i >= 64) ? 64 : i;
+            BYTE *ctxStart = callerAddr - before;
+            for (SIZE_T j = 0; j < before + 5 + 16; j += 16) {
+                fprintf(g_enqLog, "  %04llX: ", (UINT64)(callerRva - before + j));
+                for (SIZE_T k = 0; k < 16 && j + k < before + 5 + 16; k++) {
+                    fprintf(g_enqLog, "%02X ", ctxStart[j + k]);
+                }
+                fprintf(g_enqLog, "\n");
+            }
+            fflush(g_enqLog);
+        }
+        fprintf(g_enqLog, "\n=== Totals: dispatcher=%d consumer=%d ===\n", dispCount, consCount);
         fflush(g_enqLog);
     }
 
