@@ -65,10 +65,17 @@ namespace LeagueSandbox.GameServer.Packets.PacketHandlers
             {
                 if(!player.IsDisconnected)
                 {
-                    StartFor(player);
+                    try {
+                        StartFor(player);
+                    } catch (System.Exception ex) {
+                        System.Console.WriteLine(ex.StackTrace);
+                    }
                 }
             }
-            _game.Start();
+            try {
+                _game.Start();
+            } catch (System.Exception ex) {
+            }
         }
 
         private void StartFor(ClientInfo player)

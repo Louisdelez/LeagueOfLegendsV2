@@ -161,7 +161,8 @@ namespace PacketDefinitions420
                 {
                     temp = source;
                 }
-                return _peers[userId].Send((byte)channelNo, new LENet.Packet(temp, flag)) == 0;
+                int sr = _peers[userId].Send((byte)channelNo, new LENet.Packet(temp, flag));
+                return sr == 0;
             }
             return false;
         }
@@ -337,8 +338,9 @@ namespace PacketDefinitions420
             }
 
             peerInfo.IsStartedClient = true;
+            peerInfo.IsDisconnected = false; // 7.13 client never sends StartGameRequest so we must reset here
 
-            Debug.WriteLine("Connected client No " + peerInfo.ClientId);      
+            Debug.WriteLine("Connected client No " + peerInfo.ClientId);
 
             peer.UserData = (int)peerInfo.ClientId + 1;
             _peers[peerInfo.ClientId] = peer;
