@@ -2210,6 +2210,18 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                 }
 
+                // PATCH20: Replace version format string to show custom text
+                {
+                    char *fmt = (char*)((BYTE*)hExe + (0x13D7B74 - 0x400000));
+                    DWORD oldProt;
+                    if (VirtualProtect(fmt, 40, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                        // Keep %s format specifiers to avoid crash
+                        strcpy(fmt, "Player1|Ezreal %s%s%s%s%s%s");
+                        VirtualProtect(fmt, 40, oldProt, &oldProt);
+                        Log("PATCH20: version format -> Player1|Ezreal");
+                    }
+                }
+
                 // PATCH17: Disable manager cleanup at RVA 0x5415B0
                 // Manager vtable[2] destroys handler + dispatch + clears [+0xC].
                 // Game calls this when transitioning out of loading state.
