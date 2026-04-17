@@ -916,17 +916,15 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             // outStr is pre-initialized as empty inline std::string.
             // We copy raw packet data (after header byte) into it.
             if (*lsHandler && *(DWORD*)((BYTE*)*lsHandler + 0x10) == 0) {
-                // Fake vtable: [0]=ret(NOP dtor), [1]=our parser
-                static DWORD fakeReaderVtable[4] = {0};
+                // Fake vtable with 16 entries — all safe stubs except [1]=parse
+                static DWORD fakeReaderVtable[16] = {0};
                 if (!fakeReaderVtable[0]) {
-                    // Get addresses of our stub functions
                     extern void FakeReaderDtor(void);
                     extern void __attribute__((stdcall)) FakeReaderParse(
                         DWORD*, void*, void*, BYTE*, DWORD);
-                    fakeReaderVtable[0] = (DWORD)FakeReaderDtor;
+                    for (int vi = 0; vi < 16; vi++)
+                        fakeReaderVtable[vi] = (DWORD)FakeReaderDtor;
                     fakeReaderVtable[1] = (DWORD)FakeReaderParse;
-                    fakeReaderVtable[2] = (DWORD)FakeReaderDtor;
-                    fakeReaderVtable[3] = (DWORD)FakeReaderDtor;
                 }
                 // Create fake reader object: just [+0] = vtable ptr
                 static DWORD fakeReader[2] = {0};
@@ -1023,8 +1021,8 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     (void*)*(DWORD*)(hp+0x2C));
             }
 
-            // vtable[2] DISABLED — crashes when processing [+0x2C] (fake reader vtable incomplete)
-            // The data is injected but needs the game's own tick to process it.
+            // Call handler vtable[2] (tick) to process [+0x2C]
+            // PATCH16 applied in DllMain (dispatch destructor disabled at startup)
 
             // Call subVT[3] DIRECTLY with loading-screen data
             {
@@ -1665,6 +1663,21 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                         Log("LSRECV: detour installed");
                     } else {
                         Log("LSRECV: prologue mismatch");
+                    }
+                }
+
+                // PATCH16: Disable dispatch destructor at RVA 0x4FB820
+                // This function destroys the pool + dispatch object, causing early exit.
+                {
+                    BYTE *dispDtor = (BYTE*)hExe + 0x4FB820;
+                    if (dispDtor[0] == 0x56 && dispDtor[1] == 0x57) {
+                        DWORD oldProt;
+                        if (VirtualProtect(dispDtor, 1, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                            dispDtor[0] = 0xC3;
+                            FlushInstructionCache(GetCurrentProcess(), dispDtor, 1);
+                            VirtualProtect(dispDtor, 1, oldProt, &oldProt);
+                            Log("PATCH16: dispatch destructor disabled at RVA 0x4FB820");
+                        }
                     }
                 }
 
