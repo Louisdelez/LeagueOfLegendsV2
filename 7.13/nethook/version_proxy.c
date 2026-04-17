@@ -1023,6 +1023,9 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     (void*)*(DWORD*)(hp+0x2C));
             }
 
+            // vtable[2] DISABLED — crashes when processing [+0x2C] (fake reader vtable incomplete)
+            // The data is injected but needs the game's own tick to process it.
+
             // Call subVT[3] DIRECTLY with loading-screen data
             {
                 DWORD *globalPtr = (DWORD*)((BYTE*)hExe + (0x1AA18A8 - 0x400000));
