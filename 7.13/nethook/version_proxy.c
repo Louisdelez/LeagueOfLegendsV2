@@ -980,6 +980,26 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                 Log("WD: tick %d resp=%02X ver=%02X disp=%p handler=%p veh=%d",
                     tick, *flagResp, *flagVer, (void*)*dispObj, (void*)*lsHandler,
                     g_vehCrashCount);
+                // Draw player info directly on game window via GDI overlay
+                if (tick < 5) {
+                    HWND gw = FindWindowA(NULL, "League of Legends (TM) Client");
+                    if (gw) {
+                        HDC hdc = GetDC(gw);
+                        if (hdc) {
+                            SetBkMode(hdc, TRANSPARENT);
+                            SetTextColor(hdc, RGB(255, 255, 255));
+                            HFONT font = CreateFontA(32, 0, 0, 0, FW_BOLD, 0, 0, 0,
+                                DEFAULT_CHARSET, 0, 0, ANTIALIASED_QUALITY, 0, "Arial");
+                            HFONT old = (HFONT)SelectObject(hdc, font);
+                            TextOutA(hdc, 100, 200, "Player1 - Ezreal", 17);
+                            TextOutA(hdc, 100, 250, "Loading...", 10);
+                            SelectObject(hdc, old);
+                            DeleteObject(font);
+                            ReleaseDC(gw, hdc);
+                            if (tick == 0) Log("WD: drew text on game window");
+                        }
+                    }
+                }
             }
             Log("WD: monitoring done");
         }
