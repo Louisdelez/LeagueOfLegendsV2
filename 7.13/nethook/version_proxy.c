@@ -1106,14 +1106,14 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                 }
             }
 
-            // Monitor for 20 seconds
-            for (int tick = 0; tick < 10; tick++) {
+            // Monitor for 60 seconds
+            for (int tick = 0; tick < 30; tick++) {
                 Sleep(2000);
                 if (*lsHandler) {
                     BYTE *hp = (BYTE*)*lsHandler;
-                    Log("WD: tick %d handler[+0x10]=%p [+0x14]=%p [+0x2C]=%p",
-                        tick, (void*)*(DWORD*)(hp+0x10), (void*)*(DWORD*)(hp+0x14),
-                        (void*)*(DWORD*)(hp+0x2C));
+                    Log("WD: tick %d [+0x2C]=%p veh_crashes=%d pool=%08lX",
+                        tick, (void*)*(DWORD*)(hp+0x2C), g_vehCrashCount,
+                        *(DWORD*)((BYTE*)hExe + (0x189F360 - 0x400000)));
                 }
             }
         }
@@ -1688,6 +1688,27 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                 }
 
+                // Hook SetUnhandledExceptionFilter to prevent BugSplat from killing us
+                {
+                    HMODULE k32 = GetModuleHandleA("kernel32.dll");
+                    if (k32) {
+                        void *suef = GetProcAddress(k32, "SetUnhandledExceptionFilter");
+                        if (suef) {
+                            DWORD oldProt;
+                            // Patch to NOP — return the arg as-is (mov eax,[esp+4]; ret 4)
+                            // B8 patch: 8B 44 24 04 C2 04 00 = mov eax,[esp+4]; ret 4
+                            if (VirtualProtect(suef, 7, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                                BYTE *p = (BYTE*)suef;
+                                p[0] = 0x8B; p[1] = 0x44; p[2] = 0x24; p[3] = 0x04;
+                                p[4] = 0xC2; p[5] = 0x04; p[6] = 0x00;
+                                FlushInstructionCache(GetCurrentProcess(), suef, 7);
+                                VirtualProtect(suef, 7, oldProt, &oldProt);
+                                Log("HOOK: SetUnhandledExceptionFilter -> NOP");
+                            }
+                        }
+                    }
+                }
+
                 // Hook ExitProcess to prevent game from quitting
                 {
                     HMODULE k32 = GetModuleHandleA("kernel32.dll");
@@ -1703,6 +1724,42 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                                 VirtualProtect(ep, 5, oldProt, &oldProt);
                                 Log("HOOK: ExitProcess -> FakeExitProcess");
                             }
+                        }
+                    }
+                }
+
+                // Hook NtTerminateProcess in ntdll (bypasses kernel32 hooks)
+                {
+                    HMODULE ntdll = GetModuleHandleA("ntdll.dll");
+                    void *nttp = ntdll ? GetProcAddress(ntdll, "NtTerminateProcess") : NULL;
+                    if (nttp) {
+                        DWORD oldProt;
+                        if (VirtualProtect(nttp, 16, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                            // Replace with: mov eax, 0; ret 8
+                            BYTE *p = (BYTE*)nttp;
+                            p[0]=0xB8; p[1]=0x00; p[2]=0x00; p[3]=0x00; p[4]=0x00; // mov eax, 0 (STATUS_SUCCESS)
+                            p[5]=0xC2; p[6]=0x08; p[7]=0x00; // ret 8
+                            FlushInstructionCache(GetCurrentProcess(), nttp, 8);
+                            VirtualProtect(nttp, 16, oldProt, &oldProt);
+                            Log("HOOK: NtTerminateProcess -> return 0 (blocked!)");
+                        }
+                    }
+                }
+
+                // Hook TerminateProcess too
+                {
+                    HMODULE k32 = GetModuleHandleA("kernel32.dll");
+                    void *tp = k32 ? GetProcAddress(k32, "TerminateProcess") : NULL;
+                    if (tp) {
+                        DWORD oldProt;
+                        if (VirtualProtect(tp, 7, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                            // mov eax, 1; ret 8 (return TRUE, clean 2 args)
+                            BYTE *p = (BYTE*)tp;
+                            p[0]=0xB8; p[1]=0x01; p[2]=0x00; p[3]=0x00; p[4]=0x00;
+                            p[5]=0xC2; p[6]=0x08;
+                            FlushInstructionCache(GetCurrentProcess(), tp, 7);
+                            VirtualProtect(tp, 7, oldProt, &oldProt);
+                            Log("HOOK: TerminateProcess -> return TRUE");
                         }
                     }
                 }
