@@ -429,6 +429,11 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
     return 0;
 }
 
+static void WINAPI FakeExitProcess(UINT uExitCode) {
+    Log("BLOCKED ExitProcess(%u) — sleeping forever", uExitCode);
+    for (;;) Sleep(10000);
+}
+
 static void InstallNetHooks(void) {
     HMODULE ws2 = LoadLibraryA("ws2_32.dll");
     if (!ws2) { Log("Can't load ws2_32"); return; }
@@ -625,6 +630,43 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                     Log("PATCH5: scan done, %d hits", p5Hits);
                 }
+
+                // PATCH6: bypass the SECOND version-match check at 0x4AA104.
+                // `cmp byte [0x1E84F72], 1; jne 0x8AA3FF` — skips game loading
+                // if version flag != 1. Pattern: 80 3D <VA> 01 0F 85
+                {
+                    DWORD vfRuntimeVA = (DWORD)base + (0x01E84F72 - 0x00400000);
+                    BYTE p6needle[] = {
+                        0x80, 0x3D,
+                        (BYTE)(vfRuntimeVA),
+                        (BYTE)(vfRuntimeVA >> 8),
+                        (BYTE)(vfRuntimeVA >> 16),
+                        (BYTE)(vfRuntimeVA >> 24),
+                        0x01, 0x0F, 0x85
+                    };
+                    DWORD p6Start = 0x4AA000, p6End = 0x4AA200;
+                    int p6Hits = 0;
+                    for (DWORD off = p6Start; off < p6End - sizeof(p6needle); off++) {
+                        BYTE *q = base + off;
+                        int match = 1;
+                        for (unsigned i = 0; i < sizeof(p6needle); i++) {
+                            if (q[i] != p6needle[i]) { match = 0; break; }
+                        }
+                        if (match) {
+                            p6Hits++;
+                            BYTE *jne = q + 7;  // 0F 85 rel32 (6 bytes)
+                            Log("PATCH6: found cmp+jne-long @RVA 0x%06lX", off);
+                            DWORD oldProt;
+                            if (VirtualProtect(jne, 6, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                                for (int i = 0; i < 6; i++) jne[i] = 0x90;
+                                FlushInstructionCache(GetCurrentProcess(), jne, 6);
+                                VirtualProtect(jne, 6, oldProt, &oldProt);
+                                Log("PATCH6: NOPed 6 bytes @RVA 0x%06lX (force game loading)", off + 7);
+                            }
+                        }
+                    }
+                    Log("PATCH6: scan done, %d hits", p6Hits);
+                }
                 // PATCH4: bypass the "Server/Client mismatch" log + shutdown.
                 // At RVA 0x4AA844:
                 //   cmp byte ptr [0x1E84F72], 0   ; 80 3D <byte_VA> 00
@@ -683,6 +725,9 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
 
         // Watchdog thread disabled (see notes above).
         (void)FlagWatchdog;
+
+        // IAT hooks for TerminateProcess/ExitProcess removed — caused segfaults.
+        // PATCH4+PATCH6 now handle the version-mismatch exit properly.
 
         // Install diagnostic detour on handler at RVA 0x3EF8F0 to see if it
         // fires naturally.
