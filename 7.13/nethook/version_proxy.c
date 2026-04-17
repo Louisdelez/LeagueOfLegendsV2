@@ -565,22 +565,25 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             // Fake session approach doesn't work (zero-filled → null derefs).
             // The game session is created during proper loading sequence.
             // Current stable config: opcodes 1+3 only → 8s game runtime.
-            // Create + register LoadScreenHandler if NULL
+            // Create + register REAL LoadScreenHandler via init function 0x96DAB0
             DWORD *lsHandler = (DWORD*)((BYTE*)hExe + (0x1E77204 - 0x400000));
             if (!*lsHandler) {
-                // Allocate fake handler object (needs vtable at [+0])
-                // The real handler class has vtable 0x13C32D4.
-                BYTE *fakeHandler = (BYTE*)VirtualAlloc(NULL, 0x1000, MEM_COMMIT, PAGE_READWRITE);
-                if (fakeHandler) {
-                    memset(fakeHandler, 0, 0x1000);
-                    // Set vtable to the LoadScreen handler vtable
-                    *(DWORD*)fakeHandler = 0x400000 + 0x13C32D4;  // preferred base VA
-                    // Call setter: 0x9FB040(handler_ptr)
+                BYTE *handler = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
+                if (handler) {
+                    memset(handler, 0, 0x200);
+                    // Call the REAL init function: 0x96DAB0(ecx = handler)
+                    // This sets vtable, allocates internals, inits critical section
+                    typedef void* (__thiscall *InitFn)(void *ecx);
+                    InitFn initHandler = (InitFn)((DWORD)hExe + 0x56DAB0);
+                    void *result = initHandler(handler);
+                    Log("WD: handler init returned %p, vtable=%p",
+                        result, (void*)*(DWORD*)handler);
+
+                    // Register via setter 0x9FB040
                     typedef void (__cdecl *SetterFn)(void*);
                     SetterFn setter = (SetterFn)((DWORD)hExe + 0x5FB040);
-                    setter(fakeHandler);
-                    Log("WD: created + registered fake LoadScreenHandler @%p (vtable=0x%08lX)",
-                        fakeHandler, *(DWORD*)fakeHandler);
+                    setter(handler);
+                    Log("WD: LoadScreenHandler registered @%p", handler);
                 }
             } else {
                 Log("WD: LoadScreenHandler already set: %p", (void*)*lsHandler);
