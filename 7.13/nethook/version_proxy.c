@@ -458,12 +458,19 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
 
     Log("WD: start, flagResp=%p flagVer=%p", flagResp, flagVer);
 
-    // Wait 3s for auth to complete, then dispatch opcodes BEFORE the
-    // client's state machine reaches the flag checks. The natural code
-    // flow will handle map loading and world creation.
-    Sleep(3000);
+    // Wait for EDI to be captured (handshake must complete first)
+    Log("WD: waiting for g_saved_edi (handshake)...");
+    for (int wait = 0; wait < 30; wait++) {
+        Sleep(500);
+        if (g_saved_edi) break;
+    }
+    if (!g_saved_edi) {
+        Log("WD: timeout waiting for EDI, aborting");
+        return 0;
+    }
+    // Extra delay for client to stabilize after handshake
+    Sleep(1000);
 
-    // DON'T write flags directly — let opcodes 1+3 set them naturally.
     DWORD oldProt;
     Log("WD: resp=%02X ver=%02X (before dispatch)", *flagResp, *flagVer);
     if (g_saved_edi) {
@@ -565,8 +572,25 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             // Fake session approach doesn't work (zero-filled → null derefs).
             // The game session is created during proper loading sequence.
             // Current stable config: opcodes 1+3 only → 8s game runtime.
-            // LoadScreenHandler — try registration WITHOUT setting [+0x10]
+            // Call LoadScreenInit at RVA 0x633AF0 to properly create pool + dispatch object.
+            // This function: creates pool at [0x189F360], allocates dispatch obj via pool,
+            // sets vtable, stores at [0x1E77200]. Takes 1 arg: ptr where [arg+0] = pool param.
+            {
+                typedef int (__cdecl *LoadScreenInitFn)(void *arg);
+                LoadScreenInitFn lsInit = (LoadScreenInitFn)((DWORD)hExe + 0x633AF0);
+                DWORD initArg[4] = { 16, 0, 0, 0 };  // arg[0]=16 (pool entries)
+                Log("WD: calling LoadScreenInit @RVA 0x633AF0...");
+                int r = lsInit(initArg);
+                Log("WD: LoadScreenInit returned %d", r);
+            }
+
+            DWORD *dispObj = (DWORD*)((BYTE*)hExe + (0x1E77200 - 0x400000));
             DWORD *lsHandler = (DWORD*)((BYTE*)hExe + (0x1E77204 - 0x400000));
+            Log("WD: dispObj=%p handler=%p pool=[0x189F360]=%08lX",
+                (void*)*dispObj, (void*)*lsHandler,
+                *(DWORD*)((BYTE*)hExe + (0x189F360 - 0x400000)));
+
+            // If handler not yet registered, create and register it
             if (!*lsHandler) {
                 BYTE *handler = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
                 if (handler) {
@@ -574,110 +598,22 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     typedef void* (__thiscall *InitFn)(void *ecx);
                     InitFn initHandler = (InitFn)((DWORD)hExe + 0x56DAB0);
                     initHandler(handler);
-                    // DON'T set [+0x10] — leave as 0 from init
-                    // DON'T call setter yet — register AFTER opcodes
-                }
-                // Register handler AFTER stable opcodes dispatched
-                if (handler) {
                     typedef void (__cdecl *SetterFn)(void*);
                     SetterFn setter = (SetterFn)((DWORD)hExe + 0x5FB040);
                     setter(handler);
-                    Log("WD: handler registered (no [+0x10])");
+                    Log("WD: handler created and registered @%p", handler);
                 }
             }
-            // Create dispatch object at [0x1E77200] — 4 bytes, just a vtable ptr
-            DWORD *dispObj = (DWORD*)((BYTE*)hExe + (0x1E77200 - 0x400000));
-            if (!*dispObj) {
-                DWORD *dobj = (DWORD*)VirtualAlloc(NULL, 8, MEM_COMMIT, PAGE_READWRITE);
-                if (dobj) {
-                    *dobj = (DWORD)hExe + (0x152CF00 - 0x400000);  // vtable
-                    *dispObj = (DWORD)dobj;
-                    Log("WD: dispatch object created @%p vtable=0x%08lX", dobj, *dobj);
-                }
-            }
-            Log("WD: dispatchObj=%p handler=%p", (void*)*dispObj, (void*)*lsHandler);
+            Log("WD: final: dispObj=%p handler=%p", (void*)*dispObj, (void*)*lsHandler);
 
-            // Call dispatch vtable[6] (0x9F23B0) with loading-screen packet data.
-            // Args: ecx=dispObj, 6 stack args (ret 0x18):
-            //   arg0=data_ptr, arg1=null, arg2=pkt_info, arg3=0, arg4=output, arg5=packetType
-            if (*dispObj && *lsHandler) {
-                DWORD dispVtable = *(DWORD*)*dispObj;
-                DWORD vt6 = *(DWORD*)(dispVtable + 24);  // vtable[6]
-                Log("WD: dispatch vtable[6]=0x%08lX", vt6);
-
-                // Craft a minimal TeamRosterUpdate packet
-                // In 4.20 format: [type=0x68][TeamSizeOrder=1][TeamSizeChaos=0][...]
-                BYTE rosterData[64] = {0};
-                rosterData[0] = 0x68;  // TeamRosterUpdate
-                rosterData[1] = 1;     // team size order
-                rosterData[2] = 0;     // team size chaos
-
-                // Packet info struct: float >= 0 at [+0], byte 0-100 at [+0xD]
-                BYTE pktInfo[16] = {0};
-                float zeroF = 1.0f;
-                *(float*)pktInfo = zeroF;
-                pktInfo[0xD] = 1;  // valid byte (0-100)
-
-                DWORD output = 0;
-
-                typedef int (__thiscall *DispVT6Fn)(void *ecx, void *data, void *obj,
-                    void *info, DWORD val, DWORD *out, BYTE type);
-                DispVT6Fn dispFunc = (DispVT6Fn)vt6;
-
-                // Call handler vtable[2] DIRECTLY (bypass vtable[6] + broken pool)
-                BYTE *workBuf = (BYTE*)VirtualAlloc(NULL, 0x40, MEM_COMMIT, PAGE_READWRITE);
-                if (workBuf) {
-                    memset(workBuf, 0, 0x40);
-                    BYTE localByte = 0x68;
-                    DWORD handlerVtable = *(DWORD*)*lsHandler;
-                    DWORD vt2addr = *(DWORD*)(handlerVtable + 8);
-                    typedef int (__thiscall *HVT2)(void*, void*, DWORD, void*, BYTE*, void*);
-                    HVT2 hvt2 = (HVT2)vt2addr;
-                    Log("WD: calling handler vtable[2] @0x%08lX (bypass pool)", vt2addr);
-                    int r = hvt2((void*)*lsHandler, rosterData, 0, NULL, &localByte, workBuf);
-                    Log("WD: handler vtable[2] TeamRoster returned %d!", r);
-
-                    // PlayerName: type 0x65 + UTF-16 "Player1"
-                    BYTE nameData[64] = {0};
-                    nameData[0] = 0x65;
-                    // UTF-16 LE: P l a y e r 1 \0
-                    WCHAR *nameStr = (WCHAR*)(nameData + 2);
-                    nameStr[0]='P'; nameStr[1]='l'; nameStr[2]='a'; nameStr[3]='y';
-                    nameStr[4]='e'; nameStr[5]='r'; nameStr[6]='1'; nameStr[7]=0;
-                    BYTE type65 = 0x65;
-                    memset(workBuf, 0, 0x40);
-                    r = hvt2((void*)*lsHandler, nameData, 0, NULL, &type65, workBuf);
-                    Log("WD: handler vtable[2] PlayerName returned %d!", r);
-
-                    // PlayerChampion: type 0x67 + UTF-16 "Ezreal"
-                    BYTE champData[64] = {0};
-                    champData[0] = 0x67;
-                    WCHAR *champStr = (WCHAR*)(champData + 2);
-                    champStr[0]='E'; champStr[1]='z'; champStr[2]='r'; champStr[3]='e';
-                    champStr[4]='a'; champStr[5]='l'; champStr[6]=0;
-                    BYTE type67 = 0x67;
-                    memset(workBuf, 0, 0x40);
-                    r = hvt2((void*)*lsHandler, champData, 0, NULL, &type67, workBuf);
-                    Log("WD: handler vtable[2] PlayerChampion returned %d!", r);
-
-                    // 0x5F04E0 crashes with NULL arg. handler[+0x10] remains unsolved.
-                    // Handler processes data (returns 66) but can't decode without
-                    // the connection context at [+0x10].
-
-                    VirtualFree(workBuf, 0, MEM_RELEASE);
-                }
-            }
-
-            DWORD *gameInfo = (DWORD*)((BYTE*)hExe + (0x1AA18D8 - 0x400000));
-            Log("WD: gameSession=%p global2=%p gameInfo=%p",
-                (void*)*gameSession, (void*)*global2, (void*)*gameInfo);
-            // If gameInfo exists, log what's inside it
-            if (*gameInfo) {
-                BYTE *gi = (BYTE*)*gameInfo;
-                if (!IsBadReadPtr(gi, 0x20)) {
-                    Log("WD: gameInfo[+0]=%p [+4]=%p [+8]=%p [+18]=%lu",
-                        (void*)*(DWORD*)gi, (void*)*(DWORD*)(gi+4),
-                        (void*)*(DWORD*)(gi+8), *(DWORD*)(gi+0x18));
+            // Monitor for 20 seconds
+            for (int tick = 0; tick < 10; tick++) {
+                Sleep(2000);
+                if (*lsHandler) {
+                    BYTE *hp = (BYTE*)*lsHandler;
+                    Log("WD: tick %d handler[+0x10]=%p [+0x14]=%p [+0x2C]=%p",
+                        tick, (void*)*(DWORD*)(hp+0x10), (void*)*(DWORD*)(hp+0x14),
+                        (void*)*(DWORD*)(hp+0x2C));
                 }
             }
         }
