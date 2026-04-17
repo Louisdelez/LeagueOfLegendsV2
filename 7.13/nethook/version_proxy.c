@@ -585,6 +585,17 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     Log("WD: handler registered (no [+0x10])");
                 }
             }
+            // Create dispatch object at [0x1E77200] — 4 bytes, just a vtable ptr
+            DWORD *dispObj = (DWORD*)((BYTE*)hExe + (0x1E77200 - 0x400000));
+            if (!*dispObj) {
+                DWORD *dobj = (DWORD*)VirtualAlloc(NULL, 8, MEM_COMMIT, PAGE_READWRITE);
+                if (dobj) {
+                    *dobj = (DWORD)hExe + (0x152CF00 - 0x400000);  // vtable
+                    *dispObj = (DWORD)dobj;
+                    Log("WD: dispatch object created @%p vtable=0x%08lX", dobj, *dobj);
+                }
+            }
+            Log("WD: dispatchObj=%p handler=%p", (void*)*dispObj, (void*)*lsHandler);
 
             DWORD *gameInfo = (DWORD*)((BYTE*)hExe + (0x1AA18D8 - 0x400000));
             Log("WD: gameSession=%p global2=%p gameInfo=%p",
