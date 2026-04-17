@@ -674,32 +674,30 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     Log("PATCH5: scan done, %d hits", p5Hits);
                 }
 
-                // PATCH8: set [edi+0x150]=1 after storing packet object at [edi+0x10].
-                // Reuses the dead bytes from PATCH5's NOPed cmp+je (10 bytes avail).
-                // At RVA 0x475A63: was `cmp byte [edi+0x29], 0` (4B) + `je` (6B NOPed by PATCH5)
-                // Replace with: `mov byte [edi+0x150], 1` (7B) + 3 NOPs
-                // This tells the wait loop that data is pending → response check fires.
+                // PATCH8+9: set [edi+0x29]=1 (connection flag) in the post-decrypt
+                // code. This is the ROOT gate that enables the entire dispatch
+                // chain (queue type-2 enqueue, vtable[1] processing, etc.).
+                // Reuses the 10 bytes from cmp+je at 0x475A63 (PATCH5 NOPed the je).
+                // Replace: cmp byte [edi+0x29],0 (4B) + NOPed je (6B)
+                // With:    mov byte [edi+0x29],1 (4B) + 6 NOPs
                 {
                     BYTE *p8 = base + 0x475A63;
-                    Log("PATCH8: @0x475A63 bytes: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X",
+                    Log("PATCH9: @0x475A63 bytes: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X",
                         p8[0],p8[1],p8[2],p8[3],p8[4],p8[5],p8[6],p8[7],p8[8],p8[9]);
-                    // After PATCH5: should be 80 7F 29 00 90 90 90 90 90 90
-                    // (cmp byte [edi+0x29],0 stays + 6 NOPs from PATCH5)
                     if (p8[0] == 0x80 && p8[1] == 0x7F && p8[2] == 0x29 && p8[3] == 0x00
                         && p8[4] == 0x90 /* from PATCH5 */) {
                         DWORD oldProt;
                         if (VirtualProtect(p8, 10, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                            // C6 87 50 01 00 00 01 = mov byte ptr [edi+0x150], 1
-                            p8[0] = 0xC6; p8[1] = 0x87;
-                            p8[2] = 0x50; p8[3] = 0x01; p8[4] = 0x00; p8[5] = 0x00;
-                            p8[6] = 0x01;
+                            // C6 47 29 01 = mov byte [edi+0x29], 1
+                            p8[0] = 0xC6; p8[1] = 0x47; p8[2] = 0x29; p8[3] = 0x01;
+                            p8[4] = 0x90; p8[5] = 0x90; p8[6] = 0x90;
                             p8[7] = 0x90; p8[8] = 0x90; p8[9] = 0x90;
                             FlushInstructionCache(GetCurrentProcess(), p8, 10);
                             VirtualProtect(p8, 10, oldProt, &oldProt);
-                            Log("PATCH8: wrote mov byte [edi+0x150],1 → data-pending flag");
+                            Log("PATCH9: wrote mov byte [edi+0x29],1 → CONNECTION FLAG SET!");
                         }
                     } else {
-                        Log("PATCH8: bytes mismatch (PATCH5 may not have run yet)");
+                        Log("PATCH9: bytes mismatch");
                     }
                 }
 
@@ -759,7 +757,9 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     // and bytes +5..+7 should be 89 41 04
                     Log("PATCH7: @0x7E6A59 bytes: %02X %02X%02X%02X%02X %02X%02X%02X %02X%02X %02X%02X%02X",
                         p7[0], p7[1],p7[2],p7[3],p7[4], p7[5],p7[6],p7[7], p7[8],p7[9], p7[10],p7[11],p7[12]);
-                    if (p7[0] == 0xA1 && p7[5] == 0x89 && p7[6] == 0x41 && p7[7] == 0x04
+                    // PATCH7 DISABLED: [obj+8] points to connection struct (has IP:port),
+                    // NOT wire bytes. Reading [obj+8]+4 gives garbage (image base addr).
+                    if (0 && p7[0] == 0xA1 && p7[5] == 0x89 && p7[6] == 0x41 && p7[7] == 0x04
                         && p7[10] == 0xC2 && p7[11] == 0x04 && p7[12] == 0x00) {
                         DWORD oldProt;
                         if (VirtualProtect(p7, 13, PAGE_EXECUTE_READWRITE, &oldProt)) {
