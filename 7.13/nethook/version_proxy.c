@@ -455,6 +455,21 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             VirtualProtect(ediP + 0x29, 1, op2, &op2);
             Log("WD: set [edi+0x29]=1");
         }
+
+        // Directly invoke the pre-dispatch function 0x5BA9A0 with the stored
+        // object at [edi+0x10]. This bypasses the queue and type-2 mechanism.
+        DWORD storedObj = *(DWORD*)(ediP + 0x10);
+        Log("WD: [edi+0x10]=%p (stored packet object)", (void*)storedObj);
+        if (storedObj) {
+            HMODULE hExe = GetModuleHandleA(NULL);
+            // Call 0x5BA9A0(ecx=edi, arg0=storedObj) — thiscall + 1 stack arg
+            typedef int (__thiscall *PreDispFn)(void *ecx, void *pkt);
+            PreDispFn preDisp = (PreDispFn)((DWORD)hExe + 0x5BA9A0);
+            Log("WD: calling PREDISP@%p(edi=%p, obj=%p)",
+                (void*)preDisp, (void*)g_saved_edi, (void*)storedObj);
+            int result = preDisp((void*)g_saved_edi, (void*)storedObj);
+            Log("WD: PREDISP returned %d", result);
+        }
     }
     return 0;
 }
