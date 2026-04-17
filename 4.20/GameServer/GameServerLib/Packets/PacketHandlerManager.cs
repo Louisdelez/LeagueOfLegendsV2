@@ -156,7 +156,9 @@ namespace PacketDefinitions420
                 // 7.13: [header:4B][opcode:2B LE][payload...]
                 // Insert 4-byte header + expand opcode from 1B to 2B (add high byte 0x00).
                 byte[] toSend = source;
-                if (channelNo != Channel.CHL_HANDSHAKE && source.Length >= 1)
+                if (channelNo != Channel.CHL_HANDSHAKE
+                    && channelNo != Channel.CHL_LOADING_SCREEN
+                    && source.Length >= 1)
                 {
                     toSend = new byte[source.Length + 5]; // +4 header + 1 opcode high byte
                     // toSend[0..3] = 0 (header)
@@ -185,7 +187,9 @@ namespace PacketDefinitions420
         {
             // 7.13 format adapter (same as SendPacket, game channels only)
             byte[] adapted;
-            if (channelNo != Channel.CHL_HANDSHAKE && data.Length >= 1)
+            if (channelNo != Channel.CHL_HANDSHAKE
+                && channelNo != Channel.CHL_LOADING_SCREEN
+                && data.Length >= 1)
             {
                 adapted = new byte[data.Length + 5];
                 adapted[4] = data[0];  // opcode low
@@ -387,6 +391,17 @@ namespace PacketDefinitions420
                     CheckSum = request.CheckSum
                 };
                 result = result && SendPacket(peerInfo.ClientId, response.GetBytes(), Channel.CHL_HANDSHAKE);
+            }
+
+            // 7.13: send a probe packet on CHL_LOADING_SCREEN (channel 7) to trigger
+            // the handler at [edi+0x34]. The handler accepts: type=3, channel=7,
+            // length=37, data[0]=0x10. This should reach the real game handler 0xA63710.
+            {
+                byte[] probe = new byte[37];
+                probe[0] = 0x10;  // LoadScreen packet type (required by handler)
+                // Rest is zeros — minimal probe to trigger the dispatch chain
+                SendPacket(peerInfo.ClientId, probe, Channel.CHL_LOADING_SCREEN);
+                Console.WriteLine("[PROBE] Sent 37B loading-screen packet (0x10) on CHL_LOADING_SCREEN");
             }
 
             // 7.13: trigger game start immediately after auth so game-content

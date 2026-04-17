@@ -224,15 +224,20 @@ void __attribute__((cdecl, used)) LogFromBFDecrypt(DWORD this_ptr, DWORD buf, DW
             }
         } else { strcpy(hex, "<bad>"); }
         // Also dump edi fields: [edi+0x20]=game_thread, [edi+0x29]=conn_flag, [edi+0x34]=handler
-        DWORD edi20=0, edi34=0; BYTE edi29=0;
+        DWORD edi20=0, edi34=0, handlerVT4=0; BYTE edi29=0;
         BYTE *ediP = (BYTE*)edi_val;
         if (edi_val && !IsBadReadPtr(ediP, 0x40)) {
             edi20 = *(DWORD*)(ediP + 0x20);
             edi29 = *(BYTE*)(ediP + 0x29);
             edi34 = *(DWORD*)(ediP + 0x34);
+            if (edi34 && !IsBadReadPtr((BYTE*)edi34, 4)) {
+                DWORD vtable = *(DWORD*)edi34;
+                if (vtable && !IsBadReadPtr((BYTE*)vtable + 0x10, 4))
+                    handlerVT4 = *(DWORD*)(vtable + 0x10);
+            }
         }
-        Log("BFDEC #%d ret=%p edi=%p [+0x20]=0x%08lX [+0x29]=%u [+0x34]=0x%08lX buf=%p len=%lu [%s]",
-            h, (void*)ret, (void*)edi_val, edi20, edi29, edi34, (void*)buf, len, hex);
+        Log("BFDEC #%d edi=%p [+0x34]=%p vt4=0x%08lX buf=%p len=%lu",
+            h, (void*)edi_val, (void*)edi34, handlerVT4, (void*)buf, len);
     }
 }
 
