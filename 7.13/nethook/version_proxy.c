@@ -207,7 +207,10 @@ void __attribute__((cdecl, used)) LogFrom5BA9A0(DWORD this_ptr, DWORD arg0, DWOR
 static volatile DWORD g_tramp_BFDec_addr = 0;
 static volatile int g_hits_BFDec = 0;
 
-void __attribute__((cdecl, used)) LogFromBFDecrypt(DWORD this_ptr, DWORD buf, DWORD len, DWORD ret) {
+static volatile DWORD g_saved_edi = 0;
+
+void __attribute__((cdecl, used)) LogFromBFDecrypt(DWORD this_ptr, DWORD buf, DWORD len, DWORD ret, DWORD edi_val) {
+    g_saved_edi = edi_val;
     int h = ++g_hits_BFDec;
     if (h <= 30) {
         BYTE *p = (BYTE*)buf;
@@ -220,8 +223,16 @@ void __attribute__((cdecl, used)) LogFromBFDecrypt(DWORD this_ptr, DWORD buf, DW
                 strcat(hex, tmp);
             }
         } else { strcpy(hex, "<bad>"); }
-        Log("BFDEC #%d ret=%p this=%p buf=%p len=%lu [%s]",
-            h, (void*)ret, (void*)this_ptr, (void*)buf, len, hex);
+        // Also dump edi fields: [edi+0x20]=game_thread, [edi+0x29]=conn_flag, [edi+0x34]=handler
+        DWORD edi20=0, edi34=0; BYTE edi29=0;
+        BYTE *ediP = (BYTE*)edi_val;
+        if (edi_val && !IsBadReadPtr(ediP, 0x40)) {
+            edi20 = *(DWORD*)(ediP + 0x20);
+            edi29 = *(BYTE*)(ediP + 0x29);
+            edi34 = *(DWORD*)(ediP + 0x34);
+        }
+        Log("BFDEC #%d ret=%p edi=%p [+0x20]=0x%08lX [+0x29]=%u [+0x34]=0x%08lX buf=%p len=%lu [%s]",
+            h, (void*)ret, (void*)edi_val, edi20, edi29, edi34, (void*)buf, len, hex);
     }
 }
 
@@ -234,16 +245,17 @@ __asm__(
     "    pushfl\n"
     // After pushal(32) + pushfl(4) = 36 bytes pushed.
     // Original stack: [ESP+36]=retaddr, [ESP+40]=buf, [ESP+44]=len
-    // Push args right-to-left for cdecl: ret, len, buf, this
-    "    mov 36(%esp), %eax\n"      // retaddr
+    // Push args right-to-left for cdecl: edi, ret, len, buf, this
+    "    push %edi\n"                // edi (connection object from caller)
+    "    mov 40(%esp), %eax\n"      // retaddr (was +36, +4 from push = +40)
     "    push %eax\n"
-    "    mov 48(%esp), %eax\n"      // len (was +44, +4 from 1 push = +48)
+    "    mov 52(%esp), %eax\n"      // len (was +44, +8 from 2 pushes = +52)
     "    push %eax\n"
-    "    mov 48(%esp), %eax\n"      // buf (was +40, +8 from 2 pushes = +48)
+    "    mov 52(%esp), %eax\n"      // buf (was +40, +12 from 3 pushes = +52)
     "    push %eax\n"
     "    push %ecx\n"                // this
     "    call _LogFromBFDecrypt\n"
-    "    add $16, %esp\n"
+    "    add $20, %esp\n"
     "    popfl\n"
     "    popal\n"
     "    jmp *_g_tramp_BFDec_addr\n"
@@ -688,13 +700,16 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                         && p8[4] == 0x90 /* from PATCH5 */) {
                         DWORD oldProt;
                         if (VirtualProtect(p8, 10, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                            // C6 47 29 01 = mov byte [edi+0x29], 1
+                            // Instead of just setting [edi+0x29], use a DETOUR
+                            // that logs edi's key fields then sets the flag.
+                            // For now, keep the inline patch but also dump edi
+                            // from the BF decrypt hook (edi should be preserved).
                             p8[0] = 0xC6; p8[1] = 0x47; p8[2] = 0x29; p8[3] = 0x01;
                             p8[4] = 0x90; p8[5] = 0x90; p8[6] = 0x90;
                             p8[7] = 0x90; p8[8] = 0x90; p8[9] = 0x90;
                             FlushInstructionCache(GetCurrentProcess(), p8, 10);
                             VirtualProtect(p8, 10, oldProt, &oldProt);
-                            Log("PATCH9: wrote mov byte [edi+0x29],1 → CONNECTION FLAG SET!");
+                            Log("PATCH9: wrote mov byte [edi+0x29],1");
                         }
                     } else {
                         Log("PATCH9: bytes mismatch");
