@@ -331,6 +331,64 @@ __asm__(
     "    jmp *_g_tramp_BFDec_addr\n"
 );
 
+// Packet processor hook @ RVA 0x078BC0.
+// Called with (wrapper, field, size, buffer) where buffer has raw decrypted bytes.
+// Wire format: [0..3]=header, [4..5]=opcode(2B LE), [6..]=payload.
+// We intercept, read opcode, and call dispatcher (0x3EF8F0) so game packets
+// actually get processed by the opcode handlers.
+static BYTE tramp_078BC0[32];
+static volatile DWORD g_tramp_078BC0_addr = 0;
+static volatile int g_pktProc_hits = 0;
+
+// Also count how many times the type router is called
+static volatile int g_typeRouter_hits = 0;
+
+// Counter for type router calls
+static volatile int g_typeRouter_count = 0;
+
+void __attribute__((cdecl, used)) OnPacketProcess(DWORD wrapper, DWORD field, DWORD size, DWORD buffer) {
+    int h = ++g_pktProc_hits;
+    if (buffer && size >= 6) {
+        WORD opcode = *(WORD*)(buffer + 4);
+        if (h <= 10) {
+            BYTE *b = (BYTE*)buffer;
+            Log("PKTPROC #%d op=%u(0x%04X) size=%lu buf=[%02X %02X %02X %02X %02X %02X]",
+                h, opcode, opcode, size, b[0],b[1],b[2],b[3],b[4],b[5]);
+        }
+        // Call the dispatcher with a fake packet object
+        // Dispatcher reads opcode from [edi+4] (2 bytes)
+        // and payload from [edi+6..]
+        // We pass the raw buffer directly as the packet object
+        // since it has the right layout: header at +0, opcode at +4, payload at +6
+        if (opcode > 0 && opcode <= 0x19E) {
+            HMODULE hExe = GetModuleHandleA(NULL);
+            typedef int (__thiscall *DispatchFn)(void *ecx);
+            DispatchFn dispatch = (DispatchFn)((DWORD)hExe + 0x3EF8F0);
+            dispatch((void*)buffer);
+            if (h <= 10)
+                Log("PKTPROC #%d dispatched op %u", h, opcode);
+        }
+    }
+}
+
+extern void Detour_078BC0(void);
+__asm__(
+    ".text\n"
+    ".globl _Detour_078BC0\n"
+    "_Detour_078BC0:\n"
+    "    pushal\n"
+    "    pushfl\n"
+    "    push 48(%esp)\n"       // buffer (esp+16 before pushal = +48)
+    "    push 48(%esp)\n"       // size
+    "    push 48(%esp)\n"       // field
+    "    push 48(%esp)\n"       // wrapper
+    "    call _OnPacketProcess\n"
+    "    add $16, %esp\n"
+    "    popfl\n"
+    "    popal\n"
+    "    jmp *_g_tramp_078BC0_addr\n"
+);
+
 // LS tick detour @ RVA 0x543CC0 — called to check/process LS data.
 // Checks [this+0x40] & 3 — if set, processes loading-screen packets.
 static BYTE tramp_543CC0[32];
@@ -1067,7 +1125,15 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     }
                 }
             }
-            Log("WD: monitoring done");
+            // Monitor loop
+            DWORD *dspObj = (DWORD*)((BYTE*)hExe + (0x1E77200 - 0x400000));
+            DWORD *lsH = (DWORD*)((BYTE*)hExe + (0x1E77204 - 0x400000));
+            for (int mtick = 0; mtick < 30; mtick++) {
+                Sleep(2000);
+                Log("WD: tick %d resp=%02X ver=%02X pktproc=%d veh=%d disp=%p",
+                    mtick, *flagResp, *flagVer, g_pktProc_hits, g_vehCrashCount,
+                    (void*)*dspObj);
+            }
         }
     return 0;
 }  // end FlagWatchdog
@@ -2034,6 +2100,17 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                 }
 
+                // Packet processor hook @ RVA 0x078BC0
+                {
+                    BYTE *tgt = (BYTE*)hExe + 0x078BC0;
+                    if (tgt[0] == 0x55 && tgt[1] == 0x8B && tgt[2] == 0xEC) {
+                        MakeTrampolineN(tgt, tramp_078BC0, 6);
+                        g_tramp_078BC0_addr = (DWORD)tramp_078BC0;
+                        PatchJmpN(tgt, (void*)Detour_078BC0, 6);
+                        Log("PKTPROC: hook installed at RVA 0x078BC0");
+                    }
+                }
+
                 // LS tick detour @ RVA 0x543CC0
                 {
                     BYTE *tgt = (BYTE*)hExe + 0x543CC0;
@@ -2044,6 +2121,8 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                         Log("LSTICK: detour installed at RVA 0x543CC0");
                     }
                 }
+
+                // PATCH19 now in watchdog (needs wrapper address at runtime)
 
                 // PATCH18: Fix type 3 (CHL_LOADING_SCREEN) in packet type router.
                 // Jump table at RVA 0x075B24, index 1 = type 3.
