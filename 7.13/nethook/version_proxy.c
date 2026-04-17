@@ -597,6 +597,45 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             }
             Log("WD: dispatchObj=%p handler=%p", (void*)*dispObj, (void*)*lsHandler);
 
+            // Call dispatch vtable[6] (0x9F23B0) with loading-screen packet data.
+            // Args: ecx=dispObj, 6 stack args (ret 0x18):
+            //   arg0=data_ptr, arg1=null, arg2=pkt_info, arg3=0, arg4=output, arg5=packetType
+            if (*dispObj && *lsHandler) {
+                DWORD dispVtable = *(DWORD*)*dispObj;
+                DWORD vt6 = *(DWORD*)(dispVtable + 24);  // vtable[6]
+                Log("WD: dispatch vtable[6]=0x%08lX", vt6);
+
+                // Craft a minimal TeamRosterUpdate packet
+                // In 4.20 format: [type=0x68][TeamSizeOrder=1][TeamSizeChaos=0][...]
+                BYTE rosterData[64] = {0};
+                rosterData[0] = 0x68;  // TeamRosterUpdate
+                rosterData[1] = 1;     // team size order
+                rosterData[2] = 0;     // team size chaos
+
+                // Packet info struct: float >= 0 at [+0], byte 0-100 at [+0xD]
+                BYTE pktInfo[16] = {0};
+                float zeroF = 1.0f;
+                *(float*)pktInfo = zeroF;
+                pktInfo[0xD] = 1;  // valid byte (0-100)
+
+                DWORD output = 0;
+
+                typedef int (__thiscall *DispVT6Fn)(void *ecx, void *data, void *obj,
+                    void *info, DWORD val, DWORD *out, BYTE type);
+                DispVT6Fn dispFunc = (DispVT6Fn)vt6;
+
+                // Set handler[+0x10] right before the call (not at registration time)
+                BYTE *handlerPtr = (BYTE*)*lsHandler;
+                if (g_saved_edi && handlerPtr) {
+                    *(DWORD*)(handlerPtr + 0x10) = g_saved_edi;
+                    Log("WD: set handler[+0x10]=%p just before dispatch call", (void*)g_saved_edi);
+                }
+
+                Log("WD: calling dispatch vtable[6] with TeamRoster data");
+                int result = dispFunc((void*)*dispObj, rosterData, NULL, pktInfo, 0, &output, 0x68);
+                Log("WD: dispatch returned %d, output=%lu", result, output);
+            }
+
             DWORD *gameInfo = (DWORD*)((BYTE*)hExe + (0x1AA18D8 - 0x400000));
             Log("WD: gameSession=%p global2=%p gameInfo=%p",
                 (void*)*gameSession, (void*)*global2, (void*)*gameInfo);
