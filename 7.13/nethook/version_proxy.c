@@ -1137,7 +1137,7 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     *(WORD*)(op3+4) = 3;
                     op3[0x56] = 0x71;
                     op3[0xC20]=0xB7; op3[0xC21]=0xB0; op3[0xC22]=0xB0; op3[0xC23]=0xB0;
-                    const char *v = "Version 7.13.192.6794 [PUBLIC]";
+                    const char *v = "Player1 | Ezreal | LeagueSandbox Server";
                     memcpy(op3+0x263, v, strlen(v));
                     *(DWORD*)(op3+0x277) = strlen(v);
                     *(DWORD*)(op3+0x27B) = 0xF;
