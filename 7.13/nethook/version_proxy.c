@@ -69,11 +69,30 @@ static LONG CALLBACK NullGuardHandler(PEXCEPTION_POINTERS ex) {
         ex->ContextRecord->Eax = 0; // return 0 from any read
         return EXCEPTION_CONTINUE_EXECUTION;
     }
-    // Also catch other exceptions (like illegal instruction)
-    if (ex->ExceptionRecord->ExceptionCode == EXCEPTION_ILLEGAL_INSTRUCTION ||
-        ex->ExceptionRecord->ExceptionCode == EXCEPTION_PRIV_INSTRUCTION) {
-        ex->ContextRecord->Eip += 1;
-        return EXCEPTION_CONTINUE_EXECUTION;
+    // Catch ALL exceptions — log the code and survive
+    {
+        DWORD code = ex->ExceptionRecord->ExceptionCode;
+        // Skip C++ exceptions (0xE06D7363 = "msc" thrown by throw)
+        // and OutputDebugString (0x40010006)
+        if (code != 0xE06D7363 && code != 0x40010006 &&
+            code != 0x406D1388 &&  // SetThreadName (harmless)
+            code != EXCEPTION_BREAKPOINT && code != EXCEPTION_SINGLE_STEP) {
+            int c = ++g_vehCrashCount;
+            // Write crash info to a separate file (can't use Log here)
+            if (c <= 50) {
+                FILE *vf = fopen("nethook_logs\\veh_crashes.log", "a");
+                if (vf) {
+                    fprintf(vf, "VEH #%d code=0x%08lX EIP=0x%08lX addr=0x%08lX\n",
+                        c, code, ex->ContextRecord->Eip,
+                        (ex->ExceptionRecord->NumberParameters > 1) ?
+                        (DWORD)ex->ExceptionRecord->ExceptionInformation[1] : 0);
+                    fclose(vf);
+                }
+            }
+            ex->ContextRecord->Eip += 1;
+            ex->ContextRecord->Eax = 0;
+            return EXCEPTION_CONTINUE_EXECUTION;
+        }
     }
     return EXCEPTION_CONTINUE_SEARCH;
 }
