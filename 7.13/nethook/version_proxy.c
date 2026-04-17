@@ -581,7 +581,15 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                         }
                         if (match) {
                             p3Hits++;
-                            Log("PATCH3: found pattern @RVA 0x%06lX (NOT patching)", off);
+                            BYTE *jne = q + 7;
+                            Log("PATCH3: found @RVA 0x%06lX rel8=%02X", off, jne[1]);
+                            DWORD oldProt;
+                            if (VirtualProtect(jne, 2, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                                jne[0] = 0xEB;
+                                FlushInstructionCache(GetCurrentProcess(), jne, 2);
+                                VirtualProtect(jne, 2, oldProt, &oldProt);
+                                Log("PATCH3: jne->jmp @RVA 0x%06lX", off + 7);
+                            }
                         }
                     }
                     Log("PATCH3: scan done, %d hits (DISABLED — keep client in wait loop)", p3Hits);
@@ -617,10 +625,6 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                     Log("PATCH5: scan done, %d hits", p5Hits);
                 }
-                // PATCH3+4 DISABLED: keeping client alive in "Waiting for server
-                // response..." loop so we can observe BF::Decrypt hits from game
-                // content packets the server sends post-Patience.
-#if 0
                 // PATCH4: bypass the "Server/Client mismatch" log + shutdown.
                 // At RVA 0x4AA844:
                 //   cmp byte ptr [0x1E84F72], 0   ; 80 3D <byte_VA> 00
@@ -665,7 +669,6 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                     Log("PATCH4: scan done, %d hits", p4Hits);
                 }
-#endif
                 // Also dump 32 bytes around the originally-guessed RVA for reference
                 BYTE *ref = base + 0x5BAAA0;
                 char hex[128] = {0};
