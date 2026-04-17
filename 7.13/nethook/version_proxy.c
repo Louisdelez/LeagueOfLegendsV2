@@ -583,7 +583,17 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     typedef void (__cdecl *SetterFn)(void*);
                     SetterFn setter = (SetterFn)((DWORD)hExe + 0x5FB040);
                     setter(handler);
+                    // Set handler[+0x10] = connection object (g_saved_edi)
+                    if (g_saved_edi) {
+                        *(DWORD*)(handler + 0x10) = g_saved_edi;
+                        Log("WD: handler[+0x10] = edi connection @%p", (void*)g_saved_edi);
+                    }
                     Log("WD: LoadScreenHandler registered @%p", handler);
+
+                    // Direct processor call removed — crashes because the function
+                    // expects complex internal structures, not raw packet bytes.
+                    // The processor at 0xCEB9B0 needs proper parsed packet objects
+                    // created by the loading-screen protocol exchange.
                 }
             } else {
                 Log("WD: LoadScreenHandler already set: %p", (void*)*lsHandler);
