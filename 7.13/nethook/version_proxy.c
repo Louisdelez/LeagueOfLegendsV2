@@ -939,16 +939,9 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                         Log("WD: Reskin=%d", r);
                         VirtualFree(rs, 0, MEM_RELEASE);
 
-                        // Try vtable[2] tick with zeroed alloc_block (was garbage before)
-                        DWORD hvt = *(DWORD*)hp;
-                        if (hvt) {
-                            DWORD vt2 = *(DWORD*)(hvt + 8);
-                            typedef void (__thiscall *TickFn)(void*);
-                            Log("WD: tick with zeroed alloc [+0x2C]=%p",
-                                (void*)*(DWORD*)(hp+0x2C));
-                            ((TickFn)vt2)((void*)*lsH);
-                            Log("WD: TICK OK!");
-                        }
+                        // vtable[2] expects args, don't call as tick
+                        Log("WD: injection complete, handler[+0x2C]=%p",
+                            (void*)*(DWORD*)(hp+0x2C));
                     }
                 }
             }
@@ -1961,20 +1954,9 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                 }
 
-                // PATCH16: Disable dispatch destructor at RVA 0x4FB820
-                // This function destroys the pool + dispatch object, causing early exit.
-                {
-                    BYTE *dispDtor = (BYTE*)hExe + 0x4FB820;
-                    if (dispDtor[0] == 0x56 && dispDtor[1] == 0x57) {
-                        DWORD oldProt;
-                        if (VirtualProtect(dispDtor, 1, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                            dispDtor[0] = 0xC3;
-                            FlushInstructionCache(GetCurrentProcess(), dispDtor, 1);
-                            VirtualProtect(dispDtor, 1, oldProt, &oldProt);
-                            Log("PATCH16: dispatch destructor disabled at RVA 0x4FB820");
-                        }
-                    }
-                }
+                // PATCH16 DISABLED: let dispatch vtable[1] run naturally
+                // In loading loop, it shouldn't trigger cleanup (condition not met)
+                Log("PATCH16: dispatch tick NOT patched (let natural processing happen)");
 
                 // Install pre-dispatch detour @ 0x5BA9A0 (6-byte steal)
                 BYTE *tgt2 = (BYTE*)hExe + 0x5BA9A0;
