@@ -519,6 +519,24 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
 
                 VirtualFree(fakeOp3, 0, MEM_RELEASE);
             }
+
+            // --- Batch dispatch: try more opcodes to initialize game state ---
+            // Use a large fake object (0x1000 bytes, all zeros except opcode)
+            BYTE *fakeBatch = (BYTE*)VirtualAlloc(NULL, 0x2000, MEM_COMMIT, PAGE_READWRITE);
+            if (fakeBatch) {
+                memset(fakeBatch, 0, 0x2000);
+                // Key opcodes from opcodes.txt (non-default handlers):
+                int opcodes[] = {4, 8, 10, 14, 15, 19, 27, 28, 32, 33};
+                int nOps = sizeof(opcodes) / sizeof(opcodes[0]);
+                for (int i = 0; i < nOps; i++) {
+                    memset(fakeBatch, 0, 0x2000);
+                    *(WORD*)(fakeBatch + 4) = (WORD)opcodes[i];
+                    Log("WD: dispatch opcode %d", opcodes[i]);
+                    dispatch((void*)fakeBatch);
+                }
+                Log("WD: batch dispatch done (%d opcodes)", nOps);
+                VirtualFree(fakeBatch, 0, MEM_RELEASE);
+            }
         }
     }
     return 0;
