@@ -461,6 +461,39 @@ __asm__(
 //   [esp+12] = void* out3
 //   [esp+16] = BYTE* rawData
 //   [esp+20] = BYTE typeByte (actually DWORD-sized on stack)
+// Fake handler vtable[1] — sets alloc_block[+0x18]=0, returns 1
+// thiscall → stdcall (ecx ignored, same stack cleanup)
+// Args: data, arg1, observer, &type, alloc_block
+static volatile int g_fakeVT1Hits = 0;
+int __attribute__((stdcall)) FakeHandlerVT1(
+    void *data, DWORD arg1, void *observer, void *typePtr, void *allocBlock)
+{
+    int h = ++g_fakeVT1Hits;
+    if (allocBlock) {
+        *(DWORD*)((BYTE*)allocBlock + 0x18) = 0;  // index = 0
+    }
+    if (h <= 5) {
+        Log("FakeVT1 #%d data=%p arg1=%lu alloc=%p [+0x18]=0",
+            h, data, arg1, allocBlock);
+        // Dump globals [0x1E77214] and [0x1E77218]
+        HMODULE hExe = GetModuleHandleA(NULL);
+        DWORD *handlerTable = (DWORD*)((BYTE*)hExe + (0x1E77214 - 0x400000));
+        DWORD *handlerCount = (DWORD*)((BYTE*)hExe + (0x1E77218 - 0x400000));
+        Log("  [0x1E77214]=%p [0x1E77218]=%lu", (void*)*handlerTable, *handlerCount);
+        if (*handlerCount > 0 && *handlerTable) {
+            DWORD *tbl = (DWORD*)*handlerTable;
+            for (DWORD i = 0; i < *handlerCount && i < 3; i++) {
+                DWORD obj = tbl[i];
+                if (obj) {
+                    DWORD vt = *(DWORD*)obj;
+                    Log("  table[%lu]=%p vtable=%p", i, (void*)obj, (void*)vt);
+                }
+            }
+        }
+    }
+    return 1;
+}
+
 // Pure C implementation — __stdcall with 5 args to match ret $20
 void __attribute__((stdcall)) FakeReaderParse(
     DWORD *outStr, void *out2, void *out3, BYTE *rawData, DWORD typeByte)
@@ -903,48 +936,30 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     (void*)&fakeReader, (void*)&fakeReaderVtable);
             }
 
-            // PATCH15: Force BOTH handler vtable[1] AND dispatch vtable[3] to return 1.
-            // vtable[3] at RVA 0x3A2E10 — force return 1 to bypass ALL checks.
-            // The thunk at RVA 0x4398D0 (E9 -> JMP) is 5 bytes.
-            // Replace with: B8 01 00 00 00 = mov eax, 1
-            // Then need ret 0x14 (5 stack args). But only 5 bytes available.
-            // Use: B8 01 00 00 00 at the THUNK, then patch byte 6+ at CC padding.
-            // Thunk: [E9 XX XX XX XX] [CC CC CC] → [B8 01 00 00 00] [C2 14 00]
+            // PATCH15: Replace handler vtable[1] thunk with a C stub that:
+            // 1. Sets alloc_block[+0x18] = 0 (first handler index)
+            // 2. Returns 1 (success)
+            // alloc_block is 5th stack arg (thiscall: ecx=this, 5 stack args)
             {
                 BYTE *thunk = (BYTE*)hExe + 0x4398D0;
                 if (thunk[0] == 0xE9) {
+                    // Redirect thunk to our C function
+                    extern int __attribute__((stdcall)) FakeHandlerVT1(
+                        void*, DWORD, void*, void*, void*);
                     DWORD oldProt;
-                    if (VirtualProtect(thunk, 8, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                        thunk[0] = 0xB8; // mov eax, 1
-                        thunk[1] = 0x01;
-                        thunk[2] = 0x00;
-                        thunk[3] = 0x00;
-                        thunk[4] = 0x00;
-                        thunk[5] = 0xC2; // ret 0x14
-                        thunk[6] = 0x14;
-                        thunk[7] = 0x00;
-                        FlushInstructionCache(GetCurrentProcess(), thunk, 8);
-                        VirtualProtect(thunk, 8, oldProt, &oldProt);
-                        Log("PATCH15: handler vtable[1] forced to return 1");
+                    if (VirtualProtect(thunk, 5, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                        thunk[0] = 0xE9; // jmp rel32
+                        DWORD target = (DWORD)FakeHandlerVT1;
+                        DWORD rel = target - ((DWORD)thunk + 5);
+                        *(DWORD*)(thunk + 1) = rel;
+                        FlushInstructionCache(GetCurrentProcess(), thunk, 5);
+                        VirtualProtect(thunk, 5, oldProt, &oldProt);
+                        Log("PATCH15: handler vtable[1] -> FakeHandlerVT1");
                     }
                 }
             }
 
-            // Also patch dispatch vtable[3] at RVA 0x3A2E10
-            {
-                BYTE *vt3fn = (BYTE*)hExe + 0x3A2E10;
-                if (vt3fn[0] == 0x55) {
-                    DWORD oldProt;
-                    if (VirtualProtect(vt3fn, 8, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                        vt3fn[0] = 0xB8; vt3fn[1] = 0x01; vt3fn[2] = 0x00;
-                        vt3fn[3] = 0x00; vt3fn[4] = 0x00; // mov eax, 1
-                        vt3fn[5] = 0xC2; vt3fn[6] = 0x14; vt3fn[7] = 0x00; // ret 0x14
-                        FlushInstructionCache(GetCurrentProcess(), vt3fn, 8);
-                        VirtualProtect(vt3fn, 8, oldProt, &oldProt);
-                        Log("PATCH15b: dispatch vtable[3] forced to return 1");
-                    }
-                }
-            }
+            // vtable[3] NOT patched — let real code run with our FakeHandlerVT1
 
             // Inject loading-screen data via dispatch vtable[3].
             // Handler now properly initialized (fullInit=1, [+8]=valid, [+0xC]=1).
