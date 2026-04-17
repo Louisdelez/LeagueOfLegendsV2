@@ -511,7 +511,19 @@ int __attribute__((stdcall)) FakeHandlerVT1(
 {
     int h = ++g_fakeVT1Hits;
     if (allocBlock) {
-        memset(allocBlock, 0, 0x20);  // zero ALL fields (was pool residual garbage)
+        memset(allocBlock, 0, 0x20);
+        // [+0..7] = player/entity ID (int64, must be > 0)
+        // Read from raw packet data: bytes 1-8 = PlayerID for Rename/Reskin
+        if (data) {
+            BYTE *raw = (BYTE*)data;
+            if (raw[0] == 0x66 || raw[0] == 0x65) {
+                // Rename/Reskin: PlayerID at offset 1
+                *(long long*)allocBlock = *(long long*)(raw + 1);
+            } else if (raw[0] == 0x67) {
+                // TeamRoster: use player ID 1
+                *(long long*)allocBlock = 1;
+            }
+        }
         // [+0x18] = handler index (0 = first registered handler)
     }
     if (h <= 5) {
