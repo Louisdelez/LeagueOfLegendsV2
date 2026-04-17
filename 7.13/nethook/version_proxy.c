@@ -1125,6 +1125,18 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     }
                 }
             }
+            // Modify version format string in memory to show custom text
+            {
+                // Format string "Version %s (%s/%s) [%s] <%s>%s" at VA 0x13D7B74
+                char *fmt = (char*)((BYTE*)hExe + (0x13D7B74 - 0x400000));
+                DWORD oldProt;
+                if (VirtualProtect(fmt, 40, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                    strcpy(fmt, "Player1 | Ezreal | %s%s%s%s%s%s");
+                    VirtualProtect(fmt, 40, oldProt, &oldProt);
+                    Log("WD: version format replaced with player info");
+                }
+            }
+
             // Dispatch opcode 3 (SynchVersion) + opcode 85 (TipUpdate)
             {
                 typedef int (__thiscall *DispatchFn)(void *ecx);
