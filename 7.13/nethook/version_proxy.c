@@ -437,17 +437,24 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
     // Wait 10s for packets to arrive and be processed by the network tick
     Sleep(10000);
 
-    // Watchdog now just LOGS flag values — does NOT write them.
-    // Let the timing sync packet advance state naturally.
+    // Watchdog sets flags after 10s delay to advance state.
     DWORD oldProt;
     if (VirtualProtect(flagResp, 2, PAGE_READWRITE, &oldProt)) {
-        Log("WD: resp=%02X ver=%02X", *flagResp, *flagVer);
+        Log("WD: before: resp=%02X ver=%02X", *flagResp, *flagVer);
+        *flagResp = 1;
+        *flagVer = 1;
         VirtualProtect(flagResp, 2, oldProt, &oldProt);
+        Log("WD: wrote resp+ver flags to 1");
     }
     if (g_saved_edi) {
         BYTE *ediP = (BYTE*)g_saved_edi;
-        Log("WD: edi=%p [+0x29]=%u [+0x20]=0x%08lX",
-            (void*)g_saved_edi, ediP[0x29], *(DWORD*)(ediP+0x20));
+        DWORD op2;
+        if (VirtualProtect(ediP + 0x29, 1, PAGE_READWRITE, &op2)) {
+            Log("WD: edi=%p [+0x29] before=%u", (void*)g_saved_edi, ediP[0x29]);
+            ediP[0x29] = 1;
+            VirtualProtect(ediP + 0x29, 1, op2, &op2);
+            Log("WD: set [edi+0x29]=1");
+        }
     }
     return 0;
 }
@@ -736,8 +743,20 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     // Type-3 goes through the handler fast-path via PATCH11.
                     (void)p10;
 
-                    // PATCH12 DISABLED: NOPing jnz at 0x5BAAAE caused crash.
-                    // Let the handler fast-path work through PATCH11 instead.
+                    // PATCH12: NOP jnz at 0x5BAAAE to force dispatcher after pre-processor.
+                    // Re-enabled with cleaner patch set (PATCH10/11 disabled).
+                    {
+                        BYTE *p12 = base + 0x5BAAAE;
+                        if (p12[0] == 0x75 && p12[1] == 0x07) {
+                            DWORD oldProt;
+                            if (VirtualProtect(p12, 2, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                                p12[0] = 0x90; p12[1] = 0x90;
+                                FlushInstructionCache(GetCurrentProcess(), p12, 2);
+                                VirtualProtect(p12, 2, oldProt, &oldProt);
+                                Log("PATCH12: NOPed jnz@0x5BAAAE → dispatcher fires after pre-proc");
+                            }
+                        }
+                    }
                 }
 
                 // PATCH11: force handler at 0xBB8200 to ALWAYS return true.
