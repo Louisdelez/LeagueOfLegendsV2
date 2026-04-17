@@ -290,6 +290,48 @@ __asm__(
     "    jmp *_g_tramp_BFDec_addr\n"
 );
 
+// Loading-screen packet receiver detour @ RVA 0x2FBCE0.
+// This is the function that calls dispatch vtable[3] to inject data.
+// Checking if it ever fires naturally when server sends LS packets.
+static BYTE tramp_2FBCE0[32];
+static volatile DWORD g_tramp_2FBCE0_addr = 0;
+static volatile int g_hits_2FBCE0 = 0;
+
+void __attribute__((cdecl, used)) LogLSReceiver(DWORD this_ptr, DWORD data, DWORD ret_addr) {
+    int h = ++g_hits_2FBCE0;
+    if (h <= 20) {
+        BYTE *pkt = (BYTE*)data;
+        char hex[48] = {0};
+        if (data && !IsBadReadPtr(pkt, 8)) {
+            for (int i = 0; i < 8; i++) {
+                char tmp[4]; snprintf(tmp, 4, "%02X ", pkt[i]);
+                strcat(hex, tmp);
+            }
+        }
+        Log("LSRECV #%d this=%p data=%p ret=%p [%s]",
+            h, (void*)this_ptr, (void*)data, (void*)ret_addr, hex);
+    }
+}
+
+extern void Detour_2FBCE0(void);
+__asm__(
+    ".text\n"
+    ".globl _Detour_2FBCE0\n"
+    "_Detour_2FBCE0:\n"
+    "    pushal\n"
+    "    pushfl\n"
+    "    mov 36(%esp), %eax\n"      // retaddr
+    "    push %eax\n"
+    "    mov 44(%esp), %eax\n"      // [ebp+8] = arg0 (data) at ESP+8 before pushal = +44
+    "    push %eax\n"
+    "    push %ecx\n"                // this
+    "    call _LogLSReceiver\n"
+    "    add $12, %esp\n"
+    "    popfl\n"
+    "    popal\n"
+    "    jmp *_g_tramp_2FBCE0_addr\n"
+);
+
 // Pre-processor/validator detour @ RVA 0x949C00. Returns al=1 when
 // packet is "handled" by pre-processor chain, 0 when unhandled → dispatcher fires.
 // We log args to understand the pattern, then can selectively force return 0.
@@ -605,6 +647,12 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                 }
             }
             Log("WD: final: dispObj=%p handler=%p", (void*)*dispObj, (void*)*lsHandler);
+
+            // DON'T inject data yet — handler[+0x10] is NULL and vtable[1] returns 66.
+            // Setting it to a fake reader crashes vtable[1].
+            // Need to find what creates the REAL reader at handler[+0x10].
+            Log("WD: handler[+0x10]=%p — waiting for natural packet flow",
+                *lsHandler ? (void*)*(DWORD*)((BYTE*)*lsHandler + 0x10) : 0);
 
             // Monitor for 20 seconds
             for (int tick = 0; tick < 10; tick++) {
@@ -1156,6 +1204,22 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                         Log("PREPROC: installed");
                     } else {
                         Log("PREPROC: prologue mismatch");
+                    }
+                }
+
+                // Install LS receiver detour @ 0x6FBCE0 (6-byte steal)
+                {
+                    BYTE *tgtLS = (BYTE*)hExe + 0x2FBCE0;
+                    Log("LSRECV: @0x2FBCE0 bytes: %02X %02X %02X %02X %02X %02X",
+                        tgtLS[0], tgtLS[1], tgtLS[2], tgtLS[3], tgtLS[4], tgtLS[5]);
+                    if (tgtLS[0] == 0x55 && tgtLS[1] == 0x8B && tgtLS[2] == 0xEC &&
+                        tgtLS[3] == 0x83 && tgtLS[4] == 0xEC) {
+                        MakeTrampolineN(tgtLS, tramp_2FBCE0, 6);
+                        g_tramp_2FBCE0_addr = (DWORD)tramp_2FBCE0;
+                        PatchJmpN(tgtLS, (void*)Detour_2FBCE0, 6);
+                        Log("LSRECV: detour installed");
+                    } else {
+                        Log("LSRECV: prologue mismatch");
                     }
                 }
 
