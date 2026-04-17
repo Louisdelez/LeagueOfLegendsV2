@@ -738,6 +738,33 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                 }
 
+                // PATCH11: force handler at 0xBB8200 to ALWAYS return true.
+                // Original: checks type==3 AND field2==7 AND len==37 AND data[0]==0x10.
+                // Replace with: mov al, 1; ret 4 (5 bytes)
+                {
+                    BYTE *p11 = base + (0xBB8200 - 0x400000);
+                    Log("PATCH11: @0xBB8200=%02X %02X %02X %02X %02X", p11[0],p11[1],p11[2],p11[3],p11[4]);
+                    if (p11[0] == 0x8B) {  // mov eax, [esp+4]
+                        DWORD oldProt;
+                        if (VirtualProtect(p11, 16, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                            // Rewrite: return true for type==3 only, false otherwise
+                            // mov eax,[esp+4]; cmp [eax],3; mov al,0; jne+2; mov al,1; ret 4
+                            BYTE code[] = {
+                                0x8B, 0x44, 0x24, 0x04,  // mov eax, [esp+4]
+                                0x83, 0x38, 0x03,         // cmp dword [eax], 3
+                                0xB0, 0x00,               // mov al, 0
+                                0x75, 0x02,               // jne +2
+                                0xB0, 0x01,               // mov al, 1
+                                0xC2, 0x04, 0x00          // ret 4
+                            };
+                            memcpy(p11, code, 16);
+                            FlushInstructionCache(GetCurrentProcess(), p11, 16);
+                            VirtualProtect(p11, 16, oldProt, &oldProt);
+                            Log("PATCH11: handler returns TRUE for type==3 only");
+                        }
+                    }
+                }
+
                 // PATCH6: bypass the SECOND version-match check at 0x4AA104.
                 // `cmp byte [0x1E84F72], 1; jne 0x8AA3FF` — skips game loading
                 // if version flag != 1. Pattern: 80 3D <VA> 01 0F 85

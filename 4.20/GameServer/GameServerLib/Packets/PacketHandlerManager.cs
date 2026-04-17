@@ -169,7 +169,13 @@ namespace PacketDefinitions420
                 }
 
                 byte[] temp;
-                if (toSend.Length >= 8)
+                // Loading-screen packets (channel 7) are NOT encrypted in 7.13.
+                // The handler at [edi+0x34] checks raw data[0] BEFORE BF decrypt.
+                if (channelNo == Channel.CHL_LOADING_SCREEN)
+                {
+                    temp = toSend;
+                }
+                else if (toSend.Length >= 8)
                 {
                     temp = _blowfishes[userId].Encrypt(toSend);
                 }
