@@ -942,7 +942,11 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                         Log("WD: injection complete, handler[+0x2C]=%p",
                             (void*)*(DWORD*)(hp+0x2C));
 
-                        // NOW dispatch opcode 3 to advance game to loading state
+                        // Wait 5s for stability, then dispatch opcode 3
+                        Log("WD: waiting 5s before opcode 3...");
+                        Sleep(5000);
+
+                        // Dispatch opcode 3 to advance game to loading state
                         // This sets version+map+response flags
                         {
                             typedef int (__thiscall *DispatchFn)(void *ecx);
