@@ -844,6 +844,65 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                         int fi = ((FullInitFn)((DWORD)hExe + 0x6A3A40))(h, cfg);
                         Log("WD: fullInit=%d handler=%p [+8]=%p [+0xC]=%d",
                             fi, h, (void*)*(DWORD*)(h+8), (int)h[0xC]);
+                        // Install fake reader
+                        if (fi == 1 && *(DWORD*)(h+0x10) == 0) {
+                            static DWORD fakeReaderVtable[16] = {0};
+                            if (!fakeReaderVtable[0]) {
+                                extern void FakeReaderDtor(void);
+                                extern void __attribute__((stdcall)) FakeReaderParse(
+                                    DWORD*, void*, void*, BYTE*, DWORD);
+                                for (int vi=0; vi<16; vi++)
+                                    fakeReaderVtable[vi] = (DWORD)FakeReaderDtor;
+                                fakeReaderVtable[1] = (DWORD)FakeReaderParse;
+                            }
+                            static DWORD fakeReader[2] = {0};
+                            fakeReader[0] = (DWORD)&fakeReaderVtable;
+                            *(DWORD*)(h+0x10) = (DWORD)&fakeReader;
+                            Log("WD: fake reader at handler[+0x10]");
+                        }
+                    }
+                }
+            }
+            // Inject loading-screen data
+            {
+                DWORD *dObj = (DWORD*)((BYTE*)hExe + (0x1E77200 - 0x400000));
+                DWORD *lsH = (DWORD*)((BYTE*)hExe + (0x1E77204 - 0x400000));
+                if (*dObj && *lsH) {
+                    DWORD dv = *(DWORD*)*dObj;
+                    DWORD vt3 = *(DWORD*)(dv + 0x0C);
+                    typedef int (__thiscall *InjectFn)(void*,void*,void*,DWORD,void*,DWORD);
+                    InjectFn inject = (InjectFn)vt3;
+                    BYTE out[0x20]; DWORD meta[8];
+
+                    // TeamRoster (0x67)
+                    BYTE *roster = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
+                    memset(roster, 0, 0x200);
+                    roster[0] = 0x67;
+                    *(DWORD*)(roster+1) = 6; *(DWORD*)(roster+5) = 6;
+                    *(long long*)(roster+9) = 1; *(DWORD*)(roster+393) = 1;
+                    memset(out, 0, 0x20); memset(meta, 0, sizeof(meta));
+                    int r = inject((void*)*dObj, roster, out, 0, meta, 1);
+                    Log("WD: TeamRoster=%d meta=%p", r, (void*)meta[0]);
+                    VirtualFree(roster, 0, MEM_RELEASE);
+
+                    if (r == 1) {
+                        // Rename (0x66)
+                        BYTE *rn = (BYTE*)VirtualAlloc(NULL, 0x100, MEM_COMMIT, PAGE_READWRITE);
+                        memset(rn, 0, 0x100); rn[0]=0x66;
+                        *(long long*)(rn+1)=1; *(DWORD*)(rn+13)=7; memcpy(rn+17,"Player1",7);
+                        memset(out,0,0x20); memset(meta,0,sizeof(meta));
+                        r = inject((void*)*dObj, rn, out, 0, meta, 1);
+                        Log("WD: Rename=%d", r);
+                        VirtualFree(rn, 0, MEM_RELEASE);
+
+                        // Reskin (0x65)
+                        BYTE *rs = (BYTE*)VirtualAlloc(NULL, 0x100, MEM_COMMIT, PAGE_READWRITE);
+                        memset(rs, 0, 0x100); rs[0]=0x65;
+                        *(long long*)(rs+1)=1; *(DWORD*)(rs+13)=6; memcpy(rs+17,"Ezreal",6);
+                        memset(out,0,0x20); memset(meta,0,sizeof(meta));
+                        r = inject((void*)*dObj, rs, out, 0, meta, 1);
+                        Log("WD: Reskin=%d", r);
+                        VirtualFree(rs, 0, MEM_RELEASE);
                     }
                 }
             }
