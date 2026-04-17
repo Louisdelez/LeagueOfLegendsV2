@@ -903,6 +903,49 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     (void*)&fakeReader, (void*)&fakeReaderVtable);
             }
 
+            // PATCH15: Force BOTH handler vtable[1] AND dispatch vtable[3] to return 1.
+            // vtable[3] at RVA 0x3A2E10 — force return 1 to bypass ALL checks.
+            // The thunk at RVA 0x4398D0 (E9 -> JMP) is 5 bytes.
+            // Replace with: B8 01 00 00 00 = mov eax, 1
+            // Then need ret 0x14 (5 stack args). But only 5 bytes available.
+            // Use: B8 01 00 00 00 at the THUNK, then patch byte 6+ at CC padding.
+            // Thunk: [E9 XX XX XX XX] [CC CC CC] → [B8 01 00 00 00] [C2 14 00]
+            {
+                BYTE *thunk = (BYTE*)hExe + 0x4398D0;
+                if (thunk[0] == 0xE9) {
+                    DWORD oldProt;
+                    if (VirtualProtect(thunk, 8, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                        thunk[0] = 0xB8; // mov eax, 1
+                        thunk[1] = 0x01;
+                        thunk[2] = 0x00;
+                        thunk[3] = 0x00;
+                        thunk[4] = 0x00;
+                        thunk[5] = 0xC2; // ret 0x14
+                        thunk[6] = 0x14;
+                        thunk[7] = 0x00;
+                        FlushInstructionCache(GetCurrentProcess(), thunk, 8);
+                        VirtualProtect(thunk, 8, oldProt, &oldProt);
+                        Log("PATCH15: handler vtable[1] forced to return 1");
+                    }
+                }
+            }
+
+            // Also patch dispatch vtable[3] at RVA 0x3A2E10
+            {
+                BYTE *vt3fn = (BYTE*)hExe + 0x3A2E10;
+                if (vt3fn[0] == 0x55) {
+                    DWORD oldProt;
+                    if (VirtualProtect(vt3fn, 8, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                        vt3fn[0] = 0xB8; vt3fn[1] = 0x01; vt3fn[2] = 0x00;
+                        vt3fn[3] = 0x00; vt3fn[4] = 0x00; // mov eax, 1
+                        vt3fn[5] = 0xC2; vt3fn[6] = 0x14; vt3fn[7] = 0x00; // ret 0x14
+                        FlushInstructionCache(GetCurrentProcess(), vt3fn, 8);
+                        VirtualProtect(vt3fn, 8, oldProt, &oldProt);
+                        Log("PATCH15b: dispatch vtable[3] forced to return 1");
+                    }
+                }
+            }
+
             // Inject loading-screen data via dispatch vtable[3].
             // Handler now properly initialized (fullInit=1, [+8]=valid, [+0xC]=1).
             if (*dispObj && *lsHandler) {
