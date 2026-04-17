@@ -999,6 +999,32 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                                     *flagResp, *flagVer);
                                 VirtualFree(fakeOp3, 0, MEM_RELEASE);
                             }
+
+                            // Dispatch opcode 85 (S2C_HandleTipUpdate) — same ID as 4.20!
+                            // This should display a tip on the loading screen
+                            BYTE *tipPkt = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
+                            if (tipPkt) {
+                                memset(tipPkt, 0, 0x200);
+                                *(WORD*)(tipPkt + 4) = 85;  // opcode 0x55
+                                // Tip data at [+0x0F]: text bytes (will be deobfuscated by handler)
+                                // Just set all zeros — the handler will produce empty/garbled text
+                                // but at least the tip UI element should appear
+                                Log("WD: dispatching opcode 85 (TipUpdate)...");
+                                dispatch(tipPkt);
+                                Log("WD: opcode 85 done!");
+                                VirtualFree(tipPkt, 0, MEM_RELEASE);
+                            }
+
+                            // Also dispatch opcode 92 (S2C_StartGame)
+                            BYTE *startPkt = (BYTE*)VirtualAlloc(NULL, 0x20, MEM_COMMIT, PAGE_READWRITE);
+                            if (startPkt) {
+                                memset(startPkt, 0, 0x20);
+                                *(WORD*)(startPkt + 4) = 92;  // opcode 0x5C
+                                Log("WD: dispatching opcode 92 (StartGame)...");
+                                dispatch(startPkt);
+                                Log("WD: opcode 92 done!");
+                                VirtualFree(startPkt, 0, MEM_RELEASE);
+                            }
                         }
                     }
                 }
