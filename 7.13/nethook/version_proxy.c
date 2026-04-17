@@ -511,7 +511,8 @@ int __attribute__((stdcall)) FakeHandlerVT1(
 {
     int h = ++g_fakeVT1Hits;
     if (allocBlock) {
-        *(DWORD*)((BYTE*)allocBlock + 0x18) = 0;  // index = 0
+        memset(allocBlock, 0, 0x20);  // zero ALL fields (was pool residual garbage)
+        // [+0x18] = handler index (0 = first registered handler)
     }
     if (h <= 5) {
         Log("FakeVT1 #%d data=%p arg1=%lu alloc=%p [+0x18]=0",
@@ -926,8 +927,16 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                         Log("WD: Reskin=%d", r);
                         VirtualFree(rs, 0, MEM_RELEASE);
 
-                        // vtable[2] tick DISABLED — crashes on garbage data objects
-                        Log("WD: data objects created, skip tick (crashes)");
+                        // Try vtable[2] tick with zeroed alloc_block (was garbage before)
+                        DWORD hvt = *(DWORD*)hp;
+                        if (hvt) {
+                            DWORD vt2 = *(DWORD*)(hvt + 8);
+                            typedef void (__thiscall *TickFn)(void*);
+                            Log("WD: tick with zeroed alloc [+0x2C]=%p",
+                                (void*)*(DWORD*)(hp+0x2C));
+                            ((TickFn)vt2)((void*)*lsH);
+                            Log("WD: TICK OK!");
+                        }
                     }
                 }
             }
