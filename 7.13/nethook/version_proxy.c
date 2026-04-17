@@ -553,8 +553,20 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             // The black screen is the LOADING SCREEN waiting for champion data.
             // Next: send LoadScreenPlayerName + LoadScreenPlayerChampion packets.
 
-            Log("WD: after dispatch: resp=%02X ver=%02X qsflag=%lu",
-                *flagResp, *flagVer, *flagQS);
+            // Check key globals after dispatch
+            DWORD *gameSession = (DWORD*)((BYTE*)hExe + (0x1AA3FE4 - 0x400000));
+            DWORD *global2 = (DWORD*)((BYTE*)hExe + (0x1AA6AB0 - 0x400000));
+            Log("WD: flags: resp=%02X ver=%02X qs=%lu", *flagResp, *flagVer, *flagQS);
+            Log("WD: globals: gameSession[0x1AA3FE4]=%p global2[0x1AA6AB0]=%p",
+                (void*)*gameSession, (void*)*global2);
+
+            // Game session and global2 are both NULL. Game opcodes that depend
+            // on them (CreateHero=99, StartGame=92, etc.) would crash.
+            // Fake session approach doesn't work (zero-filled → null derefs).
+            // The game session is created during proper loading sequence.
+            // Current stable config: opcodes 1+3 only → 8s game runtime.
+            Log("WD: gameSession=%p global2=%p (both null — normal for direct dispatch)",
+                (void*)*gameSession, (void*)*global2);
         }
     }
     return 0;
