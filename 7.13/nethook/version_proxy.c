@@ -32,6 +32,30 @@ __declspec(dllexport) DWORD WINAPI GetFileVersionInfoSizeW(LPCWSTR fn, LPDWORD h
 __declspec(dllexport) BOOL  WINAPI GetFileVersionInfoW(LPCWSTR fn, DWORD h, DWORD sz, LPVOID d) { return pGetFileVersionInfoW ? pGetFileVersionInfoW(fn, h, sz, d) : FALSE; }
 __declspec(dllexport) BOOL  WINAPI VerQueryValueW(LPCVOID b, LPCWSTR s, LPVOID *p, PUINT l) { return pVerQueryValueW ? pVerQueryValueW(b, s, p, l) : FALSE; }
 
+// Null-pointer crash prevention: allocate a dummy page at low address
+// so null-pointer reads/writes go to valid memory instead of crashing.
+static void *g_dummyPage = NULL;
+
+static LONG CALLBACK NullGuardHandler(PEXCEPTION_POINTERS ex) {
+    if (ex->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION) {
+        DWORD addr = (DWORD)ex->ExceptionRecord->ExceptionInformation[1];
+        if (addr < 0x10000 && !g_dummyPage) {
+            // First null-access: allocate a dummy page at the target address
+            g_dummyPage = VirtualAlloc((void*)(addr & ~0xFFF), 0x10000,
+                                       MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+            if (g_dummyPage) {
+                memset(g_dummyPage, 0, 0x10000);
+                return EXCEPTION_CONTINUE_EXECUTION; // retry the instruction
+            }
+        } else if (addr < 0x10000 && g_dummyPage) {
+            // Dummy page exists but still crashing — skip instruction
+            ex->ContextRecord->Eip += 1;
+            return EXCEPTION_CONTINUE_EXECUTION;
+        }
+    }
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
 static FILE *logfile = NULL;
 static CRITICAL_SECTION logLock;
 static char logDir[MAX_PATH];
@@ -624,6 +648,9 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
         char lp[MAX_PATH];
         snprintf(lp, MAX_PATH, "%s\\nethook.log", logDir);
         logfile = fopen(lp, "w");
+        // Install VEH: allocate dummy page for null-pointer accesses
+        AddVectoredExceptionHandler(1, NullGuardHandler);
+
         Log("=== LoL 7.13 NetHook (x86) ===");
         Log("PID %lu", GetCurrentProcessId());
         InstallNetHooks();
