@@ -565,8 +565,28 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             // Fake session approach doesn't work (zero-filled → null derefs).
             // The game session is created during proper loading sequence.
             // Current stable config: opcodes 1+3 only → 8s game runtime.
-            Log("WD: gameSession=%p global2=%p (both null — normal for direct dispatch)",
-                (void*)*gameSession, (void*)*global2);
+            // Check loading-screen handler at [0x1E77204]
+            DWORD *lsHandler = (DWORD*)((BYTE*)hExe + (0x1E77204 - 0x400000));
+            if (*lsHandler) {
+                DWORD vtable = *(DWORD*)*lsHandler;
+                DWORD vt2 = *(DWORD*)(vtable + 8);
+                Log("WD: LoadScreenHandler[0x1E77204]=%p vtable[2]=%p", (void*)*lsHandler, (void*)vt2);
+            } else {
+                Log("WD: LoadScreenHandler[0x1E77204]=NULL");
+            }
+
+            DWORD *gameInfo = (DWORD*)((BYTE*)hExe + (0x1AA18D8 - 0x400000));
+            Log("WD: gameSession=%p global2=%p gameInfo=%p",
+                (void*)*gameSession, (void*)*global2, (void*)*gameInfo);
+            // If gameInfo exists, log what's inside it
+            if (*gameInfo) {
+                BYTE *gi = (BYTE*)*gameInfo;
+                if (!IsBadReadPtr(gi, 0x20)) {
+                    Log("WD: gameInfo[+0]=%p [+4]=%p [+8]=%p [+18]=%lu",
+                        (void*)*(DWORD*)gi, (void*)*(DWORD*)(gi+4),
+                        (void*)*(DWORD*)(gi+8), *(DWORD*)(gi+0x18));
+                }
+            }
         }
     }
     return 0;
