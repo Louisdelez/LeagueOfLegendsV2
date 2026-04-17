@@ -716,10 +716,20 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     if (p8[0] == 0x80 && p8[1] == 0x7F && p8[2] == 0x29 && p8[3] == 0x00
                         && p8[4] == 0x90 /* from PATCH5 */) {
                         DWORD oldProt;
-                        // PATCH9 DISABLED inline — moved to watchdog after 10s delay.
-                        // Setting [edi+0x29]=1 during KeyCheck broke auth.
-                        Log("PATCH9: inline DISABLED (using watchdog + g_saved_edi)");
-                        (void)oldProt;
+                        // PATCH9: save EDI (connection object) to g_saved_edi so the
+                        // watchdog can set [edi+0x29]=1 after auth completes (10s delay).
+                        // `mov [g_saved_edi], edi` = 89 3D XX XX XX XX (6 bytes)
+                        if (VirtualProtect(p8, 10, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                            DWORD gAddr = (DWORD)&g_saved_edi;
+                            p8[0] = 0x89; p8[1] = 0x3D;  // mov [imm32], edi
+                            *(DWORD*)(p8 + 2) = gAddr;
+                            p8[6] = 0x90; p8[7] = 0x90; p8[8] = 0x90; p8[9] = 0x90;
+                            FlushInstructionCache(GetCurrentProcess(), p8, 10);
+                            VirtualProtect(p8, 10, oldProt, &oldProt);
+                            Log("PATCH9: wrote mov [g_saved_edi@%p], edi → capture conn obj", (void*)gAddr);
+                        } else {
+                            Log("PATCH9: VirtualProtect err");
+                        }
                     } else {
                         Log("PATCH9: bytes mismatch");
                     }
@@ -751,21 +761,23 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     Log("PATCH11: @0xBB8200=%02X %02X %02X %02X %02X", p11[0],p11[1],p11[2],p11[3],p11[4]);
                     if (p11[0] == 0x8B) {  // mov eax, [esp+4]
                         DWORD oldProt;
-                        if (VirtualProtect(p11, 16, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                            // Rewrite: return true for type==3 only, false otherwise
-                            // mov eax,[esp+4]; cmp [eax],3; mov al,0; jne+2; mov al,1; ret 4
+                        if (VirtualProtect(p11, 25, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                            // Return true for type==3 AND channel!=0 (skip handshake)
                             BYTE code[] = {
                                 0x8B, 0x44, 0x24, 0x04,  // mov eax, [esp+4]
                                 0x83, 0x38, 0x03,         // cmp dword [eax], 3
-                                0xB0, 0x00,               // mov al, 0
-                                0x75, 0x02,               // jne +2
+                                0x75, 0x0B,               // jne +11 → false
+                                0x80, 0x78, 0x08, 0x00,   // cmp byte [eax+8], 0 (handshake ch?)
+                                0x74, 0x05,               // je +5 → false (skip handshake)
                                 0xB0, 0x01,               // mov al, 1
+                                0xC2, 0x04, 0x00,         // ret 4
+                                0x30, 0xC0,               // xor al, al
                                 0xC2, 0x04, 0x00          // ret 4
                             };
-                            memcpy(p11, code, 16);
-                            FlushInstructionCache(GetCurrentProcess(), p11, 16);
-                            VirtualProtect(p11, 16, oldProt, &oldProt);
-                            Log("PATCH11: handler returns TRUE for type==3 only");
+                            memcpy(p11, code, 25);
+                            FlushInstructionCache(GetCurrentProcess(), p11, 25);
+                            VirtualProtect(p11, 25, oldProt, &oldProt);
+                            Log("PATCH11: handler TRUE for type==3 AND channel!=0");
                         }
                     }
                 }
