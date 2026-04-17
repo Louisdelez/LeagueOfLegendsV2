@@ -378,6 +378,28 @@ namespace PacketDefinitions420
                 result = result && SendPacket(peerInfo.ClientId, response.GetBytes(), Channel.CHL_HANDSHAKE);
             }
 
+            // 7.13: trigger game start immediately after auth so game-content
+            // packets reach the client before it tries to load game data.
+            try {
+                _game.GetType().GetMethod("ImmediateStart",
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Public |
+                    System.Reflection.BindingFlags.Instance)?.Invoke(_game, null);
+            } catch {}
+            // Fallback: directly invoke the game start handler
+            try {
+                var startHandler = _game.GetType()
+                    .GetField("_gameStartHandler",
+                        System.Reflection.BindingFlags.NonPublic |
+                        System.Reflection.BindingFlags.Instance)?.GetValue(_game);
+                if (startHandler != null) {
+                    startHandler.GetType().GetMethod("ForceStart")?.Invoke(startHandler, null);
+                    Console.WriteLine("[IMMEDIATE] ForceStart invoked from HandleHandshake");
+                }
+            } catch (System.Exception ex) {
+                Console.WriteLine($"[IMMEDIATE] ForceStart error: {ex.Message}");
+            }
+
             // only if all packets were sent successfully return true
             return result;
         }
