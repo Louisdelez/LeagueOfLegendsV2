@@ -524,7 +524,11 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                 VirtualFree(fakeOp3, 0, MEM_RELEASE);
             }
 
-            // Check flags after dispatch
+            // Spawn opcodes removed — caused earlier crash. The stable config
+            // (opcodes 1+3 only) gives 8 seconds of game runtime + map loading.
+            // The black screen is the LOADING SCREEN waiting for champion data.
+            // Next: send LoadScreenPlayerName + LoadScreenPlayerChampion packets.
+
             Log("WD: after dispatch: resp=%02X ver=%02X qsflag=%lu",
                 *flagResp, *flagVer, *flagQS);
         }
