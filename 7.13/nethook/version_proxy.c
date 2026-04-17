@@ -456,19 +456,69 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             Log("WD: set [edi+0x29]=1");
         }
 
-        // Directly invoke the pre-dispatch function 0x5BA9A0 with the stored
-        // object at [edi+0x10]. This bypasses the queue and type-2 mechanism.
-        DWORD storedObj = *(DWORD*)(ediP + 0x10);
-        Log("WD: [edi+0x10]=%p (stored packet object)", (void*)storedObj);
-        if (storedObj) {
+        // DIRECT DISPATCHER CALL: bypass ALL intermediate layers.
+        // Create a fake packet object and call the 149-opcode dispatcher directly.
+        // Opcode 1 = QueryStatusAns → writes query-status flag [0x1AA4254]
+        // Opcode 3 = SynchVersionS2C → writes resp+ver flags
+        {
             HMODULE hExe = GetModuleHandleA(NULL);
-            // Call 0x5BA9A0(ecx=edi, arg0=storedObj) — thiscall + 1 stack arg
-            typedef int (__thiscall *PreDispFn)(void *ecx, void *pkt);
-            PreDispFn preDisp = (PreDispFn)((DWORD)hExe + 0x5BA9A0);
-            Log("WD: calling PREDISP@%p(edi=%p, obj=%p)",
-                (void*)preDisp, (void*)g_saved_edi, (void*)storedObj);
-            int result = preDisp((void*)g_saved_edi, (void*)storedObj);
-            Log("WD: PREDISP returned %d", result);
+            typedef int (__thiscall *DispatchFn)(void *ecx);
+
+            // NOTE: our HANDLER detour is on 0x3EF8F0 (trampoline installed).
+            // Calling the ORIGINAL address hits our detour first (logs),
+            // then trampoline runs original body.
+            DispatchFn dispatch = (DispatchFn)((DWORD)hExe + 0x3EF8F0);
+
+            // --- Opcode 1: QueryStatusAns ---
+            // Handler reads [edi+0x0A] → deobfuscation → LUT → writes [0x1AA4254]
+            BYTE fakeOp1[16] = {0};
+            *(WORD*)(fakeOp1 + 4) = 1;   // opcode = 1
+            fakeOp1[0x0A] = 0x00;         // non-0xA7 → flag becomes non-zero
+            Log("WD: calling dispatcher with opcode=1 (QueryStatusAns)");
+            dispatch((void*)fakeOp1);
+            Log("WD: dispatcher returned for opcode=1");
+
+            // Check if flag was set
+            DWORD *flagQS = (DWORD*)((BYTE*)hExe + (0x01AA4254 - 0x400000));
+            Log("WD: [0x1AA4254] = %lu (query-status flag SET!)", *flagQS);
+
+            // --- Opcode 3: SynchVersionS2C ---
+            // Handler at 0xB89B70 reads many offsets from the packet object:
+            // [+0x56] = version match byte (deobfuscated → [0x1E84F72])
+            // [+0x9F..0xA3] = range ptrs
+            // [+0xC20] = 4 bytes (deobfuscated)
+            // [+0xD9] = 256 bytes (LUT copy)
+            // [+0x263] = server version string (std::string inline)
+            // Needs ~0xC24 bytes minimum.
+            BYTE *fakeOp3 = (BYTE*)VirtualAlloc(NULL, 0x1000, MEM_COMMIT, PAGE_READWRITE);
+            if (fakeOp3) {
+                memset(fakeOp3, 0, 0x1000);
+                *(WORD*)(fakeOp3 + 4) = 3;    // opcode = 3
+                fakeOp3[0x56] = 0x71;           // version match byte → deobfuscates to 1
+
+                // Server version string at +0x263 (inline std::string)
+                // std::string layout: [ptr/inline_buf(16)][length(4)][capacity(4)]
+                // For inline (len < 16): string data starts at +0x263
+                const char *ver = "Version 7.13.192.6794 [PUBLIC]";
+                int vlen = strlen(ver);
+                memcpy(fakeOp3 + 0x263, ver, vlen);
+                *(DWORD*)(fakeOp3 + 0x263 + 0x14) = vlen;  // length at +0x277
+                *(DWORD*)(fakeOp3 + 0x263 + 0x18) = 0xF;   // capacity at +0x27B (inline mode)
+
+                // Range ptrs at +0x9F and +0xA3 (set equal = empty range)
+                *(DWORD*)(fakeOp3 + 0x9F) = 0;
+                *(DWORD*)(fakeOp3 + 0xA3) = 0;
+
+                Log("WD: calling dispatcher with opcode=3 (SynchVersionS2C)");
+                dispatch((void*)fakeOp3);
+                Log("WD: dispatcher returned for opcode=3");
+
+                BYTE *flagResp2 = (BYTE*)hExe + (0x01E84F73 - 0x400000);
+                BYTE *flagVer2 = (BYTE*)hExe + (0x01E84F72 - 0x400000);
+                Log("WD: resp=%02X ver=%02X (should both be non-zero!)", *flagResp2, *flagVer2);
+
+                VirtualFree(fakeOp3, 0, MEM_RELEASE);
+            }
         }
     }
     return 0;
