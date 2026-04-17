@@ -565,10 +565,26 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             // Fake session approach doesn't work (zero-filled → null derefs).
             // The game session is created during proper loading sequence.
             // Current stable config: opcodes 1+3 only → 8s game runtime.
-            // LoadScreenHandler registration DISABLED — causes earlier crash.
-            // Handler vtable/init fully reverse-engineered:
-            //   Init: 0x96DAB0, vtable: 0x14F38D8, processor: 0xCEB9B0
-            // But registering it at [0x1E77204] breaks stable config.
+            // LoadScreenHandler — try registration WITHOUT setting [+0x10]
+            DWORD *lsHandler = (DWORD*)((BYTE*)hExe + (0x1E77204 - 0x400000));
+            if (!*lsHandler) {
+                BYTE *handler = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
+                if (handler) {
+                    memset(handler, 0, 0x200);
+                    typedef void* (__thiscall *InitFn)(void *ecx);
+                    InitFn initHandler = (InitFn)((DWORD)hExe + 0x56DAB0);
+                    initHandler(handler);
+                    // DON'T set [+0x10] — leave as 0 from init
+                    // DON'T call setter yet — register AFTER opcodes
+                }
+                // Register handler AFTER stable opcodes dispatched
+                if (handler) {
+                    typedef void (__cdecl *SetterFn)(void*);
+                    SetterFn setter = (SetterFn)((DWORD)hExe + 0x5FB040);
+                    setter(handler);
+                    Log("WD: handler registered (no [+0x10])");
+                }
+            }
 
             DWORD *gameInfo = (DWORD*)((BYTE*)hExe + (0x1AA18D8 - 0x400000));
             Log("WD: gameSession=%p global2=%p gameInfo=%p",
