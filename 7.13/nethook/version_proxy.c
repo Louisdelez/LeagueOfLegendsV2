@@ -818,11 +818,25 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             Log("WD: flags: resp=%02X ver=%02X qs=%lu", *flagResp, *flagVer, *flagQS);
             Log("WD: globals: gameSession[0x1AA3FE4]=%p global2[0x1AA6AB0]=%p",
                 (void*)*gameSession, (void*)*global2);
+            } // close if(0) block for opcodes 1+3
 
-            // WITHOUT opcodes 1+3, game stays in "Waiting for server response" loop.
-            // The loop tick [edi+0x40] processes packets naturally.
-            // Monitor state — game should stay alive indefinitely now.
-            // Still call LoadScreenInit to ensure pool is ready for natural processing.
+            // WITHOUT opcodes 1+3, game stays in "Waiting for server response".
+            // Monitor only — no injection.
+            Log("WD: monitoring mode (no opcodes, no injection)");
+            DWORD *dispObj = (DWORD*)((BYTE*)hExe + (0x1E77200 - 0x400000));
+            DWORD *lsHandler = (DWORD*)((BYTE*)hExe + (0x1E77204 - 0x400000));
+            for (int tick = 0; tick < 60; tick++) {
+                Sleep(2000);
+                Log("WD: tick %d resp=%02X ver=%02X disp=%p handler=%p veh=%d",
+                    tick, *flagResp, *flagVer, (void*)*dispObj, (void*)*lsHandler,
+                    g_vehCrashCount);
+            }
+            Log("WD: monitoring done");
+        }
+    return 0;
+}  // end FlagWatchdog
+// DEAD CODE BELOW — injection disabled for monitoring mode
+#if 0
             // Call LoadScreenInit at RVA 0x633AF0 to properly create pool + dispatch object.
             // This function: creates pool at [0x189F360], allocates dispatch obj via pool,
             // sets vtable, stores at [0x1E77200]. Takes 1 arg: ptr where [arg+0] = pool param.
@@ -1138,6 +1152,8 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
     }
     return 0;
 }
+
+#endif // DEAD CODE
 
 static void WINAPI FakeExitProcess(UINT uExitCode) {
     Log("BLOCKED ExitProcess(%u) — sleeping forever", uExitCode);
