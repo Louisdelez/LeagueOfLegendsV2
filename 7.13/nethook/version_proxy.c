@@ -381,6 +381,80 @@ __asm__(
     "    jmp *_g_tramp_2FBCE0_addr\n"
 );
 
+// Fake reader vtable[1] — deserializes loading-screen packet bytes.
+// Signature: __thiscall(this, std::string* outStr, void* out2, void* out3,
+//                       BYTE* rawData, BYTE typeByte)
+// outStr: MSVC inline std::string, [+0..15]=buffer, [+16]=len, [+20]=cap(0xF)
+// We copy up to 256 bytes of raw data (after the 1-byte header) to a heap
+// string and update the std::string fields to point to it.
+static volatile int g_fakeReaderHits = 0;
+
+// FakeReaderParse C helper: copies raw data (after header byte) to std::string.
+// For std::string heap mode: [+0]=heap_ptr, [+16]=len, [+20]=capacity
+void __attribute__((cdecl, used)) FakeReaderParseHelper(DWORD outStr, DWORD rawData, DWORD typeByte) {
+    int h = ++g_fakeReaderHits;
+    if (!rawData || !outStr) return;
+
+    BYTE *raw = (BYTE*)rawData;
+    BYTE *data = raw + 1;  // skip header byte
+    // Determine data length based on packet type
+    int dataLen = 0;
+    switch (raw[0]) {
+        case 0x67: dataLen = 400; break;  // TeamRosterUpdate
+        case 0x66: dataLen = 100; break;  // RequestRename (variable, use max)
+        case 0x65: dataLen = 100; break;  // RequestReskin
+        default:   dataLen = 64;  break;
+    }
+
+    // Write to std::string at outStr
+    // outStr layout: [+0..+15]=inline/ptr, [+16]=length, [+20]=capacity
+    DWORD *str = (DWORD*)outStr;
+    // Use static buffer for heap-mode std::string (avoids VirtualAlloc in callback)
+    static BYTE heapBuf[1024];
+    if (dataLen > 1023) dataLen = 1023;
+    memcpy(heapBuf, data, dataLen);
+    heapBuf[dataLen] = 0;
+
+    if (dataLen <= 15) {
+        memcpy((void*)outStr, data, dataLen);
+        ((BYTE*)outStr)[dataLen] = 0;
+        str[4] = dataLen;   // [+16] = length
+    } else {
+        // Heap mode: point to static buffer
+        str[0] = (DWORD)heapBuf;  // [+0] = heap ptr
+        str[4] = dataLen;          // [+16] = length
+        str[5] = 1024;             // [+20] = capacity >= 16 → heap mode
+    }
+
+    if (h <= 10) {
+        Log("FAKEREADER #%d type=0x%02X dataLen=%d raw[0..3]=%02X %02X %02X %02X",
+            h, raw[0], dataLen, data[0], data[1], data[2], data[3]);
+    }
+}
+
+// FakeReaderDtor: just return (no cleanup needed for static object)
+extern void FakeReaderDtor(void);
+__asm__(
+    ".text\n"
+    ".globl _FakeReaderDtor\n"
+    "_FakeReaderDtor:\n"
+    "    ret\n"
+);
+
+// FakeReaderParse: copy raw packet data into the output std::string.
+// Stack on entry (thiscall, 5 stack args):
+//   [esp+4]  = std::string* outStr
+//   [esp+8]  = void* out2
+//   [esp+12] = void* out3
+//   [esp+16] = BYTE* rawData
+//   [esp+20] = BYTE typeByte (actually DWORD-sized on stack)
+// Pure C implementation — __stdcall with 5 args to match ret $20
+void __attribute__((stdcall)) FakeReaderParse(
+    DWORD *outStr, void *out2, void *out3, BYTE *rawData, DWORD typeByte)
+{
+    FakeReaderParseHelper((DWORD)outStr, (DWORD)rawData, typeByte);
+}
+
 // Pre-processor/validator detour @ RVA 0x949C00. Returns al=1 when
 // packet is "handled" by pre-processor chain, 0 when unhandled → dispatcher fires.
 // We log args to understand the pattern, then can selectively force return 0.
@@ -789,12 +863,31 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             // handler[+0x10] is read as an object with a vtable. The connection obj
             // at EDI has a vtable at [+0]. If the vtable[1] happens to be compatible,
             // it might work. Long shot but safe to try (VEH catches crashes).
-            if (*lsHandler) {
-                BYTE *hp = (BYTE*)*lsHandler;
-                if (*(DWORD*)(hp + 0x10) == 0 && g_saved_edi) {
-                    *(DWORD*)(hp + 0x10) = g_saved_edi;
-                    Log("WD: set handler[+0x10] = g_saved_edi (%p)", (void*)g_saved_edi);
+            // Create a FAKE READER object with a custom vtable.
+            // Reader.vtable[1] is called by handler vtable[1] to deserialize data.
+            // Signature: __thiscall(this, std::string* outStr, void* out2, void* out3,
+            //                       BYTE* rawData, BYTE typeByte)
+            // outStr is pre-initialized as empty inline std::string.
+            // We copy raw packet data (after header byte) into it.
+            if (*lsHandler && *(DWORD*)((BYTE*)*lsHandler + 0x10) == 0) {
+                // Fake vtable: [0]=ret(NOP dtor), [1]=our parser
+                static DWORD fakeReaderVtable[4] = {0};
+                if (!fakeReaderVtable[0]) {
+                    // Get addresses of our stub functions
+                    extern void FakeReaderDtor(void);
+                    extern void __attribute__((stdcall)) FakeReaderParse(
+                        DWORD*, void*, void*, BYTE*, DWORD);
+                    fakeReaderVtable[0] = (DWORD)FakeReaderDtor;
+                    fakeReaderVtable[1] = (DWORD)FakeReaderParse;
+                    fakeReaderVtable[2] = (DWORD)FakeReaderDtor;
+                    fakeReaderVtable[3] = (DWORD)FakeReaderDtor;
                 }
+                // Create fake reader object: just [+0] = vtable ptr
+                static DWORD fakeReader[2] = {0};
+                fakeReader[0] = (DWORD)&fakeReaderVtable;
+                *(DWORD*)((BYTE*)*lsHandler + 0x10) = (DWORD)&fakeReader;
+                Log("WD: fake reader installed at handler[+0x10]=%p vtable=%p",
+                    (void*)&fakeReader, (void*)&fakeReaderVtable);
             }
 
             // Inject loading-screen data via dispatch vtable[3].
@@ -817,7 +910,7 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                 *(DWORD*)(roster+393) = 1;
                 memset(outputBuf, 0, 0x20);
                 Log("WD: injecting TeamRoster...");
-                int r = inject((void*)*dispObj, roster, outputBuf, 0, NULL, 1);
+                int r = inject((void*)*dispObj, roster, outputBuf, 1, NULL, 1);
                 Log("WD: TeamRoster result=%d handler[+0x10]=%p", r, (void*)*(DWORD*)(hp+0x10));
                 VirtualFree(roster, 0, MEM_RELEASE);
 
