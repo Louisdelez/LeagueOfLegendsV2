@@ -886,6 +886,13 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     VirtualFree(roster, 0, MEM_RELEASE);
 
                     if (r == 1) {
+                        // Store TeamRoster data object in handler[+0x2C]
+                        BYTE *hp = (BYTE*)*lsH;
+                        if (meta[0]) {
+                            *(DWORD*)(hp + 0x2C) = meta[0];
+                            Log("WD: handler[+0x2C]=%p (TeamRoster)", (void*)meta[0]);
+                        }
+
                         // Rename (0x66)
                         BYTE *rn = (BYTE*)VirtualAlloc(NULL, 0x100, MEM_COMMIT, PAGE_READWRITE);
                         memset(rn, 0, 0x100); rn[0]=0x66;
@@ -903,6 +910,18 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                         r = inject((void*)*dObj, rs, out, 0, meta, 1);
                         Log("WD: Reskin=%d", r);
                         VirtualFree(rs, 0, MEM_RELEASE);
+
+                        // Try handler vtable[2] (tick) to process data
+                        DWORD hvt = *(DWORD*)hp;
+                        if (hvt) {
+                            DWORD vt2 = *(DWORD*)(hvt + 8);
+                            typedef void (__thiscall *TickFn)(void*);
+                            Log("WD: calling handler tick @%p [+0x2C]=%p",
+                                (void*)vt2, (void*)*(DWORD*)(hp+0x2C));
+                            ((TickFn)vt2)((void*)*lsH);
+                            Log("WD: tick OK! [+0x2C]=%p",
+                                (void*)*(DWORD*)(hp+0x2C));
+                        }
                     }
                 }
             }
