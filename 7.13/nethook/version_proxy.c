@@ -624,16 +624,20 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     void *info, DWORD val, DWORD *out, BYTE type);
                 DispVT6Fn dispFunc = (DispVT6Fn)vt6;
 
-                // Set handler[+0x10] right before the call (not at registration time)
-                BYTE *handlerPtr = (BYTE*)*lsHandler;
-                if (g_saved_edi && handlerPtr) {
-                    *(DWORD*)(handlerPtr + 0x10) = g_saved_edi;
-                    Log("WD: set handler[+0x10]=%p just before dispatch call", (void*)g_saved_edi);
+                // Call handler vtable[2] DIRECTLY (bypass vtable[6] + broken pool)
+                BYTE *workBuf = (BYTE*)VirtualAlloc(NULL, 0x40, MEM_COMMIT, PAGE_READWRITE);
+                if (workBuf) {
+                    memset(workBuf, 0, 0x40);
+                    BYTE localByte = 0x68;
+                    DWORD handlerVtable = *(DWORD*)*lsHandler;
+                    DWORD vt2addr = *(DWORD*)(handlerVtable + 8);
+                    typedef int (__thiscall *HVT2)(void*, void*, DWORD, void*, BYTE*, void*);
+                    HVT2 hvt2 = (HVT2)vt2addr;
+                    Log("WD: calling handler vtable[2] @0x%08lX (bypass pool)", vt2addr);
+                    int r = hvt2((void*)*lsHandler, rosterData, 0, NULL, &localByte, workBuf);
+                    Log("WD: handler vtable[2] returned %d!", r);
+                    VirtualFree(workBuf, 0, MEM_RELEASE);
                 }
-
-                Log("WD: calling dispatch vtable[6] with TeamRoster data");
-                int result = dispFunc((void*)*dispObj, rosterData, NULL, pktInfo, 0, &output, 0x68);
-                Log("WD: dispatch returned %d, output=%lu", result, output);
             }
 
             DWORD *gameInfo = (DWORD*)((BYTE*)hExe + (0x1AA18D8 - 0x400000));
