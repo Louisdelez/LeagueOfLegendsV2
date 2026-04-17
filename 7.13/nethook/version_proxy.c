@@ -1159,6 +1159,9 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     VirtualFree(op3, 0, MEM_RELEASE);
                 }
 
+                // Opcodes 4,8,15 crash with zeroed data (deobfuscation OOB)
+                // Only opcode 3 and 85 work safely with minimal data
+
                 // Opcode 85: S2C_HandleTipUpdate with ENCODED text
                 // Deobfuscation inverse applied: bit_reverse -> ror 2 -> NOT -> inv_LUT -> rol 3
                 // "Player1 - Ezreal" encoded:
