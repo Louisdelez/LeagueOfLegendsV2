@@ -635,7 +635,31 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     HVT2 hvt2 = (HVT2)vt2addr;
                     Log("WD: calling handler vtable[2] @0x%08lX (bypass pool)", vt2addr);
                     int r = hvt2((void*)*lsHandler, rosterData, 0, NULL, &localByte, workBuf);
-                    Log("WD: handler vtable[2] returned %d!", r);
+                    Log("WD: handler vtable[2] TeamRoster returned %d!", r);
+
+                    // PlayerName: type 0x65 + UTF-16 "Player1"
+                    BYTE nameData[64] = {0};
+                    nameData[0] = 0x65;
+                    // UTF-16 LE: P l a y e r 1 \0
+                    WCHAR *nameStr = (WCHAR*)(nameData + 2);
+                    nameStr[0]='P'; nameStr[1]='l'; nameStr[2]='a'; nameStr[3]='y';
+                    nameStr[4]='e'; nameStr[5]='r'; nameStr[6]='1'; nameStr[7]=0;
+                    BYTE type65 = 0x65;
+                    memset(workBuf, 0, 0x40);
+                    r = hvt2((void*)*lsHandler, nameData, 0, NULL, &type65, workBuf);
+                    Log("WD: handler vtable[2] PlayerName returned %d!", r);
+
+                    // PlayerChampion: type 0x67 + UTF-16 "Ezreal"
+                    BYTE champData[64] = {0};
+                    champData[0] = 0x67;
+                    WCHAR *champStr = (WCHAR*)(champData + 2);
+                    champStr[0]='E'; champStr[1]='z'; champStr[2]='r'; champStr[3]='e';
+                    champStr[4]='a'; champStr[5]='l'; champStr[6]=0;
+                    BYTE type67 = 0x67;
+                    memset(workBuf, 0, 0x40);
+                    r = hvt2((void*)*lsHandler, champData, 0, NULL, &type67, workBuf);
+                    Log("WD: handler vtable[2] PlayerChampion returned %d!", r);
+
                     VirtualFree(workBuf, 0, MEM_RELEASE);
                 }
             }
