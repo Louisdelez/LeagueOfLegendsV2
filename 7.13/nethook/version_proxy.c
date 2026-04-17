@@ -468,14 +468,9 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                         hits++;
                         if (firstHit == 0) firstHit = off;
                         Log("PATCH: found pattern @RVA 0x%06lX (jnz +%02X)", off, q[3]);
-                        // Byte modification disabled pending deeper analysis:
-                        // * EB 07 (always jump past call) → no regression but no
-                        //   progress (flag stays 0, handler never fires).
-                        // * 90 90 (always call) → auth breaks (client never
-                        //   completes KeyCheck).
-                        // Scan + dump only for now. If/when we confirm via a
-                        // detour hook whether the handler should fire here, we
-                        // can make the right edit.
+                        // PATCH1 disabled: NOPing jnz breaks auth. 0x9499F4 is
+                        // likely a format validator — returns 0 for valid 7.13
+                        // packets, non-zero for invalid. Next: detour 0x9499F4.
                         (void)off;
                     }
                 }

@@ -151,15 +151,22 @@ namespace PacketDefinitions420
             // Sometimes we try to send packets to a user that doesn't exist (like in broadcast when not all players are connected).
             if (0 <= userId && userId < _peers.Length && _peers[userId] != null)
             {
+                // 7.13 format adapter: prepend 4 zero bytes so the 4.20 opcode
+                // (at source[0]) lands at offset +4 where the 7.13 client reads
+                // its 2-byte LE opcode. The high byte (source[1]) is typically 0
+                // for small opcodes, so word[4] = source[0] = correct opcode number.
+                var adapted = new byte[source.Length + 4];
+                // adapted[0..3] = 0 (header)
+                System.Buffer.BlockCopy(source, 0, adapted, 4, source.Length);
+
                 byte[] temp;
-                if (source.Length >= 8)
+                if (adapted.Length >= 8)
                 {
-                    // _peers.Length == _blowfishes.Length
-                    temp = _blowfishes[userId].Encrypt(source);
+                    temp = _blowfishes[userId].Encrypt(adapted);
                 }
                 else
                 {
-                    temp = source;
+                    temp = adapted;
                 }
                 int sr = _peers[userId].Send((byte)channelNo, new LENet.Packet(temp, flag));
                 return sr == 0;
@@ -169,13 +176,17 @@ namespace PacketDefinitions420
 
         public bool BroadcastPacket(byte[] data, Channel channelNo, PacketFlags flag = PacketFlags.RELIABLE)
         {
-            if (data.Length >= 8)
+            // 7.13 format adapter (same as SendPacket)
+            var adapted = new byte[data.Length + 4];
+            System.Buffer.BlockCopy(data, 0, adapted, 4, data.Length);
+
+            if (adapted.Length >= 8)
             {
                 // send packet to all peers and save failed ones
                 int failedPeers = 0;
                 for(int i = 0; i < _peers.Length; i++)
                 {
-                    if(_peers[i] != null && _peers[i].Send((byte)channelNo, new LENet.Packet(_blowfishes[i].Encrypt(data), flag)) < 0)
+                    if(_peers[i] != null && _peers[i].Send((byte)channelNo, new LENet.Packet(_blowfishes[i].Encrypt(adapted), flag)) < 0)
                     {
                         failedPeers++;
                     }
