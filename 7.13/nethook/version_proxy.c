@@ -528,8 +528,23 @@ int __attribute__((stdcall)) FakeHandlerVT1(
                 if (obj) {
                     DWORD vt = *(DWORD*)obj;
                     Log("  table[%lu]=%p vtable=%p", i, (void*)obj, (void*)vt);
+                    // Dump vtable[0..7] at runtime
+                    if (vt && !IsBadReadPtr((void*)vt, 32)) {
+                        DWORD *vtp = (DWORD*)vt;
+                        Log("    vt: [0]=%p [1]=%p [2]=%p [3]=%p",
+                            (void*)vtp[0],(void*)vtp[1],(void*)vtp[2],(void*)vtp[3]);
+                        Log("    vt: [4]=%p [5]=%p [6]=%p [7]=%p",
+                            (void*)vtp[4],(void*)vtp[5],(void*)vtp[6],(void*)vtp[7]);
+                    }
                 }
             }
+        }
+        // Also dump the alloc_block fields that vtable[6] will read
+        if (allocBlock) {
+            DWORD *ab = (DWORD*)allocBlock;
+            Log("  alloc: [0]=%p [4]=%p [8]=%p [C]=%p [10]=%p [14]=%p [18]=%p",
+                (void*)ab[0],(void*)ab[1],(void*)ab[2],(void*)ab[3],
+                (void*)ab[4],(void*)ab[5],(void*)ab[6]);
         }
     }
     return 1;
