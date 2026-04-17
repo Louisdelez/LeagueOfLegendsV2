@@ -397,38 +397,51 @@ void __attribute__((cdecl, used)) FakeReaderParseHelper(DWORD outStr, DWORD rawD
 
     BYTE *raw = (BYTE*)rawData;
     BYTE *data = raw + 1;  // skip header byte
-    // Determine data length based on packet type
-    int dataLen = 0;
+    // The parse function uses a FACTORY system — it searches an array of
+    // factories, calling vtable[1](factory, dataString, modeFlags).
+    // The data string must be in the format factories expect (likely text).
+    // Try: write the PACKET TYPE NAME as the string content.
+    const char *typeName = NULL;
     switch (raw[0]) {
-        case 0x67: dataLen = 400; break;  // TeamRosterUpdate
-        case 0x66: dataLen = 100; break;  // RequestRename (variable, use max)
-        case 0x65: dataLen = 100; break;  // RequestReskin
-        default:   dataLen = 64;  break;
+        case 0x67: typeName = "TeamRosterUpdate"; break;
+        case 0x66: typeName = "RequestRename"; break;
+        case 0x65: typeName = "RequestReskin"; break;
+        default:   typeName = "Unknown"; break;
     }
 
-    // Write to std::string at outStr
-    // outStr layout: [+0..+15]=inline/ptr, [+16]=length, [+20]=capacity
     DWORD *str = (DWORD*)outStr;
-    // Use static buffer for heap-mode std::string (avoids VirtualAlloc in callback)
-    static BYTE heapBuf[1024];
-    if (dataLen > 1023) dataLen = 1023;
-    memcpy(heapBuf, data, dataLen);
-    heapBuf[dataLen] = 0;
-
-    if (dataLen <= 15) {
-        memcpy((void*)outStr, data, dataLen);
-        ((BYTE*)outStr)[dataLen] = 0;
-        str[4] = dataLen;   // [+16] = length
+    int nameLen = strlen(typeName);
+    if (nameLen <= 15) {
+        memcpy((void*)outStr, typeName, nameLen);
+        ((BYTE*)outStr)[nameLen] = 0;
+        str[4] = nameLen;
     } else {
-        // Heap mode: point to static buffer
-        str[0] = (DWORD)heapBuf;  // [+0] = heap ptr
-        str[4] = dataLen;          // [+16] = length
-        str[5] = 1024;             // [+20] = capacity >= 16 → heap mode
+        static char nameBuf[64];
+        strcpy(nameBuf, typeName);
+        str[0] = (DWORD)nameBuf;
+        str[4] = nameLen;
+        str[5] = 64;
     }
 
     if (h <= 10) {
-        Log("FAKEREADER #%d type=0x%02X dataLen=%d raw[0..3]=%02X %02X %02X %02X",
-            h, raw[0], dataLen, data[0], data[1], data[2], data[3]);
+        Log("FAKEREADER #%d type=0x%02X str='%s' len=%d",
+            h, raw[0], typeName, nameLen);
+        // Dump the factory array to understand what format is expected
+        HMODULE hExe = GetModuleHandleA(NULL);
+        // Factory array is INLINE at [0x37405E0] (not a pointer to array)
+        DWORD *factoryCount = (DWORD*)((BYTE*)hExe + (0x37405F0 - 0x400000));
+        DWORD *factoryArray = (DWORD*)((BYTE*)hExe + (0x37405E0 - 0x400000));
+        Log("FAKEREADER: factory count=%lu", *factoryCount);
+        for (DWORD fi = 0; fi < *factoryCount && fi < 5; fi++) {
+            DWORD factObj = factoryArray[fi];
+            // Dump first 8 bytes at factory address
+            BYTE *fb = (BYTE*)factObj;
+            if (factObj) {
+                Log("FAKEREADER: factory[%lu]=%p bytes: %02X %02X %02X %02X %02X %02X %02X %02X",
+                    fi, (void*)factObj,
+                    fb[0],fb[1],fb[2],fb[3],fb[4],fb[5],fb[6],fb[7]);
+            }
+        }
     }
 }
 
