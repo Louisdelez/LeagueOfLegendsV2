@@ -969,6 +969,7 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                 typedef int (__thiscall *InjectFn)(void*, void*, void*, DWORD, void*, DWORD);
                 InjectFn inject = (InjectFn)vt3;
                 BYTE outputBuf[0x20];
+                DWORD metadataBuf[8] = {0};  // valid buffer for metadata/observer
                 BYTE *hp = (BYTE*)*lsHandler;
                 Log("WD: handler[+0x10]=%p before injection", (void*)*(DWORD*)(hp+0x10));
 
@@ -981,11 +982,13 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                 *(DWORD*)(roster+393) = 1;
                 memset(outputBuf, 0, 0x20);
                 Log("WD: injecting TeamRoster...");
-                int r = inject((void*)*dispObj, roster, outputBuf, 1, NULL, 1);
-                Log("WD: TeamRoster result=%d handler[+0x10]=%p", r, (void*)*(DWORD*)(hp+0x10));
+                int r = inject((void*)*dispObj, roster, outputBuf, 0, metadataBuf, 1);
+                Log("WD: TeamRoster result=%d meta[0]=%p handler[+0x10]=%p",
+                    r, (void*)metadataBuf[0], (void*)*(DWORD*)(hp+0x10));
                 VirtualFree(roster, 0, MEM_RELEASE);
 
                 if (r == 1) {
+                    Log("WD: TeamRoster SUCCESS! Sending Rename+Reskin...");
                     // RequestRename (0x66)
                     BYTE *rn = (BYTE*)VirtualAlloc(NULL, 0x100, MEM_COMMIT, PAGE_READWRITE);
                     memset(rn, 0, 0x100);
@@ -993,7 +996,8 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     *(long long*)(rn+1) = 1; *(DWORD*)(rn+9) = 0;
                     *(DWORD*)(rn+13) = 7; memcpy(rn+17, "Player1", 7);
                     memset(outputBuf, 0, 0x20);
-                    r = inject((void*)*dispObj, rn, outputBuf, 0, NULL, 1);
+                    memset(metadataBuf, 0, sizeof(metadataBuf));
+                    r = inject((void*)*dispObj, rn, outputBuf, 0, metadataBuf, 1);
                     Log("WD: Rename result=%d", r);
                     VirtualFree(rn, 0, MEM_RELEASE);
 
@@ -1004,9 +1008,15 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     *(long long*)(rs+1) = 1; *(DWORD*)(rs+9) = 0;
                     *(DWORD*)(rs+13) = 6; memcpy(rs+17, "Ezreal", 6);
                     memset(outputBuf, 0, 0x20);
-                    r = inject((void*)*dispObj, rs, outputBuf, 0, NULL, 1);
+                    memset(metadataBuf, 0, sizeof(metadataBuf));
+                    r = inject((void*)*dispObj, rs, outputBuf, 0, metadataBuf, 1);
                     Log("WD: Reskin result=%d", r);
                     VirtualFree(rs, 0, MEM_RELEASE);
+                }
+                // vtable[3] stores result in metadataBuf[0]. Store in handler[+0x2C].
+                if (metadataBuf[0]) {
+                    *(DWORD*)(hp + 0x2C) = metadataBuf[0];
+                    Log("WD: stored metadataBuf[0]=%p in handler[+0x2C]", (void*)metadataBuf[0]);
                 }
                 Log("WD: after injection: [+0x10]=%p [+0x14]=%p [+0x2C]=%p",
                     (void*)*(DWORD*)(hp+0x10), (void*)*(DWORD*)(hp+0x14),
