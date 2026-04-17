@@ -151,14 +151,19 @@ namespace PacketDefinitions420
             // Sometimes we try to send packets to a user that doesn't exist (like in broadcast when not all players are connected).
             if (0 <= userId && userId < _peers.Length && _peers[userId] != null)
             {
-                // 7.13 format adapter: prepend 4 zero bytes so the 4.20 opcode
-                // (at source[0]) lands at offset +4 where the 7.13 client reads
-                // its 2-byte LE opcode. Only for game channels — NOT handshake.
+                // 7.13 format adapter: convert 4.20 packet to 7.13 wire format.
+                // 4.20: [opcode:1B][payload...]
+                // 7.13: [header:4B][opcode:2B LE][payload...]
+                // Insert 4-byte header + expand opcode from 1B to 2B (add high byte 0x00).
                 byte[] toSend = source;
-                if (channelNo != Channel.CHL_HANDSHAKE)
+                if (channelNo != Channel.CHL_HANDSHAKE && source.Length >= 1)
                 {
-                    toSend = new byte[source.Length + 4];
-                    System.Buffer.BlockCopy(source, 0, toSend, 4, source.Length);
+                    toSend = new byte[source.Length + 5]; // +4 header + 1 opcode high byte
+                    // toSend[0..3] = 0 (header)
+                    toSend[4] = source[0];  // opcode low byte
+                    toSend[5] = 0;          // opcode high byte (2-byte LE, always < 256)
+                    if (source.Length > 1)
+                        System.Buffer.BlockCopy(source, 1, toSend, 6, source.Length - 1);
                 }
 
                 byte[] temp;
@@ -179,10 +184,16 @@ namespace PacketDefinitions420
         public bool BroadcastPacket(byte[] data, Channel channelNo, PacketFlags flag = PacketFlags.RELIABLE)
         {
             // 7.13 format adapter (same as SendPacket, game channels only)
-            var adapted = new byte[data.Length + 4];
-            System.Buffer.BlockCopy(data, 0, adapted, 4, data.Length);
-
-            if (channelNo == Channel.CHL_HANDSHAKE)
+            byte[] adapted;
+            if (channelNo != Channel.CHL_HANDSHAKE && data.Length >= 1)
+            {
+                adapted = new byte[data.Length + 5];
+                adapted[4] = data[0];  // opcode low
+                adapted[5] = 0;        // opcode high
+                if (data.Length > 1)
+                    System.Buffer.BlockCopy(data, 1, adapted, 6, data.Length - 1);
+            }
+            else
             {
                 adapted = data;
             }

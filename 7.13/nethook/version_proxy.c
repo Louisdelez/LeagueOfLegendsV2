@@ -408,24 +408,28 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
     HMODULE hExe = GetModuleHandleA(NULL);
     if (!hExe) { Log("WD: no exe handle"); return 0; }
     BYTE *base = (BYTE*)hExe;
-    // PE preferred base is 0x00400000 for this binary. The static VA 0x01AA4254
-    // was taken from a preferred-base disassembly, so RVA = VA - 0x00400000.
-    DWORD flagRVA = 0x01AA4254 - 0x00400000;
-    BYTE *flag = base + flagRVA;
-    Log("WD: start, hExe=%p, flag=%p (RVA 0x%08lX)", base, flag, flagRVA);
+
+    // Target flags (VA = preferred_base + RVA):
+    // [0x1E84F73] = server-response flag → exits "Waiting for server response" loop
+    // [0x1E84F72] = version-match flag → passes version check
+    BYTE *flagResp = base + (0x01E84F73 - 0x00400000);
+    BYTE *flagVer  = base + (0x01E84F72 - 0x00400000);
+
+    Log("WD: start, flagResp=%p flagVer=%p", flagResp, flagVer);
+
+    // Wait 10s for packets to arrive and be processed by the network tick
+    Sleep(10000);
+
     DWORD oldProt;
-    if (!VirtualProtect(flag, 4, PAGE_READWRITE, &oldProt)) {
+    if (VirtualProtect(flagResp, 2, PAGE_READWRITE, &oldProt)) {
+        Log("WD: before: resp=%02X ver=%02X", *flagResp, *flagVer);
+        *flagResp = 1;
+        *flagVer = 1;
+        VirtualProtect(flagResp, 2, oldProt, &oldProt);
+        Log("WD: wrote both flags to 1");
+    } else {
         Log("WD: VirtualProtect err=%lu", GetLastError());
-        return 0;
     }
-    Log("WD: initial value=%08lX", *(volatile DWORD*)flag);
-    Sleep(3000); // let client boot + handshake
-    Log("WD: post-sleep value=%08lX, begin continuous poke", *(volatile DWORD*)flag);
-    for (int i = 0; i < 100; i++) {
-        *(volatile DWORD*)flag = 1;
-        Sleep(100);
-    }
-    Log("WD: done, final=%08lX", *(volatile DWORD*)flag);
     return 0;
 }
 
@@ -758,8 +762,15 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
             }
         }
 
-        // Watchdog thread disabled (see notes above).
-        (void)FlagWatchdog;
+        // Watchdog: after 10s delay (let packets arrive + process), force both
+        // server-response and version-match flags to 1. This exits the wait
+        // loop naturally and bypasses the version check.
+        {
+            static struct { BYTE *base; } wdCtx;
+            wdCtx.base = (BYTE*)GetModuleHandleA(NULL);
+            CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)FlagWatchdog, &wdCtx, 0, NULL);
+        }
+        (void)0;
 
         // IAT hooks for TerminateProcess/ExitProcess removed — caused segfaults.
         // PATCH4+PATCH6 now handle the version-mismatch exit properly.
