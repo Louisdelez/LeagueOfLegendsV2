@@ -399,6 +399,9 @@ namespace PacketDefinitions420
                 result = result && SendPacket(peerInfo.ClientId, response.GetBytes(), Channel.CHL_HANDSHAKE);
             }
 
+            // 7.13: probe and immediate start DISABLED — let forcedStart timer handle it.
+            // Packets sent too early cause assertion before auth completes.
+#if false
             // 7.13: send a probe packet on CHL_LOADING_SCREEN (channel 7) to trigger
             // the handler at [edi+0x34]. The handler accepts: type=3, channel=7,
             // length=37, data[0]=0x10. This should reach the real game handler 0xA63710.
@@ -410,27 +413,8 @@ namespace PacketDefinitions420
                 Console.WriteLine("[PROBE] Sent 37B loading-screen packet (0x10) on CHL_LOADING_SCREEN");
             }
 
-            // 7.13: trigger game start immediately after auth so game-content
-            // packets reach the client before it tries to load game data.
-            try {
-                _game.GetType().GetMethod("ImmediateStart",
-                    System.Reflection.BindingFlags.NonPublic |
-                    System.Reflection.BindingFlags.Public |
-                    System.Reflection.BindingFlags.Instance)?.Invoke(_game, null);
-            } catch {}
-            // Fallback: directly invoke the game start handler
-            try {
-                var startHandler = _game.GetType()
-                    .GetField("_gameStartHandler",
-                        System.Reflection.BindingFlags.NonPublic |
-                        System.Reflection.BindingFlags.Instance)?.GetValue(_game);
-                if (startHandler != null) {
-                    startHandler.GetType().GetMethod("ForceStart")?.Invoke(startHandler, null);
-                    Console.WriteLine("[IMMEDIATE] ForceStart invoked from HandleHandshake");
-                }
-            } catch (System.Exception ex) {
-                Console.WriteLine($"[IMMEDIATE] ForceStart error: {ex.Message}");
-            }
+            // Immediate ForceStart disabled — using forcedStart timer instead.
+#endif
 
             // only if all packets were sent successfully return true
             return result;

@@ -1406,13 +1406,14 @@ namespace PacketDefinitions420
             {
                 EnablePause = true
             };
+            // 7.13: loading-screen channel
             if (userId < 0)
             {
-                _packetHandlerManager.BroadcastPacket(start.GetBytes(), Channel.CHL_S2C);
+                _packetHandlerManager.BroadcastPacket(start.GetBytes(), Channel.CHL_LOADING_SCREEN);
             }
             else
             {
-                _packetHandlerManager.SendPacket(userId, start.GetBytes(), Channel.CHL_S2C);
+                _packetHandlerManager.SendPacket(userId, start.GetBytes(), Channel.CHL_LOADING_SCREEN);
             }
         }
 
@@ -3122,7 +3123,8 @@ namespace PacketDefinitions420
             {
                 Response = true
             };
-            _packetHandlerManager.SendPacket(userId, response.GetBytes(), Channel.CHL_S2C);
+            // 7.13: loading-screen channel for unencrypted dispatch
+            _packetHandlerManager.SendPacket(userId, response.GetBytes(), Channel.CHL_LOADING_SCREEN);
         }
 
         /// <summary>
@@ -3219,13 +3221,14 @@ namespace PacketDefinitions420
                 BotCountOrder = 0,
                 BotCountChaos = 0
             };
+            // 7.13: loading-screen channel
             if (userId < 0)
             {
-                _packetHandlerManager.BroadcastPacket(start.GetBytes(), Channel.CHL_S2C);
+                _packetHandlerManager.BroadcastPacket(start.GetBytes(), Channel.CHL_LOADING_SCREEN);
             }
             else
             {
-                _packetHandlerManager.SendPacket(userId, start.GetBytes(), Channel.CHL_S2C);
+                _packetHandlerManager.SendPacket(userId, start.GetBytes(), Channel.CHL_LOADING_SCREEN);
             }
         }
 
@@ -3776,7 +3779,8 @@ namespace PacketDefinitions420
 
             // TODO: syncVersion.EnabledDradisMessages
 
-            _packetHandlerManager.SendPacket(userId, syncVersion.GetBytes(), Channel.CHL_S2C);
+            // 7.13: loading-screen channel for unencrypted dispatch
+            _packetHandlerManager.SendPacket(userId, syncVersion.GetBytes(), Channel.CHL_LOADING_SCREEN);
         }
 
         /// <summary>

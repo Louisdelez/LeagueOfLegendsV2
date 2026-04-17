@@ -443,9 +443,21 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
         *flagResp = 1;
         *flagVer = 1;
         VirtualProtect(flagResp, 2, oldProt, &oldProt);
-        Log("WD: wrote both flags to 1");
+        Log("WD: wrote resp+ver flags to 1");
+    }
+
+    // Also set [edi+0x29] = 1 (connection flag) using saved EDI from BFDEC hook
+    if (g_saved_edi) {
+        BYTE *ediP = (BYTE*)g_saved_edi;
+        DWORD op2;
+        if (VirtualProtect(ediP + 0x29, 1, PAGE_READWRITE, &op2)) {
+            Log("WD: edi=%p [+0x29] before=%u", (void*)g_saved_edi, ediP[0x29]);
+            ediP[0x29] = 1;
+            VirtualProtect(ediP + 0x29, 1, op2, &op2);
+            Log("WD: set [edi+0x29]=1 via g_saved_edi");
+        }
     } else {
-        Log("WD: VirtualProtect err=%lu", GetLastError());
+        Log("WD: g_saved_edi not set, skipping [edi+0x29]");
     }
     return 0;
 }
@@ -704,18 +716,10 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     if (p8[0] == 0x80 && p8[1] == 0x7F && p8[2] == 0x29 && p8[3] == 0x00
                         && p8[4] == 0x90 /* from PATCH5 */) {
                         DWORD oldProt;
-                        if (VirtualProtect(p8, 10, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                            // Instead of just setting [edi+0x29], use a DETOUR
-                            // that logs edi's key fields then sets the flag.
-                            // For now, keep the inline patch but also dump edi
-                            // from the BF decrypt hook (edi should be preserved).
-                            p8[0] = 0xC6; p8[1] = 0x47; p8[2] = 0x29; p8[3] = 0x01;
-                            p8[4] = 0x90; p8[5] = 0x90; p8[6] = 0x90;
-                            p8[7] = 0x90; p8[8] = 0x90; p8[9] = 0x90;
-                            FlushInstructionCache(GetCurrentProcess(), p8, 10);
-                            VirtualProtect(p8, 10, oldProt, &oldProt);
-                            Log("PATCH9: wrote mov byte [edi+0x29],1");
-                        }
+                        // PATCH9 DISABLED inline — moved to watchdog after 10s delay.
+                        // Setting [edi+0x29]=1 during KeyCheck broke auth.
+                        Log("PATCH9: inline DISABLED (using watchdog + g_saved_edi)");
+                        (void)oldProt;
                     } else {
                         Log("PATCH9: bytes mismatch");
                     }
@@ -727,13 +731,14 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                 // With this patch, they go through the same path as type-1.
                 {
                     BYTE *p10 = base + 0x475A01;
-                    if (p10[0] == 0x83 && p10[1] == 0xF8 && p10[2] == 0x01) {
+                    if (p10[0] == 0x83 && p10[1] == 0xF8) {
                         DWORD oldProt;
-                        if (VirtualProtect(p10, 3, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                            p10[2] = 0x03;  // cmp eax, 3
-                            FlushInstructionCache(GetCurrentProcess(), p10, 3);
-                            VirtualProtect(p10, 3, oldProt, &oldProt);
-                            Log("PATCH10: cmp eax,1 → cmp eax,3 (type-3 packets → case-1 path)");
+                        // NOP the cmp(3B) + jne(6B) = 9 bytes so ALL types go through case-1
+                        if (VirtualProtect(p10, 9, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                            for (int i = 0; i < 9; i++) p10[i] = 0x90;
+                            FlushInstructionCache(GetCurrentProcess(), p10, 9);
+                            VirtualProtect(p10, 9, oldProt, &oldProt);
+                            Log("PATCH10: NOPed cmp+jne (ALL types → case-1 path)");
                         }
                     }
                 }
