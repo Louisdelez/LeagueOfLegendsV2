@@ -1013,13 +1013,22 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                 BYTE flag40 = session ? ((BYTE*)session)[0x40] : 0;
                 Log("WD: tick %d session=%p [+0x40]=%02X disp=%p handler=%p",
                     tick, (void*)session, flag40, (void*)*dispObj, (void*)*lsHandler);
-                if (session && (flag40 & 3)) {
-                    typedef void (__thiscall *LSTickFn)(void*);
-                    LSTickFn lsTick = (LSTickFn)((DWORD)hExe + 0x543CC0);
-                    Log("WD: calling LS tick (flag=%02X)!", flag40);
-                    lsTick((void*)session);
-                    Log("WD: LS tick returned! [+0x40]=%02X",
-                        ((BYTE*)session)[0x40]);
+                if (session) {
+                    // Force set LS flag and call tick
+                    if (!(flag40 & 3)) {
+                        ((BYTE*)session)[0x40] |= 1;  // force LS data available
+                        flag40 = ((BYTE*)session)[0x40];
+                        if (tick == 0 || tick == 2)
+                            Log("WD: FORCED [+0x40]=%02X", flag40);
+                    }
+                    if (flag40 & 3) {
+                        typedef void (__thiscall *LSTickFn)(void*);
+                        LSTickFn lsTick = (LSTickFn)((DWORD)hExe + 0x543CC0);
+                        lsTick((void*)session);
+                        BYTE newFlag = ((BYTE*)session)[0x40];
+                        if (tick < 3)
+                            Log("WD: LS tick done [+0x40]=%02X", newFlag);
+                    }
                 }
                 // Draw player info directly on game window via GDI overlay
                 if (tick < 5) {
