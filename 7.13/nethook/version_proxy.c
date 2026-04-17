@@ -762,40 +762,91 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                 }
             }
 
-            // Set handler[+0x10] to an object where [+0]=NULL vtable.
-            // The crash address when [vtable+offset] is accessed tells us
-            // which vtable method the reader needs.
-            if (*lsHandler && *(DWORD*)((BYTE*)*lsHandler + 0x10) == 0) {
-                BYTE *probe = (BYTE*)VirtualAlloc(NULL, 0x100, MEM_COMMIT, PAGE_READWRITE);
-                if (probe) {
-                    memset(probe, 0, 0x100);
-                    // [+0] = 0 (null vtable) — crash at vtable[N] reveals offset
-                    *(DWORD*)(probe + 0) = 0;
-                    *(DWORD*)((BYTE*)*lsHandler + 0x10) = (DWORD)probe;
-                    Log("WD: handler[+0x10] = %p (null-vtable probe)", probe);
+            // PATCH14: In handler vtable[1] at 0xCEBBB0 (RVA 0x8EBBB0),
+            // when handler[+0x10] is NULL, the reader is skipped and data can't parse.
+            // Patch: instead of skipping, copy raw data ptr to the output string directly.
+            // At CEBC08: test ecx, ecx; je +0x22 (skip reader)
+            // Patch the JE to NOP — let it fall through.
+            // But ecx=0 would crash at `call [eax+4]`.
+            // So instead, patch to set the output string from raw data directly.
+            //
+            // Actually simpler: the reader at [+0x10] is just needed to deserialize.
+            // In fullInit, handler[+8] was set to 0 by 0x5F04E0.
+            // Maybe handler[+8] IS the channel/connection used internally.
+            // Let me just skip the [+0x10] check by patching je to jmp past
+            // the string-from-reader section, and instead inject the raw data
+            // directly to the parse function's input.
+            //
+            // SIMPLEST: create a fake reader with a vtable whose [1] just
+            // copies raw data bytes to the output std::string.
+            // Reader vtable[1] signature:
+            //   __thiscall(this, output_str*, out2*, out3*, raw_data*, type_byte)
+            // We write a small ASM stub that does:
+            //   mov eax, [esp+0x10]  ; raw_data
+            //   mov [???], eax       ; set output... too complex
+            //
+            // EVEN SIMPLER: just set handler[+0x10] = g_saved_edi (connection obj).
+            // handler[+0x10] is read as an object with a vtable. The connection obj
+            // at EDI has a vtable at [+0]. If the vtable[1] happens to be compatible,
+            // it might work. Long shot but safe to try (VEH catches crashes).
+            if (*lsHandler) {
+                BYTE *hp = (BYTE*)*lsHandler;
+                if (*(DWORD*)(hp + 0x10) == 0 && g_saved_edi) {
+                    *(DWORD*)(hp + 0x10) = g_saved_edi;
+                    Log("WD: set handler[+0x10] = g_saved_edi (%p)", (void*)g_saved_edi);
                 }
             }
 
-            // Call dispatch vtable[3] to inject data — will crash at the reader access point
+            // Inject loading-screen data via dispatch vtable[3].
+            // Handler now properly initialized (fullInit=1, [+8]=valid, [+0xC]=1).
             if (*dispObj && *lsHandler) {
                 DWORD dv = *(DWORD*)*dispObj;
                 DWORD vt3 = *(DWORD*)(dv + 0x0C);
-
-                BYTE *rawData = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
-                memset(rawData, 0, 0x200);
-                rawData[0] = 0x67;
-                *(DWORD*)(rawData + 1) = 6;
-                *(DWORD*)(rawData + 5) = 6;
-                *(long long*)(rawData + 9) = 1;
-                *(DWORD*)(rawData + 393) = 1;
-
-                BYTE outputBuf[0x20] = {0};
                 typedef int (__thiscall *InjectFn)(void*, void*, void*, DWORD, void*, DWORD);
                 InjectFn inject = (InjectFn)vt3;
-                Log("WD: calling vtable[3] with 0xDEADBEEF reader probe...");
-                int r = inject((void*)*dispObj, rawData, outputBuf, 0, NULL, 1);
-                Log("WD: vtable[3] returned %d (if we get here, no crash!)", r);
-                VirtualFree(rawData, 0, MEM_RELEASE);
+                BYTE outputBuf[0x20];
+                BYTE *hp = (BYTE*)*lsHandler;
+                Log("WD: handler[+0x10]=%p before injection", (void*)*(DWORD*)(hp+0x10));
+
+                // TeamRosterUpdate (0x67)
+                BYTE *roster = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
+                memset(roster, 0, 0x200);
+                roster[0] = 0x67;
+                *(DWORD*)(roster+1) = 6; *(DWORD*)(roster+5) = 6;
+                *(long long*)(roster+9) = 1;
+                *(DWORD*)(roster+393) = 1;
+                memset(outputBuf, 0, 0x20);
+                Log("WD: injecting TeamRoster...");
+                int r = inject((void*)*dispObj, roster, outputBuf, 0, NULL, 1);
+                Log("WD: TeamRoster result=%d handler[+0x10]=%p", r, (void*)*(DWORD*)(hp+0x10));
+                VirtualFree(roster, 0, MEM_RELEASE);
+
+                if (r == 1) {
+                    // RequestRename (0x66)
+                    BYTE *rn = (BYTE*)VirtualAlloc(NULL, 0x100, MEM_COMMIT, PAGE_READWRITE);
+                    memset(rn, 0, 0x100);
+                    rn[0] = 0x66;
+                    *(long long*)(rn+1) = 1; *(DWORD*)(rn+9) = 0;
+                    *(DWORD*)(rn+13) = 7; memcpy(rn+17, "Player1", 7);
+                    memset(outputBuf, 0, 0x20);
+                    r = inject((void*)*dispObj, rn, outputBuf, 0, NULL, 1);
+                    Log("WD: Rename result=%d", r);
+                    VirtualFree(rn, 0, MEM_RELEASE);
+
+                    // RequestReskin (0x65)
+                    BYTE *rs = (BYTE*)VirtualAlloc(NULL, 0x100, MEM_COMMIT, PAGE_READWRITE);
+                    memset(rs, 0, 0x100);
+                    rs[0] = 0x65;
+                    *(long long*)(rs+1) = 1; *(DWORD*)(rs+9) = 0;
+                    *(DWORD*)(rs+13) = 6; memcpy(rs+17, "Ezreal", 6);
+                    memset(outputBuf, 0, 0x20);
+                    r = inject((void*)*dispObj, rs, outputBuf, 0, NULL, 1);
+                    Log("WD: Reskin result=%d", r);
+                    VirtualFree(rs, 0, MEM_RELEASE);
+                }
+                Log("WD: after injection: [+0x10]=%p [+0x14]=%p [+0x2C]=%p",
+                    (void*)*(DWORD*)(hp+0x10), (void*)*(DWORD*)(hp+0x14),
+                    (void*)*(DWORD*)(hp+0x2C));
             }
 
             // Call subVT[3] DIRECTLY with loading-screen data
