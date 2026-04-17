@@ -939,9 +939,33 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                         Log("WD: Reskin=%d", r);
                         VirtualFree(rs, 0, MEM_RELEASE);
 
-                        // vtable[2] expects args, don't call as tick
                         Log("WD: injection complete, handler[+0x2C]=%p",
                             (void*)*(DWORD*)(hp+0x2C));
+
+                        // NOW dispatch opcode 3 to advance game to loading state
+                        // This sets version+map+response flags
+                        {
+                            typedef int (__thiscall *DispatchFn)(void *ecx);
+                            DispatchFn dispatch = (DispatchFn)((DWORD)hExe + 0x3EF8F0);
+                            BYTE *fakeOp3 = (BYTE*)VirtualAlloc(NULL, 0x1000, MEM_COMMIT, PAGE_READWRITE);
+                            if (fakeOp3) {
+                                memset(fakeOp3, 0, 0x1000);
+                                *(WORD*)(fakeOp3 + 4) = 3;
+                                fakeOp3[0x56] = 0x71;
+                                fakeOp3[0xC20] = 0xB7; fakeOp3[0xC21] = 0xB0;
+                                fakeOp3[0xC22] = 0xB0; fakeOp3[0xC23] = 0xB0;
+                                const char *ver = "Version 7.13.192.6794 [PUBLIC]";
+                                int vlen = strlen(ver);
+                                memcpy(fakeOp3 + 0x263, ver, vlen);
+                                *(DWORD*)(fakeOp3 + 0x263 + 0x14) = vlen;
+                                *(DWORD*)(fakeOp3 + 0x263 + 0x18) = 0xF;
+                                Log("WD: dispatching opcode 3 (advance to loading)...");
+                                dispatch((void*)fakeOp3);
+                                Log("WD: opcode 3 done! resp=%02X ver=%02X",
+                                    *flagResp, *flagVer);
+                                VirtualFree(fakeOp3, 0, MEM_RELEASE);
+                            }
+                        }
                     }
                 }
             }
