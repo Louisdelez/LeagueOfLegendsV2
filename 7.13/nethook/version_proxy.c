@@ -972,9 +972,8 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                         Log("WD: injection complete, handler[+0x2C]=%p",
                             (void*)*(DWORD*)(hp+0x2C));
 
-                        // Wait 5s for stability, then dispatch opcode 3
-                        Log("WD: waiting 5s before opcode 3...");
-                        Sleep(5000);
+                        // Quick dispatch of opcode 3
+                        Sleep(500);
 
                         // Dispatch opcode 3 to advance game to loading state
                         // This sets version+map+response flags
@@ -1015,16 +1014,7 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                                 VirtualFree(tipPkt, 0, MEM_RELEASE);
                             }
 
-                            // Also dispatch opcode 92 (S2C_StartGame)
-                            BYTE *startPkt = (BYTE*)VirtualAlloc(NULL, 0x20, MEM_COMMIT, PAGE_READWRITE);
-                            if (startPkt) {
-                                memset(startPkt, 0, 0x20);
-                                *(WORD*)(startPkt + 4) = 92;  // opcode 0x5C
-                                Log("WD: dispatching opcode 92 (StartGame)...");
-                                dispatch(startPkt);
-                                Log("WD: opcode 92 done!");
-                                VirtualFree(startPkt, 0, MEM_RELEASE);
-                            }
+                            // Opcode 92 (StartGame) DISABLED — makes game exit faster
                         }
                     }
                 }
