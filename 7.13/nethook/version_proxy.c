@@ -525,8 +525,10 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             BYTE *fakeBatch = (BYTE*)VirtualAlloc(NULL, 0x2000, MEM_COMMIT, PAGE_READWRITE);
             if (fakeBatch) {
                 memset(fakeBatch, 0, 0x2000);
-                // Key opcodes from opcodes.txt (non-default handlers):
-                int opcodes[] = {4, 8, 10, 14, 15, 19, 27, 28, 32, 33};
+                // Non-default opcodes from opcodes.txt. Skip 10 (crashes).
+                // Use a larger buffer for handlers that read deep offsets.
+                int opcodes[] = {4, 8, 14, 15, 19, 27, 28, 32, 33, 35, 36,
+                                 38, 42, 43, 45, 50, 51, 57, 59, 62, 63, 68, 69};
                 int nOps = sizeof(opcodes) / sizeof(opcodes[0]);
                 for (int i = 0; i < nOps; i++) {
                     memset(fakeBatch, 0, 0x2000);
