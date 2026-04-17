@@ -660,21 +660,9 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     r = hvt2((void*)*lsHandler, champData, 0, NULL, &type67, workBuf);
                     Log("WD: handler vtable[2] PlayerChampion returned %d!", r);
 
-                    // Wait for game to stabilize past PlayGame Entered, then
-                    // set handler[+0x10] and retry with proper connection context.
-                    Log("WD: waiting 5s for PlayGame Entered...");
-                    Sleep(5000);
-                    BYTE *hp = (BYTE*)*lsHandler;
-                    if (g_saved_edi && hp) {
-                        *(DWORD*)(hp + 0x10) = g_saved_edi;
-                        Log("WD: set handler[+0x10]=%p (delayed)", (void*)g_saved_edi);
-
-                        // Retry PlayerName with connection context
-                        memset(workBuf, 0, 0x40);
-                        type65 = 0x65;
-                        r = hvt2((void*)*lsHandler, nameData, 0, NULL, &type65, workBuf);
-                        Log("WD: RETRY PlayerName with [+0x10] → returned %d!", r);
-                    }
+                    // 0x5F04E0 crashes with NULL arg. handler[+0x10] remains unsolved.
+                    // Handler processes data (returns 66) but can't decode without
+                    // the connection context at [+0x10].
 
                     VirtualFree(workBuf, 0, MEM_RELEASE);
                 }
