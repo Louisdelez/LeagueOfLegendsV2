@@ -36,22 +36,44 @@ __declspec(dllexport) BOOL  WINAPI VerQueryValueW(LPCVOID b, LPCWSTR s, LPVOID *
 // so null-pointer reads/writes go to valid memory instead of crashing.
 static void *g_dummyPage = NULL;
 
+static volatile int g_vehCrashCount = 0;
+
 static LONG CALLBACK NullGuardHandler(PEXCEPTION_POINTERS ex) {
     if (ex->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION) {
         DWORD addr = (DWORD)ex->ExceptionRecord->ExceptionInformation[1];
         if (addr < 0x10000 && !g_dummyPage) {
-            // First null-access: allocate a dummy page at the target address
             g_dummyPage = VirtualAlloc((void*)(addr & ~0xFFF), 0x10000,
                                        MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
             if (g_dummyPage) {
                 memset(g_dummyPage, 0, 0x10000);
-                return EXCEPTION_CONTINUE_EXECUTION; // retry the instruction
+                return EXCEPTION_CONTINUE_EXECUTION;
             }
         } else if (addr < 0x10000 && g_dummyPage) {
-            // Dummy page exists but still crashing — skip instruction
             ex->ContextRecord->Eip += 1;
             return EXCEPTION_CONTINUE_EXECUTION;
         }
+        // Catch ALL access violations — log and skip
+        ++g_vehCrashCount;
+        // Skip the faulting instruction (advance EIP by estimated size)
+        // Read the opcode to guess instruction length
+        BYTE *ip = (BYTE*)ex->ContextRecord->Eip;
+        int skip = 1;
+        if (!IsBadReadPtr(ip, 4)) {
+            if (ip[0] == 0xFF) skip = 2;       // call/jmp [reg+off]
+            else if (ip[0] == 0x8B) skip = 2;  // mov reg, [reg+off]
+            else if (ip[0] == 0x89) skip = 2;  // mov [reg+off], reg
+            else if (ip[0] == 0x0F) skip = 3;  // SSE/CMOVcc etc
+            else if (ip[0] == 0xA1) skip = 5;  // mov eax, [imm32]
+        }
+        ex->ContextRecord->Eip += skip;
+        ex->ContextRecord->Eax = 0; // return 0 from any read
+        return EXCEPTION_CONTINUE_EXECUTION;
+    }
+    // Also catch other exceptions (like illegal instruction)
+    if (ex->ExceptionRecord->ExceptionCode == EXCEPTION_ILLEGAL_INSTRUCTION ||
+        ex->ExceptionRecord->ExceptionCode == EXCEPTION_PRIV_INSTRUCTION) {
+        ex->ContextRecord->Eip += 1;
+        return EXCEPTION_CONTINUE_EXECUTION;
     }
     return EXCEPTION_CONTINUE_SEARCH;
 }
