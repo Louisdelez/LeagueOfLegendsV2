@@ -586,6 +586,37 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                     Log("PATCH3: scan done, %d hits (DISABLED — keep client in wait loop)", p3Hits);
                 }
+
+                // PATCH5: force post-decrypt packet processing by NOPing the
+                // `je` that skips when byte [edi+0x29] == 0.
+                // At RVA 0x475A63: 80 7F 29 00 (cmp byte [edi+0x29],0)
+                //                  0F 84 88 01 00 00 (je long +0x188)
+                // NOP the 6-byte je so packets always flow to the dispatcher queue.
+                {
+                    BYTE p5needle[] = {0x80, 0x7F, 0x29, 0x00, 0x0F, 0x84};
+                    DWORD p5Start = 0x475A00, p5End = 0x475B00;
+                    int p5Hits = 0;
+                    for (DWORD off = p5Start; off < p5End - sizeof(p5needle); off++) {
+                        BYTE *q = base + off;
+                        int match = 1;
+                        for (unsigned i = 0; i < sizeof(p5needle); i++) {
+                            if (q[i] != p5needle[i]) { match = 0; break; }
+                        }
+                        if (match) {
+                            p5Hits++;
+                            BYTE *je = q + 4;  // the 0F 84 ... (6 bytes)
+                            Log("PATCH5: found cmp+je @RVA 0x%06lX, NOPing je", off);
+                            DWORD oldProt;
+                            if (VirtualProtect(je, 6, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                                for (int i = 0; i < 6; i++) je[i] = 0x90;
+                                FlushInstructionCache(GetCurrentProcess(), je, 6);
+                                VirtualProtect(je, 6, oldProt, &oldProt);
+                                Log("PATCH5: NOPed 6 bytes @RVA 0x%06lX (force pkt queue)", off + 4);
+                            }
+                        }
+                    }
+                    Log("PATCH5: scan done, %d hits", p5Hits);
+                }
                 // PATCH3+4 DISABLED: keeping client alive in "Waiting for server
                 // response..." loop so we can observe BF::Decrypt hits from game
                 // content packets the server sends post-Patience.
