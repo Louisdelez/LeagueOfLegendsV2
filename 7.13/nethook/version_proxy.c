@@ -200,6 +200,55 @@ void __attribute__((cdecl, used)) LogFrom5BA9A0(DWORD this_ptr, DWORD arg0, DWOR
     }
 }
 
+// Blowfish::Decrypt detour @ RVA 0x32FDA0.
+// Signature: thiscall — ecx=BF context, [esp+4]=buf ptr, [esp+8]=len
+// We log BEFORE decryption (ciphertext). After trampoline runs and returns,
+// the buffer will contain plaintext — we could log that too but it's complex.
+static volatile DWORD g_tramp_BFDec_addr = 0;
+static volatile int g_hits_BFDec = 0;
+
+void __attribute__((cdecl, used)) LogFromBFDecrypt(DWORD this_ptr, DWORD buf, DWORD len, DWORD ret) {
+    int h = ++g_hits_BFDec;
+    if (h <= 30) {
+        BYTE *p = (BYTE*)buf;
+        int show = (int)len;
+        if (show > 32) show = 32;
+        char hex[128] = {0};
+        if (buf && !IsBadReadPtr(p, (unsigned)show)) {
+            for (int i = 0; i < show; i++) {
+                char tmp[4]; snprintf(tmp, 4, "%02X ", p[i]);
+                strcat(hex, tmp);
+            }
+        } else { strcpy(hex, "<bad>"); }
+        Log("BFDEC #%d ret=%p this=%p buf=%p len=%lu [%s]",
+            h, (void*)ret, (void*)this_ptr, (void*)buf, len, hex);
+    }
+}
+
+extern void Detour_BFDecrypt(void);
+__asm__(
+    ".text\n"
+    ".globl _Detour_BFDecrypt\n"
+    "_Detour_BFDecrypt:\n"
+    "    pushal\n"
+    "    pushfl\n"
+    // After pushal(32) + pushfl(4) = 36 bytes pushed.
+    // Original stack: [ESP+36]=retaddr, [ESP+40]=buf, [ESP+44]=len
+    // Push args right-to-left for cdecl: ret, len, buf, this
+    "    mov 36(%esp), %eax\n"      // retaddr
+    "    push %eax\n"
+    "    mov 48(%esp), %eax\n"      // len (was +44, +4 from 1 push = +48)
+    "    push %eax\n"
+    "    mov 48(%esp), %eax\n"      // buf (was +40, +8 from 2 pushes = +48)
+    "    push %eax\n"
+    "    push %ecx\n"                // this
+    "    call _LogFromBFDecrypt\n"
+    "    add $16, %esp\n"
+    "    popfl\n"
+    "    popal\n"
+    "    jmp *_g_tramp_BFDec_addr\n"
+);
+
 extern void Detour_5BA9A0(void);
 __asm__(
     ".text\n"
@@ -503,23 +552,15 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                         }
                         if (match) {
                             p3Hits++;
-                            BYTE *jne = q + 7;  // the 0x75 byte
-                            Log("PATCH3: found cmp+jne-short @RVA 0x%06lX rel8=%02X",
-                                off, jne[1]);
-                            DWORD oldProt;
-                            if (VirtualProtect(jne, 2, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                                jne[0] = 0xEB;  // jmp short
-                                FlushInstructionCache(GetCurrentProcess(), jne, 2);
-                                VirtualProtect(jne, 2, oldProt, &oldProt);
-                                Log("PATCH3: jne->jmp @RVA 0x%06lX (skip server-response wait)", off + 7);
-                            } else {
-                                Log("PATCH3: VirtualProtect err=%lu", GetLastError());
-                            }
+                            Log("PATCH3: found pattern @RVA 0x%06lX (NOT patching)", off);
                         }
                     }
-                    Log("PATCH3: scan done, %d hits", p3Hits);
+                    Log("PATCH3: scan done, %d hits (DISABLED — keep client in wait loop)", p3Hits);
                 }
-
+                // PATCH3+4 DISABLED: keeping client alive in "Waiting for server
+                // response..." loop so we can observe BF::Decrypt hits from game
+                // content packets the server sends post-Patience.
+#if 0
                 // PATCH4: bypass the "Server/Client mismatch" log + shutdown.
                 // At RVA 0x4AA844:
                 //   cmp byte ptr [0x1E84F72], 0   ; 80 3D <byte_VA> 00
@@ -564,6 +605,7 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                     Log("PATCH4: scan done, %d hits", p4Hits);
                 }
+#endif
                 // Also dump 32 bytes around the originally-guessed RVA for reference
                 BYTE *ref = base + 0x5BAAA0;
                 char hex[128] = {0};
@@ -596,6 +638,24 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                         tramp_3EF8F0, (void*)Detour_3EF8F0);
                 } else {
                     Log("DETOUR: prologue mismatch, skipping install");
+                }
+
+                // Install Blowfish::Decrypt detour @ 0x32FDA0 (6-byte steal)
+                // This is THE choke point for all incoming encrypted packets.
+                {
+                    BYTE *tgtBF = (BYTE*)hExe + 0x32FDA0;
+                    Log("BFDECRYPT: @0x32FDA0 bytes: %02X %02X %02X %02X %02X %02X",
+                        tgtBF[0], tgtBF[1], tgtBF[2], tgtBF[3], tgtBF[4], tgtBF[5]);
+                    if (tgtBF[0] == 0x55 && tgtBF[1] == 0x8B && tgtBF[2] == 0xEC &&
+                        tgtBF[3] == 0x83 && tgtBF[4] == 0xE4 && tgtBF[5] == 0xF8) {
+                        static BYTE tramp_BFDec[32];
+                        MakeTrampolineN(tgtBF, tramp_BFDec, 6);
+                        g_tramp_BFDec_addr = (DWORD)tramp_BFDec;
+                        PatchJmpN(tgtBF, (void*)Detour_BFDecrypt, 6);
+                        Log("BFDECRYPT: installed, trampoline=%p", tramp_BFDec);
+                    } else {
+                        Log("BFDECRYPT: prologue mismatch, skipping");
+                    }
                 }
 
                 // Install pre-dispatch detour @ 0x5BA9A0 (6-byte steal)
