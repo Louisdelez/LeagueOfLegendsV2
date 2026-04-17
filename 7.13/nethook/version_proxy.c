@@ -249,6 +249,40 @@ __asm__(
     "    jmp *_g_tramp_BFDec_addr\n"
 );
 
+// Pre-processor/validator detour @ RVA 0x949C00. Returns al=1 when
+// packet is "handled" by pre-processor chain, 0 when unhandled → dispatcher fires.
+// We log args to understand the pattern, then can selectively force return 0.
+static BYTE tramp_949C00[32];
+static volatile DWORD g_tramp_949C00_addr = 0;
+static volatile int g_hits_949C00 = 0;
+
+void __attribute__((cdecl, used)) LogPreProc(DWORD this_ptr, DWORD arg0, DWORD arg1) {
+    int h = ++g_hits_949C00;
+    if (h <= 30) {
+        Log("PREPROC #%d this=%p arg0=0x%08lX arg1=0x%08lX",
+            h, (void*)this_ptr, arg0, arg1);
+    }
+}
+
+extern void Detour_949C00(void);
+__asm__(
+    ".text\n"
+    ".globl _Detour_949C00\n"
+    "_Detour_949C00:\n"
+    "    pushal\n"
+    "    pushfl\n"
+    "    mov 44(%esp), %eax\n"      // arg1 (ESP+8 before pushal → +44)
+    "    push %eax\n"
+    "    mov 44(%esp), %eax\n"      // arg0 (ESP+4 before → +40, +4 from push = +44)
+    "    push %eax\n"
+    "    push %ecx\n"
+    "    call _LogPreProc\n"
+    "    add $12, %esp\n"
+    "    popfl\n"
+    "    popal\n"
+    "    jmp *_g_tramp_949C00_addr\n"
+);
+
 extern void Detour_5BA9A0(void);
 __asm__(
     ".text\n"
@@ -650,6 +684,21 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                         Log("BFDECRYPT: installed, trampoline=%p", tramp_BFDec);
                     } else {
                         Log("BFDECRYPT: prologue mismatch, skipping");
+                    }
+                }
+
+                // Install pre-processor detour @ 0x949C00 (5-byte steal, standard prologue)
+                {
+                    BYTE *tgtPP = (BYTE*)hExe + 0x949C00;
+                    Log("PREPROC: @0x949C00 bytes: %02X %02X %02X %02X %02X",
+                        tgtPP[0], tgtPP[1], tgtPP[2], tgtPP[3], tgtPP[4]);
+                    if (tgtPP[0] == 0x55 && tgtPP[1] == 0x8B && tgtPP[2] == 0xEC) {
+                        MakeTrampoline5(tgtPP, tramp_949C00);
+                        g_tramp_949C00_addr = (DWORD)tramp_949C00;
+                        PatchJmp5(tgtPP, (void*)Detour_949C00);
+                        Log("PREPROC: installed");
+                    } else {
+                        Log("PREPROC: prologue mismatch");
                     }
                 }
 

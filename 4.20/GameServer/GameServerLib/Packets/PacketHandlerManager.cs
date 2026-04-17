@@ -153,20 +153,22 @@ namespace PacketDefinitions420
             {
                 // 7.13 format adapter: prepend 4 zero bytes so the 4.20 opcode
                 // (at source[0]) lands at offset +4 where the 7.13 client reads
-                // its 2-byte LE opcode. The high byte (source[1]) is typically 0
-                // for small opcodes, so word[4] = source[0] = correct opcode number.
-                var adapted = new byte[source.Length + 4];
-                // adapted[0..3] = 0 (header)
-                System.Buffer.BlockCopy(source, 0, adapted, 4, source.Length);
+                // its 2-byte LE opcode. Only for game channels — NOT handshake.
+                byte[] toSend = source;
+                if (channelNo != Channel.CHL_HANDSHAKE)
+                {
+                    toSend = new byte[source.Length + 4];
+                    System.Buffer.BlockCopy(source, 0, toSend, 4, source.Length);
+                }
 
                 byte[] temp;
-                if (adapted.Length >= 8)
+                if (toSend.Length >= 8)
                 {
-                    temp = _blowfishes[userId].Encrypt(adapted);
+                    temp = _blowfishes[userId].Encrypt(toSend);
                 }
                 else
                 {
-                    temp = adapted;
+                    temp = toSend;
                 }
                 int sr = _peers[userId].Send((byte)channelNo, new LENet.Packet(temp, flag));
                 return sr == 0;
@@ -176,9 +178,14 @@ namespace PacketDefinitions420
 
         public bool BroadcastPacket(byte[] data, Channel channelNo, PacketFlags flag = PacketFlags.RELIABLE)
         {
-            // 7.13 format adapter (same as SendPacket)
+            // 7.13 format adapter (same as SendPacket, game channels only)
             var adapted = new byte[data.Length + 4];
             System.Buffer.BlockCopy(data, 0, adapted, 4, data.Length);
+
+            if (channelNo == Channel.CHL_HANDSHAKE)
+            {
+                adapted = data;
+            }
 
             if (adapted.Length >= 8)
             {
