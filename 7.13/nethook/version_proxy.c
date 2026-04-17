@@ -667,6 +667,46 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                     Log("PATCH6: scan done, %d hits", p6Hits);
                 }
+
+                // PATCH7: fix the packet constructor's epilogue so [object+4]
+                // gets the REAL opcode from the raw packet instead of a BSS zero.
+                // Original @ RVA 0x7E6A59 (13 bytes):
+                //   A1 ?? ?? ?? ??   mov eax, [relocated 0x1AA1AEC]  ; = 0
+                //   89 41 04         mov [ecx+4], eax                ; obj+4 = 0
+                //   8B C1            mov eax, ecx                    ; return obj
+                //   C2 04 00         ret 4
+                // Replacement (13 bytes):
+                //   8B 41 08         mov eax, [ecx+8]     ; raw packet ptr
+                //   8B 40 04         mov eax, [eax+4]     ; dword at +4 (opcode)
+                //   89 41 04         mov [ecx+4], eax     ; store as dispatch key
+                //   91               xchg eax, ecx        ; eax = obj (1 byte!)
+                //   C2 04 00         ret 4
+                {
+                    BYTE *p7 = (BYTE*)hExe + 0x7E6A59;
+                    // Verify: first byte should be A1 (mov eax, [imm32])
+                    // and bytes +5..+7 should be 89 41 04
+                    Log("PATCH7: @0x7E6A59 bytes: %02X %02X%02X%02X%02X %02X%02X%02X %02X%02X %02X%02X%02X",
+                        p7[0], p7[1],p7[2],p7[3],p7[4], p7[5],p7[6],p7[7], p7[8],p7[9], p7[10],p7[11],p7[12]);
+                    if (p7[0] == 0xA1 && p7[5] == 0x89 && p7[6] == 0x41 && p7[7] == 0x04
+                        && p7[10] == 0xC2 && p7[11] == 0x04 && p7[12] == 0x00) {
+                        DWORD oldProt;
+                        if (VirtualProtect(p7, 13, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                            BYTE patch[] = {
+                                0x8B, 0x41, 0x08,  // mov eax, [ecx+8]
+                                0x8B, 0x40, 0x04,  // mov eax, [eax+4]
+                                0x89, 0x41, 0x04,  // mov [ecx+4], eax
+                                0x91,              // xchg eax, ecx
+                                0xC2, 0x04, 0x00   // ret 4
+                            };
+                            memcpy(p7, patch, 13);
+                            FlushInstructionCache(GetCurrentProcess(), p7, 13);
+                            VirtualProtect(p7, 13, oldProt, &oldProt);
+                            Log("PATCH7: constructor epilogue patched (opcode from raw pkt)");
+                        }
+                    } else {
+                        Log("PATCH7: byte mismatch, skipping");
+                    }
+                }
                 // PATCH4: bypass the "Server/Client mismatch" log + shutdown.
                 // At RVA 0x4AA844:
                 //   cmp byte ptr [0x1E84F72], 0   ; 80 3D <byte_VA> 00
