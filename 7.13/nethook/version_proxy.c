@@ -437,27 +437,17 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
     // Wait 10s for packets to arrive and be processed by the network tick
     Sleep(10000);
 
+    // Watchdog now just LOGS flag values — does NOT write them.
+    // Let the timing sync packet advance state naturally.
     DWORD oldProt;
     if (VirtualProtect(flagResp, 2, PAGE_READWRITE, &oldProt)) {
-        Log("WD: before: resp=%02X ver=%02X", *flagResp, *flagVer);
-        *flagResp = 1;
-        *flagVer = 1;
+        Log("WD: resp=%02X ver=%02X", *flagResp, *flagVer);
         VirtualProtect(flagResp, 2, oldProt, &oldProt);
-        Log("WD: wrote resp+ver flags to 1");
     }
-
-    // Also set [edi+0x29] = 1 (connection flag) using saved EDI from BFDEC hook
     if (g_saved_edi) {
         BYTE *ediP = (BYTE*)g_saved_edi;
-        DWORD op2;
-        if (VirtualProtect(ediP + 0x29, 1, PAGE_READWRITE, &op2)) {
-            Log("WD: edi=%p [+0x29] before=%u", (void*)g_saved_edi, ediP[0x29]);
-            ediP[0x29] = 1;
-            VirtualProtect(ediP + 0x29, 1, op2, &op2);
-            Log("WD: set [edi+0x29]=1 via g_saved_edi");
-        }
-    } else {
-        Log("WD: g_saved_edi not set, skipping [edi+0x29]");
+        Log("WD: edi=%p [+0x29]=%u [+0x20]=0x%08lX",
+            (void*)g_saved_edi, ediP[0x29], *(DWORD*)(ediP+0x20));
     }
     return 0;
 }
@@ -759,22 +749,13 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     if (p11[0] == 0x8B) {  // mov eax, [esp+4]
                         DWORD oldProt;
                         if (VirtualProtect(p11, 25, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                            // Return true for type==3 AND channel!=0 (skip handshake)
-                            BYTE code[] = {
-                                0x8B, 0x44, 0x24, 0x04,  // mov eax, [esp+4]
-                                0x83, 0x38, 0x03,         // cmp dword [eax], 3
-                                0x75, 0x0B,               // jne +11 → false
-                                0x80, 0x78, 0x08, 0x00,   // cmp byte [eax+8], 0 (handshake ch?)
-                                0x74, 0x05,               // je +5 → false (skip handshake)
-                                0xB0, 0x01,               // mov al, 1
-                                0xC2, 0x04, 0x00,         // ret 4
-                                0x30, 0xC0,               // xor al, al
-                                0xC2, 0x04, 0x00          // ret 4
-                            };
-                            memcpy(p11, code, 25);
-                            FlushInstructionCache(GetCurrentProcess(), p11, 25);
+                            // PATCH11 DISABLED: let the ORIGINAL handler run.
+                            // The original handler at 0xBB8200 accepts:
+                            //   type==3 AND channel==7 AND len==37 AND data[0]==0x10
+                            // We now send a CORRECTLY formatted timing sync packet
+                            // that matches these exact criteria natively.
+                            Log("PATCH11: DISABLED — using native handler (correct timing pkt)");
                             VirtualProtect(p11, 25, oldProt, &oldProt);
-                            Log("PATCH11: handler TRUE for type==3 AND channel!=0");
                         }
                     }
                 }

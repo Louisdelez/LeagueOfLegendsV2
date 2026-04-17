@@ -401,8 +401,20 @@ namespace PacketDefinitions420
 
             // 7.13: probe and immediate start DISABLED — let forcedStart timer handle it.
             // Packets sent too early cause assertion before auth completes.
+            // 7.13: send timing sync packet (37B, type 0x10) on CHL_LOADING_SCREEN.
+            // This is the ONLY packet type the handler at [edi+0x34] accepts natively
+            // (type==3, channel==7, length==37, data[0]==0x10).
+            {
+                byte[] timingSync = new byte[37];
+                timingSync[0] = 0x10;  // timing packet type
+                timingSync[1] = 0x01;  // sequence = 1
+                // bytes 5..36 = timestamps (zeros = initial sync)
+                SendPacket(peerInfo.ClientId, timingSync, Channel.CHL_LOADING_SCREEN);
+                Console.WriteLine("[TIMING] Sent 37B timing sync on CHL_LOADING_SCREEN");
+            }
+
 #if false
-            // 7.13: send a probe packet on CHL_LOADING_SCREEN (channel 7) to trigger
+            // OLD probe (disabled)
             // the handler at [edi+0x34]. The handler accepts: type=3, channel=7,
             // length=37, data[0]=0x10. This should reach the real game handler 0xA63710.
             {
