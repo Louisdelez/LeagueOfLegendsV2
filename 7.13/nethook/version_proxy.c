@@ -735,11 +735,11 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             Log("WD: set [edi+0x29]=1");
         }
 
-        // DIRECT DISPATCHER CALL: bypass ALL intermediate layers.
-        // Create a fake packet object and call the 149-opcode dispatcher directly.
-        // Opcode 1 = QueryStatusAns → writes query-status flag [0x1AA4254]
-        // Opcode 3 = SynchVersionS2C → writes resp+ver flags
-        {
+        // OPCODES 1+3 DISABLED: they advance the state machine past loading.
+        // Without them, the game stays in "Waiting for server response" loop
+        // where loading-screen packets are processed via [edi+0x40] tick.
+        // PATCH2+4+6 bypass the flag checks so the game reaches the wait loop.
+        if (0) {
             HMODULE hExe = GetModuleHandleA(NULL);
             typedef int (__thiscall *DispatchFn)(void *ecx);
 
@@ -819,11 +819,10 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             Log("WD: globals: gameSession[0x1AA3FE4]=%p global2[0x1AA6AB0]=%p",
                 (void*)*gameSession, (void*)*global2);
 
-            // Game session and global2 are both NULL. Game opcodes that depend
-            // on them (CreateHero=99, StartGame=92, etc.) would crash.
-            // Fake session approach doesn't work (zero-filled → null derefs).
-            // The game session is created during proper loading sequence.
-            // Current stable config: opcodes 1+3 only → 8s game runtime.
+            // WITHOUT opcodes 1+3, game stays in "Waiting for server response" loop.
+            // The loop tick [edi+0x40] processes packets naturally.
+            // Monitor state — game should stay alive indefinitely now.
+            // Still call LoadScreenInit to ensure pool is ready for natural processing.
             // Call LoadScreenInit at RVA 0x633AF0 to properly create pool + dispatch object.
             // This function: creates pool at [0x189F360], allocates dispatch obj via pool,
             // sets vtable, stores at [0x1E77200]. Takes 1 arg: ptr where [arg+0] = pool param.
