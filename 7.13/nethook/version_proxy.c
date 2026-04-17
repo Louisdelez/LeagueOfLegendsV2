@@ -994,17 +994,20 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                 {
                     BYTE *p11 = base + (0xBB8200 - 0x400000);
                     Log("PATCH11: @0xBB8200=%02X %02X %02X %02X %02X", p11[0],p11[1],p11[2],p11[3],p11[4]);
-                    if (p11[0] == 0x8B) {  // mov eax, [esp+4]
+                    if (p11[0] == 0x8B && p11[0x14] == 0x8B && p11[0x15] == 0x40) {
+                        // Widen filter: after type=3 + channel=7 pass, return true
+                        // immediately (skip len==37 and data[0]==0x10 checks).
+                        // This lets TeamRoster(0x67), PlayerName(0x66), Champion(0x65) through.
                         DWORD oldProt;
-                        if (VirtualProtect(p11, 25, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                            // PATCH11 DISABLED: let the ORIGINAL handler run.
-                            // The original handler at 0xBB8200 accepts:
-                            //   type==3 AND channel==7 AND len==37 AND data[0]==0x10
-                            // We now send a CORRECTLY formatted timing sync packet
-                            // that matches these exact criteria natively.
-                            Log("PATCH11: DISABLED — using native handler (correct timing pkt)");
-                            VirtualProtect(p11, 25, oldProt, &oldProt);
+                        if (VirtualProtect(p11 + 0x14, 5, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                            p11[0x14] = 0xB0; p11[0x15] = 0x01;  // mov al, 1
+                            p11[0x16] = 0xC2; p11[0x17] = 0x04; p11[0x18] = 0x00;  // ret 4
+                            FlushInstructionCache(GetCurrentProcess(), p11 + 0x14, 5);
+                            VirtualProtect(p11 + 0x14, 5, oldProt, &oldProt);
+                            Log("PATCH11: filter widened — accept ALL type=3 channel=7 packets");
                         }
+                    } else {
+                        Log("PATCH11: byte mismatch, skipping");
                     }
                 }
 
