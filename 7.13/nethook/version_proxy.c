@@ -290,6 +290,55 @@ __asm__(
     "    jmp *_g_tramp_BFDec_addr\n"
 );
 
+// subVT[3] detour @ RVA 0x778AE0 — general loading-screen data processor.
+// Called with ecx = sub-object (at [mainObj+0xB8]), arg0 = packet info.
+static BYTE tramp_778AE0[32];
+static volatile DWORD g_tramp_778AE0_addr = 0;
+static volatile int g_hits_778AE0 = 0;
+
+void __attribute__((cdecl, used)) LogSubVT3(DWORD this_ptr, DWORD arg0, DWORD ret_addr) {
+    int h = ++g_hits_778AE0;
+    if (h <= 20) {
+        Log("SUBVT3 #%d this=%p arg=%p ret=%p", h, (void*)this_ptr, (void*)arg0, (void*)ret_addr);
+        if (arg0 && !IsBadReadPtr((void*)arg0, 0x18)) {
+            DWORD *a = (DWORD*)arg0;
+            Log("  arg: [0]=%p [4]=%p [8]=%p [C]=%p [10]=%p [14]=%p",
+                (void*)a[0], (void*)a[1], (void*)a[2], (void*)a[3], (void*)a[4], (void*)a[5]);
+            DWORD dataObj = a[4]; // arg[+0x10]
+            if (dataObj && !IsBadReadPtr((void*)dataObj, 0x10)) {
+                DWORD *d = (DWORD*)dataObj;
+                DWORD rawBuf = d[2]; // dataObj[+8]
+                Log("  dataObj[+0]=%p [+4]=%p [+8]=%p [+C]=%p",
+                    (void*)d[0], (void*)d[1], (void*)d[2], (void*)d[3]);
+                if (rawBuf && !IsBadReadPtr((void*)rawBuf, 8)) {
+                    BYTE *rb = (BYTE*)rawBuf;
+                    Log("  raw: %02X %02X %02X %02X %02X %02X %02X %02X",
+                        rb[0],rb[1],rb[2],rb[3],rb[4],rb[5],rb[6],rb[7]);
+                }
+            }
+        }
+    }
+}
+
+extern void Detour_778AE0(void);
+__asm__(
+    ".text\n"
+    ".globl _Detour_778AE0\n"
+    "_Detour_778AE0:\n"
+    "    pushal\n"
+    "    pushfl\n"
+    "    mov 36(%esp), %eax\n"
+    "    push %eax\n"
+    "    mov 44(%esp), %eax\n"
+    "    push %eax\n"
+    "    push %ecx\n"
+    "    call _LogSubVT3\n"
+    "    add $12, %esp\n"
+    "    popfl\n"
+    "    popal\n"
+    "    jmp *_g_tramp_778AE0_addr\n"
+);
+
 // Loading-screen packet receiver detour @ RVA 0x2FBCE0.
 // This is the function that calls dispatch vtable[3] to inject data.
 // Checking if it ever fires naturally when server sends LS packets.
@@ -648,11 +697,139 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             }
             Log("WD: final: dispObj=%p handler=%p", (void*)*dispObj, (void*)*lsHandler);
 
-            // DON'T inject data yet — handler[+0x10] is NULL and vtable[1] returns 66.
-            // Setting it to a fake reader crashes vtable[1].
-            // Need to find what creates the REAL reader at handler[+0x10].
-            Log("WD: handler[+0x10]=%p — waiting for natural packet flow",
-                *lsHandler ? (void*)*(DWORD*)((BYTE*)*lsHandler + 0x10) : 0);
+            // Dump connection manager to find what slots need to be set
+            {
+                DWORD *globalPtr = (DWORD*)((BYTE*)hExe + (0x1AA18A8 - 0x400000));
+                Log("WD: [0x1AA18A8] = %p", (void*)*globalPtr);
+                if (*globalPtr && !IsBadReadPtr((void*)*globalPtr, 0x10)) {
+                    DWORD *g = (DWORD*)*globalPtr;
+                    Log("WD: global[0]=%p [1]=%p [2]=%p [3]=%p",
+                        (void*)g[0], (void*)g[1], (void*)g[2], (void*)g[3]);
+                    DWORD connMgr = g[1];  // global[+4] = connection manager
+                    if (connMgr && !IsBadReadPtr((void*)connMgr, 0x90)) {
+                        BYTE *cm = (BYTE*)connMgr;
+                        DWORD slot84 = *(DWORD*)(cm+0x84);
+                        DWORD slot88 = *(DWORD*)(cm+0x88);
+                        Log("WD: connMgr=%p [+0x84]=%p [+0x88]=%p",
+                            (void*)connMgr, (void*)slot84, (void*)slot88);
+                        // Dump the object at slot84 — check its vtable and [+0xB8]
+                        if (slot84 && !IsBadReadPtr((void*)slot84, 0xC0)) {
+                            BYTE *obj84 = (BYTE*)slot84;
+                            DWORD vt = *(DWORD*)obj84;
+                            DWORD subVt = *(DWORD*)(obj84 + 0xB8);
+                            Log("WD: obj@84: vtable=%p [+0xB8]=%p [+0x10]=%p",
+                                (void*)vt, (void*)subVt, (void*)*(DWORD*)(obj84+0x10));
+                            if (subVt && !IsBadReadPtr((void*)subVt, 0x14)) {
+                                DWORD *svt = (DWORD*)subVt;
+                                Log("WD: obj@84 subVT: [0]=%p [1]=%p [2]=%p [3]=%p [4]=%p",
+                                    (void*)svt[0], (void*)svt[1], (void*)svt[2],
+                                    (void*)svt[3], (void*)svt[4]);
+                            }
+                        }
+                        // Also check slot88
+                        if (slot88 && !IsBadReadPtr((void*)slot88, 0x10)) {
+                            DWORD vt88 = *(DWORD*)slot88;
+                            Log("WD: obj@88: vtable=%p", (void*)vt88);
+                        }
+                    }
+                }
+            }
+
+            // Set handler[+0x10] to an object where [+0]=NULL vtable.
+            // The crash address when [vtable+offset] is accessed tells us
+            // which vtable method the reader needs.
+            if (*lsHandler && *(DWORD*)((BYTE*)*lsHandler + 0x10) == 0) {
+                BYTE *probe = (BYTE*)VirtualAlloc(NULL, 0x100, MEM_COMMIT, PAGE_READWRITE);
+                if (probe) {
+                    memset(probe, 0, 0x100);
+                    // [+0] = 0 (null vtable) — crash at vtable[N] reveals offset
+                    *(DWORD*)(probe + 0) = 0;
+                    *(DWORD*)((BYTE*)*lsHandler + 0x10) = (DWORD)probe;
+                    Log("WD: handler[+0x10] = %p (null-vtable probe)", probe);
+                }
+            }
+
+            // Call dispatch vtable[3] to inject data — will crash at the reader access point
+            if (*dispObj && *lsHandler) {
+                DWORD dv = *(DWORD*)*dispObj;
+                DWORD vt3 = *(DWORD*)(dv + 0x0C);
+
+                BYTE *rawData = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
+                memset(rawData, 0, 0x200);
+                rawData[0] = 0x67;
+                *(DWORD*)(rawData + 1) = 6;
+                *(DWORD*)(rawData + 5) = 6;
+                *(long long*)(rawData + 9) = 1;
+                *(DWORD*)(rawData + 393) = 1;
+
+                BYTE outputBuf[0x20] = {0};
+                typedef int (__thiscall *InjectFn)(void*, void*, void*, DWORD, void*, DWORD);
+                InjectFn inject = (InjectFn)vt3;
+                Log("WD: calling vtable[3] with 0xDEADBEEF reader probe...");
+                int r = inject((void*)*dispObj, rawData, outputBuf, 0, NULL, 1);
+                Log("WD: vtable[3] returned %d (if we get here, no crash!)", r);
+                VirtualFree(rawData, 0, MEM_RELEASE);
+            }
+
+            // Call subVT[3] DIRECTLY with loading-screen data
+            {
+                DWORD *globalPtr = (DWORD*)((BYTE*)hExe + (0x1AA18A8 - 0x400000));
+                DWORD connMgr = 0;
+                if (*globalPtr && !IsBadReadPtr((void*)*globalPtr, 8))
+                    connMgr = ((DWORD*)*globalPtr)[1];
+                DWORD mainObj = 0;
+                if (connMgr && !IsBadReadPtr((void*)connMgr, 0x88))
+                    mainObj = *(DWORD*)((BYTE*)connMgr + 0x84);
+
+                if (mainObj && !IsBadReadPtr((void*)mainObj, 0xC0)) {
+                    // subVT[3] expects ecx = &mainObj[+0xB8] (inline sub-object)
+                    BYTE *subObjAddr = (BYTE*)mainObj + 0xB8;
+                    DWORD subVtable = *(DWORD*)subObjAddr;
+                    DWORD subVT3fn = *(DWORD*)(subVtable + 0x0C);
+                    Log("WD: direct subVT[3] call: mainObj=%p subObjAddr=%p fn=%p",
+                        (void*)mainObj, subObjAddr, (void*)subVT3fn);
+
+                    // Build packet info (same format the ENet callback uses)
+                    // TeamRosterUpdate raw bytes (401 bytes: 1+4+4+384+4+4)
+                    BYTE *rawData = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
+                    memset(rawData, 0, 0x200);
+                    rawData[0] = 0x67;
+                    *(DWORD*)(rawData + 1) = 6;
+                    *(DWORD*)(rawData + 5) = 6;
+                    *(long long*)(rawData + 9) = 1;
+                    *(DWORD*)(rawData + 393) = 1;
+
+                    // dataObj wrapper: [+8] = raw ptr, [+C] = length
+                    DWORD *dataObj = (DWORD*)VirtualAlloc(NULL, 0x20, MEM_COMMIT, PAGE_READWRITE);
+                    memset(dataObj, 0, 0x20);
+                    dataObj[2] = (DWORD)rawData;
+                    dataObj[3] = 401;
+
+                    // pktInfo: [+0]=type(3), [+8]=channel(7), [+0x10]=dataObj
+                    BYTE *pktInfo = (BYTE*)VirtualAlloc(NULL, 0x20, MEM_COMMIT, PAGE_READWRITE);
+                    memset(pktInfo, 0, 0x20);
+                    *(DWORD*)(pktInfo + 0) = 3;
+                    pktInfo[8] = 7;
+                    *(DWORD*)(pktInfo + 0x10) = (DWORD)dataObj;
+
+                    typedef void (__thiscall *SubVT3Fn)(void *ecx, void *pktInfo);
+                    SubVT3Fn svt3 = (SubVT3Fn)subVT3fn;
+
+                    Log("WD: calling subVT[3] with TeamRoster...");
+                    svt3(subObjAddr, pktInfo);
+                    Log("WD: subVT[3] returned!");
+
+                    if (*lsHandler) {
+                        BYTE *hp = (BYTE*)*lsHandler;
+                        Log("WD: handler[+0x10]=%p [+0x2C]=%p after subVT[3]",
+                            (void*)*(DWORD*)(hp+0x10), (void*)*(DWORD*)(hp+0x2C));
+                    }
+
+                    VirtualFree(rawData, 0, MEM_RELEASE);
+                    VirtualFree(dataObj, 0, MEM_RELEASE);
+                    VirtualFree(pktInfo, 0, MEM_RELEASE);
+                }
+            }
 
             // Monitor for 20 seconds
             for (int tick = 0; tick < 10; tick++) {
@@ -1204,6 +1381,19 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                         Log("PREPROC: installed");
                     } else {
                         Log("PREPROC: prologue mismatch");
+                    }
+                }
+
+                // Install subVT[3] detour @ 0x778AE0 (6-byte steal)
+                {
+                    BYTE *tgtSV3 = (BYTE*)hExe + 0x778AE0;
+                    Log("SUBVT3: @0x778AE0 bytes: %02X %02X %02X %02X %02X %02X",
+                        tgtSV3[0], tgtSV3[1], tgtSV3[2], tgtSV3[3], tgtSV3[4], tgtSV3[5]);
+                    if (tgtSV3[0] == 0x55 && tgtSV3[1] == 0x8B && tgtSV3[2] == 0xEC) {
+                        MakeTrampolineN(tgtSV3, tramp_778AE0, 6);
+                        g_tramp_778AE0_addr = (DWORD)tramp_778AE0;
+                        PatchJmpN(tgtSV3, (void*)Detour_778AE0, 6);
+                        Log("SUBVT3: detour installed");
                     }
                 }
 
