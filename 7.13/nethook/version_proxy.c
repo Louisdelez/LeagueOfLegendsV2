@@ -492,6 +492,14 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                 *(WORD*)(fakeOp3 + 4) = 3;    // opcode = 3
                 fakeOp3[0x56] = 0x71;           // version match byte → deobfuscates to 1
 
+                // MapToLoad at [+0xC20]: obfuscated 4 bytes that deobfuscate to
+                // map ID 11 (0x0000000B) = Summoner's Rift.
+                // Deobfuscation inverse: 0x0B → input 0xB7, 0x00 → input 0xB0
+                fakeOp3[0xC20] = 0xB7;
+                fakeOp3[0xC21] = 0xB0;
+                fakeOp3[0xC22] = 0xB0;
+                fakeOp3[0xC23] = 0xB0;
+
                 // Server version string at +0x263 (inline std::string)
                 // std::string layout: [ptr/inline_buf(16)][length(4)][capacity(4)]
                 // For inline (len < 16): string data starts at +0x263
