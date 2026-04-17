@@ -681,7 +681,16 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                 (void*)*dispObj, (void*)*lsHandler,
                 *(DWORD*)((BYTE*)hExe + (0x189F360 - 0x400000)));
 
-            // If handler not yet registered, create and register it
+            // Create handler with initHandler, then call REAL initializer 0xAA3A40
+            // which calls 0x5F04E0 (needs pool initialized — done by LoadScreenInit).
+            // 0xAA3A40 signature: __thiscall(handler, &config)
+            //   - checks [this+0xC] == 0
+            //   - calls handler setter (stores to [0x1E77204])
+            //   - calls 0x5F04E0(&handler[+4], &config) → result in handler[+8]
+            //   - sets handler[+0xC] = 1 on success
+            // Create handler with base init, then call fullInit (0xAA3A40)
+            // which calls setter + 0x5F04E0 (now works with pool initialized).
+            // fullInit checks [0x1E77204]==0 so we must NOT register before calling it.
             if (!*lsHandler) {
                 BYTE *handler = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
                 if (handler) {
@@ -689,10 +698,28 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     typedef void* (__thiscall *InitFn)(void *ecx);
                     InitFn initHandler = (InitFn)((DWORD)hExe + 0x56DAB0);
                     initHandler(handler);
-                    typedef void (__cdecl *SetterFn)(void*);
-                    SetterFn setter = (SetterFn)((DWORD)hExe + 0x5FB040);
-                    setter(handler);
-                    Log("WD: handler created and registered @%p", handler);
+
+                    // Build config (from 0xBE0BF0 hardcoded values)
+                    DWORD config[9] = {0};
+                    config[0] = 0;
+                    config[1] = 0x200000;
+                    config[2] = 4;
+                    config[3] = 2;
+                    config[4] = 0x4000;
+                    config[5] = 1;
+                    config[6] = 0;
+                    config[7] = 0;
+                    config[8] = 0x8000;
+
+                    // Call fullInit: registers handler, calls 0x5F04E0, sets [+0xC]=1
+                    typedef int (__thiscall *FullInitFn)(void *ecx, void *config);
+                    FullInitFn fullInit = (FullInitFn)((DWORD)hExe + 0x6A3A40);
+                    Log("WD: calling fullInit with real config...");
+                    int r = fullInit(handler, config);
+                    Log("WD: fullInit=%d [+4]=%p [+8]=%p [+0xC]=%d [+0x10]=%p",
+                        r, (void*)*(DWORD*)(handler+4),
+                        (void*)*(DWORD*)(handler+8), (int)handler[0xC],
+                        (void*)*(DWORD*)(handler+0x10));
                 }
             }
             Log("WD: final: dispObj=%p handler=%p", (void*)*dispObj, (void*)*lsHandler);
