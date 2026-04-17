@@ -701,6 +701,23 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                 }
 
+                // PATCH10: make type-3 (game packets) go through construct+store.
+                // At RVA 0x475A01: 83 F8 01 = cmp eax, 1 → change to cmp eax, 3
+                // After BF decrypt, type-3 packets currently fall to cleanup.
+                // With this patch, they go through the same path as type-1.
+                {
+                    BYTE *p10 = base + 0x475A01;
+                    if (p10[0] == 0x83 && p10[1] == 0xF8 && p10[2] == 0x01) {
+                        DWORD oldProt;
+                        if (VirtualProtect(p10, 3, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                            p10[2] = 0x03;  // cmp eax, 3
+                            FlushInstructionCache(GetCurrentProcess(), p10, 3);
+                            VirtualProtect(p10, 3, oldProt, &oldProt);
+                            Log("PATCH10: cmp eax,1 → cmp eax,3 (type-3 packets → case-1 path)");
+                        }
+                    }
+                }
+
                 // PATCH6: bypass the SECOND version-match check at 0x4AA104.
                 // `cmp byte [0x1E84F72], 1; jne 0x8AA3FF` — skips game loading
                 // if version flag != 1. Pattern: 80 3D <VA> 01 0F 85
