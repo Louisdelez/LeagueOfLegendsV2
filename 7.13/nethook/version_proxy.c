@@ -565,14 +565,25 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             // Fake session approach doesn't work (zero-filled → null derefs).
             // The game session is created during proper loading sequence.
             // Current stable config: opcodes 1+3 only → 8s game runtime.
-            // Check loading-screen handler at [0x1E77204]
+            // Create + register LoadScreenHandler if NULL
             DWORD *lsHandler = (DWORD*)((BYTE*)hExe + (0x1E77204 - 0x400000));
-            if (*lsHandler) {
-                DWORD vtable = *(DWORD*)*lsHandler;
-                DWORD vt2 = *(DWORD*)(vtable + 8);
-                Log("WD: LoadScreenHandler[0x1E77204]=%p vtable[2]=%p", (void*)*lsHandler, (void*)vt2);
+            if (!*lsHandler) {
+                // Allocate fake handler object (needs vtable at [+0])
+                // The real handler class has vtable 0x13C32D4.
+                BYTE *fakeHandler = (BYTE*)VirtualAlloc(NULL, 0x1000, MEM_COMMIT, PAGE_READWRITE);
+                if (fakeHandler) {
+                    memset(fakeHandler, 0, 0x1000);
+                    // Set vtable to the LoadScreen handler vtable
+                    *(DWORD*)fakeHandler = 0x400000 + 0x13C32D4;  // preferred base VA
+                    // Call setter: 0x9FB040(handler_ptr)
+                    typedef void (__cdecl *SetterFn)(void*);
+                    SetterFn setter = (SetterFn)((DWORD)hExe + 0x5FB040);
+                    setter(fakeHandler);
+                    Log("WD: created + registered fake LoadScreenHandler @%p (vtable=0x%08lX)",
+                        fakeHandler, *(DWORD*)fakeHandler);
+                }
             } else {
-                Log("WD: LoadScreenHandler[0x1E77204]=NULL");
+                Log("WD: LoadScreenHandler already set: %p", (void*)*lsHandler);
             }
 
             DWORD *gameInfo = (DWORD*)((BYTE*)hExe + (0x1AA18D8 - 0x400000));
