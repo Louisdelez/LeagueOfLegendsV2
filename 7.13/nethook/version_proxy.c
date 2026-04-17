@@ -224,20 +224,20 @@ void __attribute__((cdecl, used)) LogFromBFDecrypt(DWORD this_ptr, DWORD buf, DW
             }
         } else { strcpy(hex, "<bad>"); }
         // Also dump edi fields: [edi+0x20]=game_thread, [edi+0x29]=conn_flag, [edi+0x34]=handler
-        DWORD edi20=0, edi34=0, handlerVT4=0; BYTE edi29=0;
+        DWORD edi34=0, handlerVT3=0, handlerVT4=0;
         BYTE *ediP = (BYTE*)edi_val;
         if (edi_val && !IsBadReadPtr(ediP, 0x40)) {
-            edi20 = *(DWORD*)(ediP + 0x20);
-            edi29 = *(BYTE*)(ediP + 0x29);
             edi34 = *(DWORD*)(ediP + 0x34);
             if (edi34 && !IsBadReadPtr((BYTE*)edi34, 4)) {
                 DWORD vtable = *(DWORD*)edi34;
-                if (vtable && !IsBadReadPtr((BYTE*)vtable + 0x10, 4))
+                if (vtable && !IsBadReadPtr((BYTE*)vtable + 0x10, 4)) {
+                    handlerVT3 = *(DWORD*)(vtable + 0x0C);
                     handlerVT4 = *(DWORD*)(vtable + 0x10);
+                }
             }
         }
-        Log("BFDEC #%d edi=%p [+0x34]=%p vt4=0x%08lX buf=%p len=%lu",
-            h, (void*)edi_val, (void*)edi34, handlerVT4, (void*)buf, len);
+        Log("BFDEC #%d edi=%p vt3=0x%08lX vt4=0x%08lX buf=%p len=%lu",
+            h, (void*)edi_val, handlerVT3, handlerVT4, (void*)buf, len);
     }
 }
 
@@ -746,22 +746,8 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     // Type-3 goes through the handler fast-path via PATCH11.
                     (void)p10;
 
-                    // PATCH12: NOP the jnz at RVA 0x5BAAAE that skips the 149-opcode
-                    // dispatcher when the pre-processor returns true. With PATCH11
-                    // protecting handshake (channel==0→false), this is safe.
-                    {
-                        BYTE *p12 = base + 0x5BAAAE;
-                        Log("PATCH12: @0x5BAAAE bytes: %02X %02X", p12[0], p12[1]);
-                        if (p12[0] == 0x75 && p12[1] == 0x07) {
-                            DWORD oldProt;
-                            if (VirtualProtect(p12, 2, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                                p12[0] = 0x90; p12[1] = 0x90;
-                                FlushInstructionCache(GetCurrentProcess(), p12, 2);
-                                VirtualProtect(p12, 2, oldProt, &oldProt);
-                                Log("PATCH12: NOPed jnz → dispatcher ALWAYS fires after pre-processor");
-                            }
-                        }
-                    }
+                    // PATCH12 DISABLED: NOPing jnz at 0x5BAAAE caused crash.
+                    // Let the handler fast-path work through PATCH11 instead.
                 }
 
                 // PATCH11: force handler at 0xBB8200 to ALWAYS return true.
