@@ -2210,16 +2210,22 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                 }
 
-                // PATCH20: Replace version format string to show custom text
+                // PATCH20: Replace UI strings to show custom player data
                 {
+                    // Version format at 0x13D7B74
                     char *fmt = (char*)((BYTE*)hExe + (0x13D7B74 - 0x400000));
                     DWORD oldProt;
                     if (VirtualProtect(fmt, 40, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                        // Keep %s format specifiers to avoid crash
-                        strcpy(fmt, "Player1|Ezreal %s%s%s%s%s%s");
+                        strcpy(fmt, "LeagueSandbox %s%s%s%s%s%s");
                         VirtualProtect(fmt, 40, oldProt, &oldProt);
-                        Log("PATCH20: version format -> Player1|Ezreal");
                     }
+                    // "Unconnected Player | PID %d" at 0x1414B94
+                    char *uncon = (char*)((BYTE*)hExe + (0x1414B94 - 0x400000));
+                    if (VirtualProtect(uncon, 30, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                        strcpy(uncon, "Player1 | Ezreal   ");
+                        VirtualProtect(uncon, 30, oldProt, &oldProt);
+                    }
+                    Log("PATCH20: UI strings replaced");
                 }
 
                 // PATCH17: Disable manager cleanup at RVA 0x5415B0
