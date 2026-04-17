@@ -1125,6 +1125,46 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     }
                 }
             }
+            // Dispatch opcode 3 (SynchVersion) + opcode 85 (TipUpdate)
+            {
+                typedef int (__thiscall *DispatchFn)(void *ecx);
+                DispatchFn dispatch = (DispatchFn)((DWORD)hExe + 0x3EF8F0);
+
+                // Opcode 3: SynchVersionS2C
+                BYTE *op3 = (BYTE*)VirtualAlloc(NULL, 0x1000, MEM_COMMIT, PAGE_READWRITE);
+                if (op3) {
+                    memset(op3, 0, 0x1000);
+                    *(WORD*)(op3+4) = 3;
+                    op3[0x56] = 0x71;
+                    op3[0xC20]=0xB7; op3[0xC21]=0xB0; op3[0xC22]=0xB0; op3[0xC23]=0xB0;
+                    const char *v = "Version 7.13.192.6794 [PUBLIC]";
+                    memcpy(op3+0x263, v, strlen(v));
+                    *(DWORD*)(op3+0x277) = strlen(v);
+                    *(DWORD*)(op3+0x27B) = 0xF;
+                    Log("WD: dispatch opcode 3...");
+                    dispatch(op3);
+                    Log("WD: opcode 3 done resp=%02X ver=%02X", *flagResp, *flagVer);
+                    VirtualFree(op3, 0, MEM_RELEASE);
+                }
+
+                // Opcode 85: S2C_HandleTipUpdate with ENCODED text
+                // Deobfuscation inverse applied: bit_reverse -> ror 2 -> NOT -> inv_LUT -> rol 3
+                // "Player1 - Ezreal" encoded:
+                BYTE *tip = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
+                if (tip) {
+                    memset(tip, 0, 0x200);
+                    *(WORD*)(tip+4) = 85;  // opcode
+                    // Encoded "Player1 - Ezreal" at [+0x0F]
+                    BYTE enc[] = {0xFE,0x9D,0x26,0xDF,0x8D,0x4A,0x20,0xD0,
+                                  0x74,0xD0,0x05,0xC0,0x4A,0x8D,0x26,0x9D};
+                    memcpy(tip + 0x0F, enc, sizeof(enc));
+                    Log("WD: dispatch opcode 85 (TipUpdate)...");
+                    dispatch(tip);
+                    Log("WD: opcode 85 done!");
+                    VirtualFree(tip, 0, MEM_RELEASE);
+                }
+            }
+
             // Monitor loop
             DWORD *dspObj = (DWORD*)((BYTE*)hExe + (0x1E77200 - 0x400000));
             DWORD *lsH = (DWORD*)((BYTE*)hExe + (0x1E77204 - 0x400000));
