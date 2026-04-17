@@ -1005,11 +1005,22 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             }
             DWORD *dispObj = (DWORD*)((BYTE*)hExe + (0x1E77200 - 0x400000));
             DWORD *lsHandler = (DWORD*)((BYTE*)hExe + (0x1E77204 - 0x400000));
+            DWORD *sessionGlobal = (DWORD*)((BYTE*)hExe + (0x1AA5438 - 0x400000));
             for (int tick = 0; tick < 60; tick++) {
                 Sleep(2000);
-                Log("WD: tick %d resp=%02X ver=%02X disp=%p handler=%p veh=%d",
-                    tick, *flagResp, *flagVer, (void*)*dispObj, (void*)*lsHandler,
-                    g_vehCrashCount);
+                // Call LS tick on session object to process LS packets
+                DWORD session = *sessionGlobal;
+                BYTE flag40 = session ? ((BYTE*)session)[0x40] : 0;
+                Log("WD: tick %d session=%p [+0x40]=%02X disp=%p handler=%p",
+                    tick, (void*)session, flag40, (void*)*dispObj, (void*)*lsHandler);
+                if (session && (flag40 & 3)) {
+                    typedef void (__thiscall *LSTickFn)(void*);
+                    LSTickFn lsTick = (LSTickFn)((DWORD)hExe + 0x543CC0);
+                    Log("WD: calling LS tick (flag=%02X)!", flag40);
+                    lsTick((void*)session);
+                    Log("WD: LS tick returned! [+0x40]=%02X",
+                        ((BYTE*)session)[0x40]);
+                }
                 // Draw player info directly on game window via GDI overlay
                 if (tick < 5) {
                     HWND gw = FindWindowA(NULL, "League of Legends (TM) Client");
