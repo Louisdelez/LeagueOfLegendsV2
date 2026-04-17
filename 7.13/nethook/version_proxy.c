@@ -911,17 +911,8 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                         Log("WD: Reskin=%d", r);
                         VirtualFree(rs, 0, MEM_RELEASE);
 
-                        // Try handler vtable[2] (tick) to process data
-                        DWORD hvt = *(DWORD*)hp;
-                        if (hvt) {
-                            DWORD vt2 = *(DWORD*)(hvt + 8);
-                            typedef void (__thiscall *TickFn)(void*);
-                            Log("WD: calling handler tick @%p [+0x2C]=%p",
-                                (void*)vt2, (void*)*(DWORD*)(hp+0x2C));
-                            ((TickFn)vt2)((void*)*lsH);
-                            Log("WD: tick OK! [+0x2C]=%p",
-                                (void*)*(DWORD*)(hp+0x2C));
-                        }
+                        // vtable[2] tick DISABLED — crashes on garbage data objects
+                        Log("WD: data objects created, skip tick (crashes)");
                     }
                 }
             }
