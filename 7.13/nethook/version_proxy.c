@@ -586,15 +586,10 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                         }
                         if (match) {
                             p3Hits++;
-                            BYTE *jne = q + 7;
-                            Log("PATCH3: found @RVA 0x%06lX rel8=%02X", off, jne[1]);
-                            DWORD oldProt;
-                            if (VirtualProtect(jne, 2, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                                jne[0] = 0xEB;
-                                FlushInstructionCache(GetCurrentProcess(), jne, 2);
-                                VirtualProtect(jne, 2, oldProt, &oldProt);
-                                Log("PATCH3: jne->jmp @RVA 0x%06lX", off + 7);
-                            }
+                            // PATCH3 DISABLED: the wait loop IS the packet-processing
+                            // loop — [edi+0x40] is the tick that dispatches packets.
+                            // Bypassing it prevented packet processing entirely!
+                            Log("PATCH3: found @RVA 0x%06lX (NOT patching — loop needed for dispatch)", off);
                         }
                     }
                     Log("PATCH3: scan done, %d hits (DISABLED — keep client in wait loop)", p3Hits);
