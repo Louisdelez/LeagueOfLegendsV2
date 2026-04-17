@@ -438,6 +438,50 @@ static void WINAPI FakeExitProcess(UINT uExitCode) {
     for (;;) Sleep(10000);
 }
 
+// Hook for vtable[1] (the REAL packet handler) @ RVA 0x680120.
+// Called in case-2 of the post-decrypt pipeline with ecx = packet object.
+// Reads [ecx+8] = raw packet, [ecx+4] = opcode (after PATCH7).
+static BYTE tramp_680120[32];
+static volatile DWORD g_tramp_680120_addr = 0;
+static volatile int g_hits_680120 = 0;
+
+void __attribute__((cdecl, used)) LogVT1Handler(DWORD this_ptr) {
+    int h = ++g_hits_680120;
+    if (h <= 30) {
+        BYTE *obj = (BYTE*)this_ptr;
+        DWORD opcode = 0, pktPtr = 0;
+        char hex[80] = {0};
+        if (this_ptr && !IsBadReadPtr(obj, 0x10)) {
+            opcode = *(DWORD*)(obj + 4);
+            pktPtr = *(DWORD*)(obj + 8);
+            BYTE *pkt = (BYTE*)pktPtr;
+            if (pktPtr && !IsBadReadPtr(pkt, 16)) {
+                for (int i = 0; i < 16; i++) {
+                    char tmp[4]; snprintf(tmp, 4, "%02X ", pkt[i]);
+                    strcat(hex, tmp);
+                }
+            }
+        }
+        Log("VT1 #%d this=%p opcode=%lu (0x%04lX) pkt=%p [%s]",
+            h, (void*)this_ptr, opcode, opcode, (void*)pktPtr, hex);
+    }
+}
+
+extern void Detour_680120(void);
+__asm__(
+    ".text\n"
+    ".globl _Detour_680120\n"
+    "_Detour_680120:\n"
+    "    pushal\n"
+    "    pushfl\n"
+    "    push %ecx\n"
+    "    call _LogVT1Handler\n"
+    "    add $4, %esp\n"
+    "    popfl\n"
+    "    popal\n"
+    "    jmp *_g_tramp_680120_addr\n"
+);
+
 static void InstallNetHooks(void) {
     HMODULE ws2 = LoadLibraryA("ws2_32.dll");
     if (!ws2) { Log("Can't load ws2_32"); return; }
@@ -772,8 +816,21 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
         }
         (void)0;
 
-        // IAT hooks for TerminateProcess/ExitProcess removed — caused segfaults.
-        // PATCH4+PATCH6 now handle the version-mismatch exit properly.
+        // Hook vtable[1] @ RVA 0x680120 — the REAL packet handler (case 2 of post-decrypt).
+        // Prologue: 81 EC 08 01 00 00 (sub esp, 0x108) = 6 bytes.
+        {
+            BYTE *tgtVT1 = (BYTE*)GetModuleHandleA(NULL) + 0x680120;
+            Log("VT1HOOK: @0x680120 bytes: %02X %02X %02X %02X %02X %02X",
+                tgtVT1[0], tgtVT1[1], tgtVT1[2], tgtVT1[3], tgtVT1[4], tgtVT1[5]);
+            if (tgtVT1[0] == 0x81 && tgtVT1[1] == 0xEC) {
+                MakeTrampolineN(tgtVT1, tramp_680120, 6);
+                g_tramp_680120_addr = (DWORD)tramp_680120;
+                PatchJmpN(tgtVT1, (void*)Detour_680120, 6);
+                Log("VT1HOOK: installed");
+            } else {
+                Log("VT1HOOK: prologue mismatch");
+            }
+        }
 
         // Install diagnostic detour on handler at RVA 0x3EF8F0 to see if it
         // fires naturally.
