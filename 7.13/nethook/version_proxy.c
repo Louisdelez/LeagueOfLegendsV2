@@ -821,8 +821,32 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             } // close if(0) block for opcodes 1+3
 
             // WITHOUT opcodes 1+3, game stays in "Waiting for server response".
-            // Monitor only — no injection.
-            Log("WD: monitoring mode (no opcodes, no injection)");
+            // Init LS subsystem, then monitor.
+            Log("WD: monitoring mode — init LS subsystem");
+            {
+                typedef int (__cdecl *LoadScreenInitFn)(void *arg);
+                LoadScreenInitFn lsInit = (LoadScreenInitFn)((DWORD)hExe + 0x633AF0);
+                DWORD initArg[4] = {16, 0, 0, 0};
+                int r = lsInit(initArg);
+                Log("WD: LoadScreenInit=%d", r);
+            }
+            // Create + fullInit handler
+            {
+                DWORD *lsH = (DWORD*)((BYTE*)hExe + (0x1E77204 - 0x400000));
+                if (!*lsH) {
+                    BYTE *h = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
+                    if (h) {
+                        memset(h, 0, 0x200);
+                        typedef void* (__thiscall *InitFn)(void*);
+                        ((InitFn)((DWORD)hExe + 0x56DAB0))(h);
+                        DWORD cfg[9] = {0, 0x200000, 4, 2, 0x4000, 1, 0, 0, 0x8000};
+                        typedef int (__thiscall *FullInitFn)(void*, void*);
+                        int fi = ((FullInitFn)((DWORD)hExe + 0x6A3A40))(h, cfg);
+                        Log("WD: fullInit=%d handler=%p [+8]=%p [+0xC]=%d",
+                            fi, h, (void*)*(DWORD*)(h+8), (int)h[0xC]);
+                    }
+                }
+            }
             DWORD *dispObj = (DWORD*)((BYTE*)hExe + (0x1E77200 - 0x400000));
             DWORD *lsHandler = (DWORD*)((BYTE*)hExe + (0x1E77204 - 0x400000));
             for (int tick = 0; tick < 60; tick++) {
