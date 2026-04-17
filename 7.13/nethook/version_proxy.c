@@ -1666,6 +1666,41 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                 }
 
+                // Hook ExitProcess to prevent game from quitting
+                {
+                    HMODULE k32 = GetModuleHandleA("kernel32.dll");
+                    if (k32) {
+                        void *ep = GetProcAddress(k32, "ExitProcess");
+                        if (ep) {
+                            DWORD oldProt;
+                            if (VirtualProtect(ep, 5, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                                BYTE *t = (BYTE*)ep;
+                                t[0] = 0xE9;
+                                *(DWORD*)(t+1) = (DWORD)FakeExitProcess - ((DWORD)ep + 5);
+                                FlushInstructionCache(GetCurrentProcess(), ep, 5);
+                                VirtualProtect(ep, 5, oldProt, &oldProt);
+                                Log("HOOK: ExitProcess -> FakeExitProcess");
+                            }
+                        }
+                    }
+                }
+
+                // PATCH17: Disable manager cleanup at RVA 0x5415B0
+                // Manager vtable[2] destroys handler + dispatch + clears [+0xC].
+                // Game calls this when transitioning out of loading state.
+                {
+                    BYTE *mgrClean = (BYTE*)hExe + 0x5415B0;
+                    if (mgrClean[0] == 0x55 && mgrClean[1] == 0x8B) {
+                        DWORD oldProt;
+                        if (VirtualProtect(mgrClean, 1, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                            mgrClean[0] = 0xC3;
+                            FlushInstructionCache(GetCurrentProcess(), mgrClean, 1);
+                            VirtualProtect(mgrClean, 1, oldProt, &oldProt);
+                            Log("PATCH17: manager cleanup disabled at RVA 0x5415B0");
+                        }
+                    }
+                }
+
                 // PATCH16: Disable dispatch destructor at RVA 0x4FB820
                 // This function destroys the pool + dispatch object, causing early exit.
                 {
