@@ -741,14 +741,25 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                 // With this patch, they go through the same path as type-1.
                 {
                     BYTE *p10 = base + 0x475A01;
-                    if (p10[0] == 0x83 && p10[1] == 0xF8) {
-                        DWORD oldProt;
-                        // NOP the cmp(3B) + jne(6B) = 9 bytes so ALL types go through case-1
-                        if (VirtualProtect(p10, 9, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                            for (int i = 0; i < 9; i++) p10[i] = 0x90;
-                            FlushInstructionCache(GetCurrentProcess(), p10, 9);
-                            VirtualProtect(p10, 9, oldProt, &oldProt);
-                            Log("PATCH10: NOPed cmp+jne (ALL types → case-1 path)");
+                    // PATCH10 DISABLED: NOPing case-1 check broke case-2 (vtable[1]).
+                    // Let the original type routing work: type-1→case-1, type-2→case-2.
+                    // Type-3 goes through the handler fast-path via PATCH11.
+                    (void)p10;
+
+                    // PATCH12: NOP the jnz at RVA 0x5BAAAE that skips the 149-opcode
+                    // dispatcher when the pre-processor returns true. With PATCH11
+                    // protecting handshake (channel==0→false), this is safe.
+                    {
+                        BYTE *p12 = base + 0x5BAAAE;
+                        Log("PATCH12: @0x5BAAAE bytes: %02X %02X", p12[0], p12[1]);
+                        if (p12[0] == 0x75 && p12[1] == 0x07) {
+                            DWORD oldProt;
+                            if (VirtualProtect(p12, 2, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                                p12[0] = 0x90; p12[1] = 0x90;
+                                FlushInstructionCache(GetCurrentProcess(), p12, 2);
+                                VirtualProtect(p12, 2, oldProt, &oldProt);
+                                Log("PATCH12: NOPed jnz → dispatcher ALWAYS fires after pre-processor");
+                            }
                         }
                     }
                 }
