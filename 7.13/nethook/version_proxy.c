@@ -434,18 +434,14 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
 
     Log("WD: start, flagResp=%p flagVer=%p", flagResp, flagVer);
 
-    // Wait 10s for packets to arrive and be processed by the network tick
-    Sleep(10000);
+    // Wait 3s for auth to complete, then dispatch opcodes BEFORE the
+    // client's state machine reaches the flag checks. The natural code
+    // flow will handle map loading and world creation.
+    Sleep(3000);
 
-    // Watchdog sets flags after 10s delay to advance state.
+    // DON'T write flags directly — let opcodes 1+3 set them naturally.
     DWORD oldProt;
-    if (VirtualProtect(flagResp, 2, PAGE_READWRITE, &oldProt)) {
-        Log("WD: before: resp=%02X ver=%02X", *flagResp, *flagVer);
-        *flagResp = 1;
-        *flagVer = 1;
-        VirtualProtect(flagResp, 2, oldProt, &oldProt);
-        Log("WD: wrote resp+ver flags to 1");
-    }
+    Log("WD: resp=%02X ver=%02X (before dispatch)", *flagResp, *flagVer);
     if (g_saved_edi) {
         BYTE *ediP = (BYTE*)g_saved_edi;
         DWORD op2;
@@ -520,25 +516,9 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                 VirtualFree(fakeOp3, 0, MEM_RELEASE);
             }
 
-            // --- Batch dispatch: try more opcodes to initialize game state ---
-            // Use a large fake object (0x1000 bytes, all zeros except opcode)
-            BYTE *fakeBatch = (BYTE*)VirtualAlloc(NULL, 0x2000, MEM_COMMIT, PAGE_READWRITE);
-            if (fakeBatch) {
-                memset(fakeBatch, 0, 0x2000);
-                // Non-default opcodes from opcodes.txt. Skip 10 (crashes).
-                // Use a larger buffer for handlers that read deep offsets.
-                int opcodes[] = {4, 8, 14, 15, 19, 27, 28, 32, 33, 35, 36,
-                                 38, 42, 43, 45, 50, 51, 57, 59, 62, 63, 68, 69};
-                int nOps = sizeof(opcodes) / sizeof(opcodes[0]);
-                for (int i = 0; i < nOps; i++) {
-                    memset(fakeBatch, 0, 0x2000);
-                    *(WORD*)(fakeBatch + 4) = (WORD)opcodes[i];
-                    Log("WD: dispatch opcode %d", opcodes[i]);
-                    dispatch((void*)fakeBatch);
-                }
-                Log("WD: batch dispatch done (%d opcodes)", nOps);
-                VirtualFree(fakeBatch, 0, MEM_RELEASE);
-            }
+            // Check flags after dispatch
+            Log("WD: after dispatch: resp=%02X ver=%02X qsflag=%lu",
+                *flagResp, *flagVer, *flagQS);
         }
     }
     return 0;
