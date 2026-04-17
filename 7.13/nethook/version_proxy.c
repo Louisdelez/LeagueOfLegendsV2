@@ -565,39 +565,10 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             // Fake session approach doesn't work (zero-filled → null derefs).
             // The game session is created during proper loading sequence.
             // Current stable config: opcodes 1+3 only → 8s game runtime.
-            // Create + register REAL LoadScreenHandler via init function 0x96DAB0
-            DWORD *lsHandler = (DWORD*)((BYTE*)hExe + (0x1E77204 - 0x400000));
-            if (!*lsHandler) {
-                BYTE *handler = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
-                if (handler) {
-                    memset(handler, 0, 0x200);
-                    // Call the REAL init function: 0x96DAB0(ecx = handler)
-                    // This sets vtable, allocates internals, inits critical section
-                    typedef void* (__thiscall *InitFn)(void *ecx);
-                    InitFn initHandler = (InitFn)((DWORD)hExe + 0x56DAB0);
-                    void *result = initHandler(handler);
-                    Log("WD: handler init returned %p, vtable=%p",
-                        result, (void*)*(DWORD*)handler);
-
-                    // Register via setter 0x9FB040
-                    typedef void (__cdecl *SetterFn)(void*);
-                    SetterFn setter = (SetterFn)((DWORD)hExe + 0x5FB040);
-                    setter(handler);
-                    // Set handler[+0x10] = connection object (g_saved_edi)
-                    if (g_saved_edi) {
-                        *(DWORD*)(handler + 0x10) = g_saved_edi;
-                        Log("WD: handler[+0x10] = edi connection @%p", (void*)g_saved_edi);
-                    }
-                    Log("WD: LoadScreenHandler registered @%p", handler);
-
-                    // Direct processor call removed — crashes because the function
-                    // expects complex internal structures, not raw packet bytes.
-                    // The processor at 0xCEB9B0 needs proper parsed packet objects
-                    // created by the loading-screen protocol exchange.
-                }
-            } else {
-                Log("WD: LoadScreenHandler already set: %p", (void*)*lsHandler);
-            }
+            // LoadScreenHandler registration DISABLED — causes earlier crash.
+            // Handler vtable/init fully reverse-engineered:
+            //   Init: 0x96DAB0, vtable: 0x14F38D8, processor: 0xCEB9B0
+            // But registering it at [0x1E77204] breaks stable config.
 
             DWORD *gameInfo = (DWORD*)((BYTE*)hExe + (0x1AA18D8 - 0x400000));
             Log("WD: gameSession=%p global2=%p gameInfo=%p",

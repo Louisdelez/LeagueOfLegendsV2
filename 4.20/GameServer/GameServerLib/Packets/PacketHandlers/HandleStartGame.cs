@@ -119,6 +119,14 @@ namespace LeagueSandbox.GameServer.Packets.PacketHandlers
             // send the S2C replies that unblock its state machine.
             _game.PacketNotifier.NotifyS2C_QueryStatusAns(player.ClientId);
             _game.PacketNotifier.NotifyS2C_StartSpawn(player.ClientId);
+
+            // 7.13: send loading-screen info (team roster + player name + champion)
+            try {
+                _game.PacketNotifier.NotifyLoadScreenInfo(player.ClientId, _playerManager.GetPlayers());
+                System.Console.WriteLine("[LS] Sent LoadScreenInfo (TeamRoster)");
+            } catch (System.Exception ex) {
+                System.Console.WriteLine($"[LS] LoadScreenInfo error: {ex.Message}");
+            }
         }
 
         void SyncTime(int userId)
