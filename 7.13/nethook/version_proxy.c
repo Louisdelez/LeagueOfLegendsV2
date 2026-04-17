@@ -331,6 +331,36 @@ __asm__(
     "    jmp *_g_tramp_BFDec_addr\n"
 );
 
+// LS tick detour @ RVA 0x543CC0 — called to check/process LS data.
+// Checks [this+0x40] & 3 — if set, processes loading-screen packets.
+static BYTE tramp_543CC0[32];
+static volatile DWORD g_tramp_543CC0_addr = 0;
+static volatile int g_hits_543CC0 = 0;
+
+void __attribute__((cdecl, used)) LogLSTick(DWORD this_ptr) {
+    int h = ++g_hits_543CC0;
+    if (h <= 10) {
+        BYTE *obj = (BYTE*)this_ptr;
+        BYTE flag40 = obj ? obj[0x40] : 0xFF;
+        Log("LSTICK #%d this=%p [+0x40]=%02X", h, (void*)this_ptr, flag40);
+    }
+}
+
+extern void Detour_543CC0(void);
+__asm__(
+    ".text\n"
+    ".globl _Detour_543CC0\n"
+    "_Detour_543CC0:\n"
+    "    pushal\n"
+    "    pushfl\n"
+    "    push %ecx\n"
+    "    call _LogLSTick\n"
+    "    add $4, %esp\n"
+    "    popfl\n"
+    "    popal\n"
+    "    jmp *_g_tramp_543CC0_addr\n"
+);
+
 // subVT[3] detour @ RVA 0x778AE0 — general loading-screen data processor.
 // Called with ecx = sub-object (at [mainObj+0xB8]), arg0 = packet info.
 static BYTE tramp_778AE0[32];
@@ -1965,6 +1995,33 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                             VirtualProtect(tp, 7, oldProt, &oldProt);
                             Log("HOOK: TerminateProcess -> return TRUE");
                         }
+                    }
+                }
+
+                // LS tick detour @ RVA 0x543CC0
+                {
+                    BYTE *tgt = (BYTE*)hExe + 0x543CC0;
+                    if (tgt[0] == 0x51 && tgt[1] == 0x56) {
+                        MakeTrampolineN(tgt, tramp_543CC0, 5);
+                        g_tramp_543CC0_addr = (DWORD)tramp_543CC0;
+                        PatchJmp5(tgt, (void*)Detour_543CC0);
+                        Log("LSTICK: detour installed at RVA 0x543CC0");
+                    }
+                }
+
+                // PATCH18: Fix type 3 (CHL_LOADING_SCREEN) in packet type router.
+                // Jump table at RVA 0x075B24, index 1 = type 3.
+                // Entry at 0x075B28 points to 0x475B20 (NO-OP return).
+                // Patch to point to 0x475A6C (type 2 processing, skip encrypt check).
+                {
+                    BYTE *jt = (BYTE*)hExe + 0x075B28;  // jump table entry for type 3
+                    DWORD oldProt;
+                    if (VirtualProtect(jt, 4, PAGE_EXECUTE_READWRITE, &oldProt)) {
+                        DWORD newTarget = (DWORD)hExe + 0x075A6C;  // type 2 handler after check
+                        *(DWORD*)jt = newTarget;
+                        FlushInstructionCache(GetCurrentProcess(), jt, 4);
+                        VirtualProtect(jt, 4, oldProt, &oldProt);
+                        Log("PATCH18: type 3 jump table -> 0x%08lX (process like type 2)", newTarget);
                     }
                 }
 
