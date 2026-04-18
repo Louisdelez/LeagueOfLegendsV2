@@ -97,6 +97,69 @@ static LONG CALLBACK NullGuardHandler(PEXCEPTION_POINTERS ex) {
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
+// Forward declaration
+static void Log(const char *fmt, ...);
+
+// D3D9 EndScene hook for overlay rendering (GDI-on-backbuffer approach)
+#include <d3d9.h>
+typedef HRESULT (WINAPI *EndScene_t)(IDirect3DDevice9*);
+static EndScene_t g_origEndScene = NULL;
+static volatile int g_endSceneHits = 0;
+static HFONT g_overlayFont = NULL;
+
+// D3DXCreateFontA dynamically loaded
+typedef HRESULT (WINAPI *D3DXCreateFontA_t)(IDirect3DDevice9*, INT, UINT, UINT, UINT,
+    BOOL, DWORD, DWORD, DWORD, DWORD, LPCSTR, void**);
+static D3DXCreateFontA_t g_pfnCreateFont = NULL;
+static void *g_d3dxFont = NULL;
+static int g_d3dxTried = 0;
+
+HRESULT WINAPI HookEndScene(IDirect3DDevice9 *dev) {
+    g_endSceneHits++;
+
+    // Try to load D3DX font once
+    if (!g_d3dxTried) {
+        g_d3dxTried = 1;
+        // Try multiple D3DX DLL names
+        const char *dlls[] = {"d3dx9_43.dll","d3dx9_42.dll","d3dx9_41.dll","d3dx9_40.dll",
+                              "d3dx9_39.dll","d3dx9_38.dll","d3dx9_37.dll","d3dx9_36.dll",NULL};
+        HMODULE d3dx = NULL;
+        for (int i = 0; dlls[i]; i++) {
+            d3dx = LoadLibraryA(dlls[i]);
+            if (d3dx) { Log("D3D: loaded %s", dlls[i]); break; }
+        }
+        if (d3dx) {
+            g_pfnCreateFont = (D3DXCreateFontA_t)GetProcAddress(d3dx, "D3DXCreateFontA");
+            if (g_pfnCreateFont) {
+                HRESULT hr = g_pfnCreateFont(dev, 32, 0, FW_BOLD, 1, FALSE,
+                    DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
+                    DEFAULT_PITCH | FF_DONTCARE, "Arial", &g_d3dxFont);
+                Log("D3D: D3DXCreateFontA result=0x%08lX font=%p", hr, g_d3dxFont);
+            }
+        } else {
+            Log("D3D: no d3dx9 DLL found");
+        }
+    }
+
+    // Draw text via D3DX font
+    if (g_d3dxFont) {
+        DWORD *fontVtbl = *(DWORD**)g_d3dxFont;
+        typedef int (WINAPI *DrawTextA_t)(void*, void*, LPCSTR, int, RECT*, DWORD, DWORD);
+        DrawTextA_t drawText = (DrawTextA_t)fontVtbl[14];
+
+        RECT r1 = {50, 100, 900, 150};
+        int ret = drawText(g_d3dxFont, NULL, "Player1 (Test) - Ezreal", -1, &r1, DT_LEFT | DT_NOCLIP, 0xFF00FFFF);
+        RECT r2 = {50, 140, 900, 190};
+        drawText(g_d3dxFont, NULL, "Team Blue | Loading 100%", -1, &r2, DT_LEFT | DT_NOCLIP, 0xFF4488FF);
+        RECT r3 = {50, 650, 900, 700};
+        drawText(g_d3dxFont, NULL, "LeagueSandbox Private Server", -1, &r3, DT_LEFT | DT_NOCLIP, 0xFFFFDD00);
+        if (g_endSceneHits <= 3)
+            Log("D3D: DrawTextA ret=%d vtbl[14]=%p", ret, (void*)fontVtbl[14]);
+    }
+
+    return g_origEndScene(dev);
+}
+
 static FILE *logfile = NULL;
 static CRITICAL_SECTION logLock;
 static char logDir[MAX_PATH];
@@ -1131,18 +1194,13 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                         Log("WD: injection complete, handler[+0x2C]=%p",
                             (void*)*(DWORD*)(hp+0x2C));
 
-                        // Replay buffered LS packets via LSRECV (not just inject)
+                        // Replay buffered LS packets via inject (not LSRECV — wrong signature)
                         g_lsReady = 1;
                         if (g_lsBufCount > 0) {
-                            Log("WD: replaying %d buffered LS packets via LSRECV", g_lsBufCount);
-                            typedef void (__thiscall *LSRecvFn)(void*, void*);
-                            LSRecvFn lsRecv = (LSRecvFn)((DWORD)hExe + 0x2FBCE0);
+                            Log("WD: replaying %d buffered LS packets via inject", g_lsBufCount);
                             for (int bi = 0; bi < g_lsBufCount; bi++) {
-                                Log("WD: LSRECV replay #%d opc=0x%02X len=%d",
-                                    bi+1, g_lsBuf[bi][0], g_lsBufLen[bi]);
-                                lsRecv((void*)*lsH, g_lsBuf[bi]);
+                                InjectLSPacket(g_lsBuf[bi], g_lsBufLen[bi]);
                             }
-                            Log("WD: LSRECV replay done");
                         }
                         *(DWORD*)(hp+8) = 1;
                         Log("WD: handler[+8] set to 1");
@@ -1240,6 +1298,49 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                         Log("WD: h[+34]=%08X [+38]=%08X [+3C]=%08X [+40]=%08X",
                             *(DWORD*)(hp+0x34), *(DWORD*)(hp+0x38),
                             *(DWORD*)(hp+0x3C), *(DWORD*)(hp+0x40));
+                    }
+                }
+                // Install D3D9 EndScene hook (once)
+                if (!g_origEndScene && tick == 1) {
+                    HMODULE d3d9 = GetModuleHandleA("d3d9.dll");
+                    if (d3d9) {
+                        // Create dummy device to get vtable
+                        typedef IDirect3D9* (WINAPI *Direct3DCreate9_t)(UINT);
+                        Direct3DCreate9_t create9 = (Direct3DCreate9_t)GetProcAddress(d3d9, "Direct3DCreate9");
+                        if (create9) {
+                            IDirect3D9 *d3d = create9(D3D_SDK_VERSION);
+                            if (d3d) {
+                                HWND hw = FindWindowA(NULL, "League of Legends (TM) Client");
+                                if (hw) {
+                                    D3DPRESENT_PARAMETERS pp = {0};
+                                    pp.Windowed = TRUE;
+                                    pp.SwapEffect = D3DSWAPEFFECT_DISCARD;
+                                    pp.hDeviceWindow = hw;
+                                    IDirect3DDevice9 *tmpDev = NULL;
+                                    HRESULT hr = d3d->lpVtbl->CreateDevice(d3d,
+                                        D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hw,
+                                        D3DCREATE_SOFTWARE_VERTEXPROCESSING, &pp, &tmpDev);
+                                    if (SUCCEEDED(hr) && tmpDev) {
+                                        DWORD *vtbl = *(DWORD**)tmpDev;
+                                        void *endScene = (void*)vtbl[42]; // EndScene=42
+                                        void *present = (void*)vtbl[17];  // Present=17
+                                        Log("D3D: EndScene=%p Present=%p", endScene, present);
+                                        // Hook EndScene (render BEFORE end)
+                                        static BYTE tramp_EndScene[32];
+                                        MakeTrampoline5(endScene, tramp_EndScene);
+                                        g_origEndScene = (EndScene_t)tramp_EndScene;
+                                        PatchJmp5(endScene, HookEndScene);
+                                        Log("D3D: EndScene hooked!");
+                                        tmpDev->lpVtbl->Release(tmpDev);
+                                    } else {
+                                        Log("D3D: CreateDevice failed hr=0x%08lX", hr);
+                                    }
+                                }
+                                d3d->lpVtbl->Release(d3d);
+                            }
+                        }
+                    } else {
+                        Log("D3D: d3d9.dll not loaded yet");
                     }
                 }
                 // Draw player info directly on game window via GDI overlay
