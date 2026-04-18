@@ -1,0 +1,19 @@
+000000.000| ALWAYS| Logging started at 2026-04-17T17:03:26.528
+000000.000|   OKAY| Riot::RADS::Reader::RadsMain::Initialize: RADS library initializing with specified working directory "D:\LeagueOfLegendsV2\4.20\GameServer".
+000000.000|   OKAY| Riot::RADS::Reader::RuntimeEnvironment::Create: Creating RADS runtime environment: RADS root directory = "D:/LeagueOfLegendsV2/4.20/GameServer"
+000000.000|   WARN| Riot::RADS::Reader::RuntimeEnvironment::GetProjectTypeNameAndVersion: Did not find keywords "projects" or "solutions" in path D:/LeagueOfLegendsV2/4.20/GameServer
+000000.000|  ERROR| Riot::RADS::Reader::RuntimeEnvironment::Create: RADS runtime environment creation failed because it was unable to get the project information.
+000000.000|  ERROR| Riot::RADS::Reader::RadsMain::Initialize: RADS library initialization failed to create the runtime environment.
+000000.000|  ERROR| Failed to initialize Rads library.
+000000.018|   OKAY| Unable to process data overlay file ./ToolsConfig.xml, defaulting to overlay now
+000000.018| ALWAYS| Data overlay start folder initialized to DATA, Content/Src
+000000.019| ALWAYS| Build Version: Version 7.13.192.6794 (Jun 22 2017/18:13:15) [PUBLIC] <Releases/7.13> ChangeList: 1926794
+000000.093| ALWAYS| Started System Init
+000000.094| ALWAYS| zip manifest, 'ClientZips.txt', not found (expected).
+000000.094| ALWAYS| WadFile mount: DATA/FINAL/Global.wad (FAILED)
+000000.094|  ERROR| Assertion failed!
+
+Expression: ALE-18967997
+
+Description: FATAL ERROR - WadFile mount failed: Global.wad
+000000.248|  ERROR| Crash Occurred

@@ -1,0 +1,14 @@
+{
+    "cpu_type": 586,
+    "exception_type": "ILLEGAL_INSTRUCTION",
+    "free_page_file_bytes": 10105708544,
+    "free_physical_mem_bytes": 21746933760,
+    "free_virtual_mem_bytes": 4006993920,
+    "game_version": "7.13.192.6794",
+    "mem_load_pct": 36,
+    "module_name": "League of Legends",
+    "num_cpus": 12,
+    "total_page_file_bytes": 36409405440,
+    "total_physical_mem_bytes": 34175680512,
+    "total_virtual_mem_bytes": 4294836224
+}
