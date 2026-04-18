@@ -110,14 +110,16 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#070C12; color:#A09B8
 .video-nav-title { color:#0AC8B9; }
 
 /* BOTTOM BAR */
-.bottombar { background:#070C12; border-top:1px solid #1A1D23; height:32px; display:flex; align-items:center; justify-content:flex-end; padding:0 10px; gap:5px; }
-.bb-icon { width:34px; height:28px; background:#1E2328; border:1px solid #333; border-radius:3px; display:flex; align-items:center; justify-content:center; gap:3px; cursor:pointer; }
-.bb-icon:hover { border-color:#C89B3C; }
-.bb-friends { background:#1A3A5A; border-color:#2A6A9A; padding:0 6px; width:auto; }
-.bb-count { color:#5AC8FF; font-size:12px; font-weight:bold; }
-.bb-chat { background:#1E2328; }
-.bb-notif { background:#1E2328; }
-.bb-excl { color:#C89B3C; font-size:14px; font-weight:bold; }
+.bottombar { background:#070C12; border-top:1px solid #1A1D23; height:36px; display:flex; align-items:center; justify-content:flex-end; padding:0 15px; gap:8px; }
+.bb-icon { height:28px; background:#1E2830; border:1px solid #2A4A5A; border-radius:3px; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; padding:0 8px; }
+.bb-icon:hover { border-color:#5AC8FF; }
+.bb-friends { background:#1A3050; border-color:#2A5A7A; }
+.bb-friends svg { fill:#5AC8FF; }
+.bb-count { color:#5AC8FF; font-size:13px; font-weight:bold; }
+.bb-chat { background:#1E2830; border-color:#2A4A5A; }
+.bb-chat svg { fill:#7A8A9A; }
+.bb-notif { background:#1E2830; border-color:#2A4A5A; min-width:28px; }
+.bb-excl { color:#C89B3C; font-size:15px; font-weight:bold; }
 
 /* ===== PLAY PAGE ===== */
 .play-layout { display:flex; width:100%; height:100%; }
