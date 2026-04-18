@@ -1,0 +1,166 @@
+/* ============  TOP BAR  ============ */
+.topbar{
+    position:absolute;top:22px;left:0;right:0;height:72px;
+    background:linear-gradient(to bottom,#0A1A2B,#061220);
+    border-bottom:2px solid #000;
+    display:flex;align-items:center;
+    padding:0 20px;
+    z-index:5;
+}
+
+.logo{
+    display:flex;align-items:center;
+    height:60px;
+    cursor:pointer;
+}
+.logo:hover img{filter:drop-shadow(0 2px 6px rgba(200,170,110,.6)) brightness(1.1)}
+.logo img{
+    height:100%;
+    width:auto;
+    display:block;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,.8));
+}
+
+.play-wrap{
+    position:absolute;left:50%;top:50%;
+    transform:translate(-50%,-50%);
+    padding:3px;
+    background:linear-gradient(to bottom,#C8AA6E 0%,#785A28 50%,#463714 100%);
+    border-radius:2px;
+    box-shadow:0 4px 12px rgba(0,0,0,.6),inset 0 0 0 1px rgba(0,0,0,.4);
+}
+.play-btn{
+    width:180px;height:48px;
+    background:linear-gradient(to bottom,#E04B2E 0%,#C8302A 40%,#8B1F1B 100%);
+    border:1px solid #000;
+    color:#F5E6CC;
+    font-family:'Cinzel',serif;
+    font-size:24px;
+    font-weight:600;
+    letter-spacing:2px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(255,200,160,.3),inset 0 -10px 20px rgba(0,0,0,.3);
+    text-shadow:0 1px 2px rgba(0,0,0,.6);
+}
+.play-btn:hover{filter:brightness(1.1)}
+
+.profile{
+    position:absolute;
+    right:40px;
+    top:50%;
+    transform:translateY(-50%);
+    display:flex;align-items:center;gap:4px;
+}
+.profile-stack{display:flex;flex-direction:column;gap:2px}
+.profile-row{display:flex;gap:0}
+
+.level-box{
+    position:relative;
+    width:54px;height:54px;
+    background:linear-gradient(to bottom,#1E3A5F,#0F2340);
+    border:1px solid var(--gold-2);
+    display:flex;align-items:center;justify-content:center;
+    margin-right:4px;
+}
+.level-box .chest{
+    width:32px;height:26px;
+    background:linear-gradient(to bottom,#4A8BC7,#1E5088);
+    border:1px solid #0A1A2B;
+    border-radius:2px 2px 0 0;
+    position:relative;
+}
+.level-box .chest::before{
+    content:"";position:absolute;
+    left:50%;top:-4px;transform:translateX(-50%);
+    width:10px;height:5px;
+    background:#C8AA6E;border-radius:5px 5px 0 0;
+}
+.level-badge{
+    position:absolute;bottom:-3px;right:-3px;
+    background:var(--gold-1);
+    color:#1A1A1A;
+    font-size:10px;font-weight:700;
+    padding:1px 4px;
+    border-radius:2px;
+    border:1px solid #000;
+}
+
+.username-box{
+    width:130px;
+    height:26px;
+    padding:0 12px;
+    background:linear-gradient(to bottom,#5E2D7A,#3D1C52);
+    border:1px solid #1A0828;
+    display:flex;align-items:center;
+    color:#F5E6FF;
+    font-weight:600;
+    font-size:12px;
+    letter-spacing:.3px;
+}
+
+.currency{
+    width:80px;
+    height:26px;padding:0 10px;
+    display:flex;align-items:center;gap:6px;
+    background:linear-gradient(to bottom,#C8632A,#8B3E17);
+    border:1px solid #2A0E04;
+    color:#FFE5CC;font-weight:600;font-size:12px;
+}
+.currency.blue{
+    width:90px;
+    background:linear-gradient(to bottom,#2A6FA8,#16476E);
+    color:#D4ECFF;
+}
+.currency-icon{
+    width:14px;height:14px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:10px;font-weight:700;
+    flex-shrink:0;
+}
+.currency.orange .currency-icon{
+    background:radial-gradient(circle at 30% 30%,#FFD180,#C8632A);
+    color:#4A1A00;
+}
+.currency.blue .currency-icon{
+    background:radial-gradient(circle at 30% 30%,#8FD4FF,#1E5088);
+    color:#0A1A2B;
+}
+
+.action-btn{
+    width:100px;
+    height:26px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    border:1px solid #0A1A2B;
+    font-size:14px;
+}
+.action-btn.shop{
+    background:linear-gradient(to bottom,#C8632A,#8B3E17);
+    color:#FFE5CC;
+}
+.action-btn.user,
+.action-btn.help{
+    background:linear-gradient(to bottom,#2A6FA8,#16476E);
+    color:#D4ECFF;
+}
+.action-btn:hover{filter:brightness(1.15)}
+
+.settings-btn{
+    position:absolute;right:10px;top:50%;transform:translateY(-50%);
+    width:22px;height:22px;
+    background:transparent;
+    border:none;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--gold-2);
+    font-size:16px;
+    cursor:pointer;
+    transition:color .15s;
+}
+.settings-btn:hover{color:var(--gold-1)}
+
+/* ============  CONTENT WRAP  ============ */
+.content-wrap{position:absolute;top:94px;left:0;right:0;bottom:40px}
+.page{display:none;width:100%;height:100%;position:relative}
+.page.active{display:block}
+

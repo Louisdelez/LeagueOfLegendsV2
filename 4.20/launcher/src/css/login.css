@@ -1,0 +1,236 @@
+/* ============  LOGIN SCREEN  ============ */
+#login-screen{
+    position:fixed;inset:0;
+    background:#000;
+    display:flex;align-items:center;justify-content:center;
+    z-index:200;
+}
+#login-screen.hidden{display:none}
+
+#login-screen .login-window{
+    position:relative;
+    width:100%;height:100%;
+    background:#020510;
+    color:#CDBE91;
+    font-family:'Inter',sans-serif;font-size:12px;
+    overflow:hidden;
+    display:flex;flex-direction:column;
+}
+
+#login-screen .login-titlebar{
+    height:24px;
+    background:linear-gradient(to bottom,#0A1428,#05101E);
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 8px;
+    font-size:11px;color:#6A5E40;
+    border-bottom:1px solid #000;
+}
+#login-screen .login-title-text{flex:1;padding-left:4px;cursor:default}
+#login-screen .login-win-btns{display:flex;gap:2px}
+#login-screen .login-win-btn{
+    width:28px;height:20px;
+    display:flex;align-items:center;justify-content:center;
+    color:#8A7A5A;font-size:15px;cursor:pointer;
+    background:transparent;border:none;
+    -webkit-app-region:no-drag;
+}
+#login-screen .login-win-btn:hover{background:rgba(255,255,255,.05)}
+#login-screen .login-win-btn.close:hover{background:#C8302A;color:#fff}
+
+#login-screen .login-body{
+    flex:1;
+    display:flex;
+    position:relative;
+}
+
+#login-screen .login-left{
+    width:290px;flex-shrink:0;
+    background:linear-gradient(to bottom, rgba(10,20,40,.92) 0%, rgba(5,12,25,.95) 100%);
+    border-right:1px solid rgba(80,120,180,.15);
+    display:flex;flex-direction:column;
+    padding:16px 22px 12px;
+    color:#C0C8D8;
+    position:relative;
+    z-index:2;
+}
+
+#login-screen .login-logo{
+    display:flex;align-items:center;
+    height:64px;
+    margin-bottom:18px;
+}
+#login-screen .login-logo img{
+    height:100%;
+    width:auto;
+    display:block;
+    filter:drop-shadow(0 2px 6px rgba(0,0,0,.8));
+}
+
+#login-screen .login-section-title{
+    color:#A8B4C8;
+    font-size:14px;
+    font-weight:500;
+    margin-bottom:6px;
+}
+
+#login-screen .form-field{
+    display:flex;flex-direction:column;gap:3px;
+    margin-bottom:8px;
+}
+#login-screen .form-field label{
+    color:#A8B4C8;
+    font-size:12px;
+    font-weight:400;
+}
+#login-screen .form-field input{
+    width:100%;height:26px;
+    padding:0 8px;
+    background:linear-gradient(to bottom,#F0F0F0,#D8D8D8);
+    border:1px solid #0A1525;
+    color:#222;
+    font-family:inherit;font-size:12px;
+    outline:none;
+}
+#login-screen .form-field input:focus{background:#fff}
+
+#login-screen .remember-row{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-top:8px;
+    gap:10px;
+}
+#login-screen .remember-check{
+    display:flex;align-items:center;gap:5px;
+    color:#A8B4C8;
+    font-size:11.5px;
+    cursor:pointer;
+}
+#login-screen .remember-box{
+    width:13px;height:13px;
+    background:linear-gradient(to bottom,#0A1525,#050B18);
+    border:1px solid #3A5A8A;
+    position:relative;
+    flex-shrink:0;
+}
+#login-screen .remember-check.checked .remember-box::after,
+#login-screen .opt-line.checked .remember-box::after{
+    content:"";
+    position:absolute;left:2px;top:-1px;
+    width:7px;height:10px;
+    border-right:2px solid #5EA8D9;
+    border-bottom:2px solid #5EA8D9;
+    transform:rotate(40deg);
+}
+
+#login-screen .login-btn{
+    padding:5px 18px;
+    background:linear-gradient(to bottom,#3A6AA0,#1A4070);
+    border:1px solid #0A2040;
+    color:#E8EEFA;
+    font-size:12px;font-weight:500;
+    cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+}
+#login-screen .login-btn:hover{filter:brightness(1.15)}
+
+#login-screen .login-links{
+    margin-top:14px;
+    display:flex;flex-direction:column;gap:4px;
+    font-size:11.5px;
+}
+#login-screen .login-links > div{color:#A8B4C8}
+#login-screen .login-links a{
+    color:#5EA8D9;
+    text-decoration:none;
+    cursor:pointer;
+}
+#login-screen .login-links a:hover{text-decoration:underline}
+
+#login-screen .free-banner{
+    margin-top:14px;
+    color:#E8AA3A;
+    font-size:12px;
+    font-weight:500;
+    text-shadow:0 1px 0 rgba(0,0,0,.3);
+}
+
+#login-screen .login-bottom{
+    margin-top:auto;
+    display:flex;gap:12px;align-items:flex-start;
+    padding-top:12px;
+    font-size:10.5px;
+    color:#8898B0;
+}
+#login-screen .riot-logo{
+    height:44px;width:auto;flex-shrink:0;
+    display:block;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));
+}
+#login-screen .client-settings{
+    display:flex;flex-direction:column;gap:4px;
+}
+#login-screen .client-settings-title{
+    color:#A8B4C8;
+    font-size:11px;
+    margin-bottom:2px;
+}
+#login-screen .opt-line{
+    display:flex;align-items:center;gap:5px;
+    cursor:pointer;
+    color:#8898B0;
+}
+
+#login-screen .login-right{
+    flex:1;
+    position:relative;
+    overflow:hidden;
+    background:
+        radial-gradient(ellipse 35% 25% at 30% 15%, rgba(240,60,40,.6), transparent 70%),
+        radial-gradient(ellipse 20% 15% at 45% 12%, rgba(255,120,80,.7), transparent 70%),
+        radial-gradient(ellipse 25% 40% at 85% 65%, rgba(80,150,230,.4), transparent 75%),
+        radial-gradient(circle 10% at 70% 55%, rgba(120,200,255,.5), transparent 70%),
+        radial-gradient(ellipse 35% 30% at 20% 85%, rgba(180,40,60,.3), transparent 75%),
+        linear-gradient(180deg, #0A0510 0%, #150818 30%, #180818 60%, #080408 100%);
+}
+#login-screen .login-right::before{
+    content:"";position:absolute;
+    inset:0;
+    background:
+        radial-gradient(ellipse 30% 55% at 55% 65%, rgba(15,5,20,.98) 0%, rgba(10,5,15,.6) 60%, transparent 80%),
+        radial-gradient(ellipse 15% 25% at 48% 35%, rgba(20,10,25,.95), transparent 75%),
+        radial-gradient(ellipse 25% 15% at 80% 55%, rgba(20,10,25,.85), transparent 75%),
+        radial-gradient(ellipse 20% 10% at 25% 65%, rgba(20,10,25,.85), transparent 75%),
+        radial-gradient(ellipse 5% 20% at 75% 40%, rgba(40,20,40,.9), transparent 75%);
+}
+#login-screen .login-right::after{
+    content:"";position:absolute;inset:0;
+    background:
+        radial-gradient(circle 2px at 46% 32%, rgba(255,200,100,1), rgba(255,60,20,.9) 50%, transparent 80%),
+        radial-gradient(circle 2px at 52% 33%, rgba(255,200,100,1), rgba(255,60,20,.9) 50%, transparent 80%),
+        radial-gradient(circle 8px at 46% 32%, rgba(255,80,30,.6), transparent 80%),
+        radial-gradient(circle 8px at 52% 33%, rgba(255,80,30,.6), transparent 80%),
+        radial-gradient(1.5px 1.5px at 72% 50%, rgba(200,230,255,.9), transparent 80%),
+        radial-gradient(1.5px 1.5px at 77% 58%, rgba(180,220,255,.85), transparent 80%),
+        radial-gradient(1px 1px at 82% 63%, rgba(150,200,240,.7), transparent 80%),
+        radial-gradient(2px 2px at 68% 55%, rgba(180,220,255,.8), transparent 80%),
+        radial-gradient(1px 4px at 40% 20%, rgba(255,180,100,.8), transparent 80%),
+        radial-gradient(1px 4px at 50% 15%, rgba(255,180,100,.7), transparent 80%),
+        radial-gradient(1px 3px at 58% 22%, rgba(255,150,80,.6), transparent 80%);
+}
+
+#login-screen .refresh-btn{
+    position:absolute;
+    right:14px;bottom:14px;
+    width:36px;height:36px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#3AC8C4 0%,#1A8890 60%,#0A484A 100%);
+    border:1px solid #053034;
+    display:flex;align-items:center;justify-content:center;
+    color:#F0F8FA;
+    font-size:18px;
+    cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 3px 8px rgba(0,0,0,.5),0 0 12px rgba(60,200,200,.35);
+    z-index:5;
+    transition:transform .3s;
+}
+#login-screen .refresh-btn:hover{transform:rotate(120deg);filter:brightness(1.15)}
+

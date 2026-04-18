@@ -15,6 +15,22 @@ fn get_champions() -> Vec<ChampionInfo> {
 }
 
 #[tauri::command]
+async fn minimize_window(window: tauri::Window) {
+    let _ = window.minimize();
+}
+
+#[tauri::command]
+async fn close_window(window: tauri::Window) {
+    let _ = window.close();
+}
+
+#[tauri::command]
+async fn resize_to_main(window: tauri::Window) {
+    let _ = window.set_size(tauri::LogicalSize::new(1280.0, 720.0));
+    let _ = window.center();
+}
+
+#[tauri::command]
 fn get_maps() -> Vec<MapInfo> {
     data::get_maps()
 }
@@ -73,6 +89,9 @@ fn main() {
             get_maps,
             get_summoner_spells,
             launch_game,
+            minimize_window,
+            close_window,
+            resize_to_main,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

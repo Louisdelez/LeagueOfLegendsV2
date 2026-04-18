@@ -3,41 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <title>League of Legends</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/topbar.css">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/store.css">
+    <link rel="stylesheet" href="css/pages/profile.css">
+    <link rel="stylesheet" href="css/play.css">
+    <link rel="stylesheet" href="css/team.css">
+    <link rel="stylesheet" href="css/modals-options.css">
+    <link rel="stylesheet" href="css/modals-invites.css">
+    <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
+<div class="client">
+
     <!-- TITLE BAR -->
-    <div class="titlebar">League of Legends 4.20 - LeagueSandbox</div>
+    <div class="titlebar">
+        <div class="title-text" data-tauri-drag-region>League of Legends 4.10.14_06_16_19_01</div>
+        <div class="win-btns">
+            <button class="win-btn" type="button" onclick="minimizeWindow()">&mdash;</button>
+            <button class="win-btn close" type="button" onclick="closeWindow()">&times;</button>
+        </div>
+    </div>
 
     <!-- TOP BAR -->
     <div class="topbar">
-        <div class="topbar-left">
-            <div class="logo">
-                <span class="logo-league">LEAGUE</span><span class="logo-of">of</span><span class="logo-legends">LEGENDS</span>
+        <div class="logo" onclick="showPage('home')">
+            <img src="img/logo-old.png" alt="League of Legends">
+        </div>
+
+        <div class="play-wrap" id="playWrap">
+            <div class="play-btn" onclick="showPage('play')">Play</div>
+        </div>
+
+        <div class="arranging-box" id="arrangingBox" style="display:none">
+            <div class="arranging-text">Arranging Team...</div>
+            <button class="arranging-close" title="Quitter" onclick="showPage('play')">&#10005;</button>
+        </div>
+
+        <div class="profile">
+            <div class="level-box">
+                <div class="chest"></div>
+                <div class="level-badge">30</div>
             </div>
-        </div>
-        <div class="topbar-center">
-            <button class="play-btn" onclick="showPage('play')">Play</button>
-        </div>
-        <div class="topbar-right">
-            <div class="summoner-block">
-                <div class="summoner-icon-wrap">
-                    <div class="summoner-icon">30</div>
-                </div>
-                <div class="summoner-info-right">
-                    <span class="summoner-name-top" id="summoner-name-display">Player1</span>
-                    <div class="currency-row">
-                        <span class="ip-icon"></span><span class="ip-val">9999</span>
-                        <span class="rp-icon"></span><span class="rp-val">9999</span>
+
+            <div class="profile-stack">
+                <div class="profile-row top">
+                    <div class="username-box" id="summoner-name-display">TheHellReaper</div>
+                    <div class="currency orange">
+                        <span class="currency-icon">&#9670;</span>
+                        <span>159</span>
+                    </div>
+                    <div class="currency blue">
+                        <span class="currency-icon">&#10005;</span>
+                        <span>9775</span>
                     </div>
                 </div>
-                <div class="topbar-icons">
-                    <div class="tb-icon" title="Shop"></div>
-                    <div class="tb-icon" title="Social"></div>
-                    <div class="tb-icon" title="Help"></div>
+
+                <div class="profile-row bottom">
+                    <div class="action-btn shop" id="btn-shop" title="Boutique" onclick="showPage('store')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                    </div>
+                    <div class="action-btn user" id="btn-user" title="Profil" onclick="showPage('profile')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </div>
+                    <div class="action-btn help" title="Aide">
+                        <span style="font-weight:700;font-size:13px">?</span>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <button class="settings-btn" title="Options" onclick="openOptions()">&#9881;</button>
     </div>
 
     <!-- CONTENT AREA -->
@@ -45,204 +85,2311 @@
 
         <!-- HOME PAGE -->
         <div class="page active" id="page-home">
-            <div class="home-two-col">
+            <div class="main">
+
                 <!-- LEFT COLUMN -->
-                <div class="home-left">
-                    <!-- Spectate Live -->
-                    <div class="spectate-box">
-                        <div class="spectate-tabs">
-                            <div class="spec-tab active">RANKED</div>
-                            <div class="spec-tab-dots">
-                                <span class="dot"></span><span class="dot"></span><span class="dot active"></span>
-                                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-                            </div>
-                        </div>
+                <div class="left-col">
+
+                    <!-- Spectate panel -->
+                    <div class="spectate">
+                        <div class="corner tl"></div><div class="corner tr"></div>
+                        <div class="corner bl"></div><div class="corner br"></div>
+
                         <div class="spectate-header">
-                            <span class="arrow-left">&lsaquo;</span>
-                            <span>SPECTATE LIVE</span>
-                            <span class="arrow-right">&rsaquo;</span>
-                        </div>
-                        <div class="spectate-timer">08:33</div>
-                        <div class="spectate-match">
-                            <div class="team-left">
-                                <div class="match-player"><div class="mini-icon"></div><span>GochuHunter</span></div>
-                                <div class="match-player"><div class="mini-icon"></div><span>FahZix</span></div>
-                                <div class="match-player"><div class="mini-icon"></div><span>Bok bok ima cat</span></div>
-                                <div class="match-player"><div class="mini-icon"></div><span>Zeg Prime</span></div>
-                                <div class="match-player"><div class="mini-icon"></div><span>SHOCK</span></div>
+                            <div class="ranked-tab">RANKED</div>
+
+                            <div class="spectate-banner">
+                                <div class="title">SPECTATE LIVE</div>
+                                <div class="time">08:33</div>
                             </div>
-                            <div class="vs-text">VS</div>
-                            <div class="team-right">
-                                <div class="match-player right"><span>eganwO</span><div class="mini-icon r"></div></div>
-                                <div class="match-player right"><span>wc Hero</span><div class="mini-icon r"></div></div>
-                                <div class="match-player right"><span>Damian John</span><div class="mini-icon r"></div></div>
-                                <div class="match-player right"><span>I am Fearless</span><div class="mini-icon r"></div></div>
-                                <div class="match-player right"><span>kibasreign</span><div class="mini-icon r"></div></div>
+
+                            <div class="pagination">
+                                <div class="dot active"></div>
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                                <div class="dot"></div>
+                                <div class="dot"></div>
                             </div>
                         </div>
-                        <button class="watch-btn">WATCH NOW</button>
+
+                        <div class="match">
+                            <div class="teams">
+                                <div class="team blue">
+                                    <div class="player"><div class="portrait p1"></div><div class="player-name">GochuHunter</div></div>
+                                    <div class="player"><div class="portrait p2"></div><div class="player-name">FahZix</div></div>
+                                    <div class="player"><div class="portrait p3"></div><div class="player-name">Bok bok Ima cat</div></div>
+                                    <div class="player"><div class="portrait p4"></div><div class="player-name">Zeg Prime</div></div>
+                                    <div class="player"><div class="portrait p5"></div><div class="player-name">SHOCK</div></div>
+                                </div>
+                                <div class="team red">
+                                    <div class="player"><div class="portrait p6"></div><div class="player-name">eganwO</div></div>
+                                    <div class="player"><div class="portrait p7"></div><div class="player-name">wc Hero</div></div>
+                                    <div class="player"><div class="portrait p8"></div><div class="player-name">Damian John</div></div>
+                                    <div class="player"><div class="portrait p9"></div><div class="player-name">I am Fearless</div></div>
+                                    <div class="player"><div class="portrait p10"></div><div class="player-name">kibasreign</div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="watch-wrap">
+                            <div class="watch-btn">WATCH NOW</div>
+                        </div>
                     </div>
 
-                    <!-- News -->
-                    <div class="news-list">
+                    <!-- News panel -->
+                    <div class="news">
+                        <div class="corner tl"></div><div class="corner tr"></div>
+                        <div class="corner bl"></div><div class="corner br"></div>
+
                         <div class="news-item">
-                            <div class="news-thumb"></div>
+                            <div class="news-thumb t1"></div>
                             <div class="news-body">
-                                <a class="news-title">LeagueSandbox Private Server</a>
-                                <p>Custom server with 120+ champions, all maps, and full gameplay on patch 4.20.</p>
+                                <div class="news-title">League's first varsity team</div>
+                                <div class="news-desc">A North American college is officially adding League to its athletic program and coaching a team!</div>
                             </div>
                         </div>
+
                         <div class="news-item">
-                            <div class="news-thumb"></div>
+                            <div class="news-thumb t2">LEAGUE<br>LEGENDS<br>CHAMPIONSHIP<br>SERIES</div>
                             <div class="news-body">
-                                <a class="news-title">Rust Launcher Available</a>
-                                <p>Select your champion and map, configure game settings, and launch directly.</p>
+                                <div class="news-title">LCS Summer Split icons</div>
+                                <div class="news-desc">Rep your favorite LCS team as they battle it out for a spot at the World Championship!</div>
                             </div>
                         </div>
+
                         <div class="news-item">
-                            <div class="news-thumb"></div>
+                            <div class="news-thumb t3"></div>
                             <div class="news-body">
-                                <a class="news-title">All Maps Playable</a>
-                                <p>Summoner's Rift, Twisted Treeline, Howling Abyss and Crystal Scar are all available.</p>
+                                <div class="news-title">Celebrate the Beautiful Game</div>
+                                <div class="news-desc">From now until July 13, celebrate the world's most watched sporting event.</div>
                             </div>
                         </div>
-                    </div>
-                    <div class="help-row">
-                        <button class="help-btn">Help Us Improve</button>
+
+                        <div class="help-btn">Help Us Improve</div>
                     </div>
                 </div>
 
                 <!-- RIGHT COLUMN -->
-                <div class="home-right">
+                <div class="right-col">
+
                     <!-- Featured Item 1 -->
-                    <div class="featured-panel">
+                    <div class="featured">
+                        <div class="corner tl"></div><div class="corner tr"></div>
+                        <div class="corner bl"></div><div class="corner br"></div>
+
                         <div class="featured-label">FEATURED ITEM</div>
-                        <div class="featured-content">
-                            <div class="featured-splash"></div>
+                        <div class="featured-row">
+                            <div class="featured-img lucian"></div>
                             <div class="featured-info">
-                                <div class="featured-name">Striker Lucian</div>
-                                <div class="featured-price"><span class="rp-dot"></span> 750</div>
+                                <div>
+                                    <div class="featured-name">Striker Lucian</div>
+                                    <div class="featured-price" style="margin-top:6px">
+                                        <span class="rp-icon"></span>
+                                        <span>750</span>
+                                    </div>
+                                </div>
                                 <div class="featured-buttons">
-                                    <button class="feat-btn">INFO</button>
-                                    <button class="feat-btn unlock">UNLOCK</button>
+                                    <div class="btn-info">INFO</div>
+                                    <div class="btn-unlock">UNLOCK</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Featured Item 2 -->
-                    <div class="featured-panel">
+                    <div class="featured">
+                        <div class="corner tl"></div><div class="corner tr"></div>
+                        <div class="corner bl"></div><div class="corner br"></div>
+
                         <div class="featured-label">FEATURED ITEM</div>
-                        <div class="featured-content">
-                            <div class="featured-splash"></div>
+                        <div class="featured-row">
+                            <div class="featured-img katarina"></div>
                             <div class="featured-info">
-                                <div class="featured-name">Red Card Katarina</div>
-                                <div class="featured-price"><span class="rp-dot"></span> 975</div>
+                                <div>
+                                    <div class="featured-name">Red Card Katarina</div>
+                                    <div class="featured-price" style="margin-top:6px">
+                                        <span class="rp-icon"></span>
+                                        <span>975</span>
+                                    </div>
+                                </div>
                                 <div class="featured-buttons">
-                                    <button class="feat-btn">INFO</button>
-                                    <button class="feat-btn unlock">UNLOCK</button>
+                                    <div class="btn-info">INFO</div>
+                                    <div class="btn-unlock">UNLOCK</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Featured Videos -->
-                    <div class="featured-panel">
-                        <div class="featured-label">FEATURED VIDEOS <span class="close-x">&times;</span></div>
-                        <div class="video-placeholder">
-                            <div class="video-title">LeagueSandbox - Private Server Demo</div>
-                            <div class="video-thumb">
-                                <div class="play-icon">&#9654;</div>
-                            </div>
+                    <div class="videos">
+                        <div class="corner tl"></div><div class="corner tr"></div>
+                        <div class="corner bl"></div><div class="corner br"></div>
+
+                        <div class="videos-header">
+                            <div class="featured-label" style="margin-bottom:0">FEATURED VIDEOS</div>
+                            <div class="videos-expand">&#10530;</div>
+                        </div>
+
+                        <div class="video-player">
+                            <div class="video-scene"></div>
+                            <div class="video-title-top">Eye for an Eye: Vision Control</div>
+                            <div class="youtube-tag">YouTube</div>
+                            <div class="play-overlay"></div>
                             <div class="video-controls">
-                                <span>&#9654;</span> <span>0:00 / 2:55</span>
+                                <span class="vc-btn">&#9654;</span>
+                                <span class="vc-btn">&#128266;</span>
+                                <div class="vc-progress"></div>
+                                <span class="vc-time">0:00 / 2:55</span>
+                                <span class="vc-btn">&#9881;</span>
                             </div>
                         </div>
-                        <div class="video-nav">
-                            <span class="arrow-left">&lsaquo;</span>
-                            <span class="video-nav-title">LeagueSandbox Demo</span>
-                            <span class="arrow-right">&rsaquo;</span>
+
+                        <div class="videos-nav">
+                            <span class="nav-arrow">&#9664;</span>
+                            <span class="videos-current">Eye for an Eye: Vi...</span>
+                            <span class="nav-arrow">&#9654;</span>
                         </div>
                     </div>
                 </div>
-                <!-- EMPTY RIGHT SPACE (friends list opens here) -->
-                <div class="home-empty"></div>
+            </div>
+
+            <!-- Friends rail -->
+            <div class="friends-rail">
+
+                <!-- User profile card -->
+                <div class="my-profile">
+                    <div class="my-avatar"></div>
+                    <div class="my-info">
+                        <div class="my-name">TheHellReaper</div>
+                        <div class="my-status">
+                            <span>Online</span>
+                            <span class="status-dot online"></span>
+                        </div>
+                    </div>
+                    <div class="my-minimize">&mdash;</div>
+                </div>
+
+                <!-- Filter -->
+                <div class="friend-filter">
+                    <input type="text" placeholder="Filter friends list">
+                </div>
+
+                <!-- Friend List header -->
+                <div class="friend-list-header">
+                    <span>Friend List</span>
+                    <span class="caret">&#9660;</span>
+                </div>
+
+                <!-- General sub-category -->
+                <div class="friend-category">
+                    <div class="friend-category-left">
+                        <span class="caret">&#9660;</span>
+                        <span>General</span>
+                    </div>
+                    <span class="count">(5/84)</span>
+                </div>
+
+                <!-- Friends list (scrollable) -->
+                <div class="friend-list">
+
+                    <div class="friend">
+                        <div class="friend-avatar f1"></div>
+                        <div class="friend-info">
+                            <div class="friend-name">Decimiss</div>
+                            <div class="friend-status-text online">Online</div>
+                        </div>
+                        <div class="friend-right">
+                            <span class="status-dot online"></span>
+                        </div>
+                    </div>
+
+                    <div class="friend">
+                        <div class="friend-avatar f2"></div>
+                        <div class="friend-info">
+                            <div class="friend-name">Kellynn</div>
+                            <div class="friend-status-text in-game">In Game</div>
+                        </div>
+                        <div class="friend-right">
+                            <span class="spectate-eye" title="Spectate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></span>
+                            <span class="status-dot in-game"></span>
+                        </div>
+                    </div>
+
+                    <div class="friend">
+                        <div class="friend-avatar f3"></div>
+                        <div class="friend-info">
+                            <div class="friend-name">pepsipirate</div>
+                            <div class="friend-status-text in-game">In Game</div>
+                        </div>
+                        <div class="friend-right">
+                            <span class="spectate-eye" title="Spectate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></span>
+                            <span class="status-dot in-game"></span>
+                        </div>
+                    </div>
+
+                    <div class="friend">
+                        <div class="friend-avatar f4"></div>
+                        <div class="friend-info">
+                            <div class="friend-name">The TurtleDuck</div>
+                            <div class="friend-status-text in-game">In Game</div>
+                        </div>
+                        <div class="friend-right">
+                            <span class="spectate-eye" title="Spectate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></span>
+                            <span class="status-dot in-game"></span>
+                        </div>
+                    </div>
+
+                    <div class="friend">
+                        <div class="friend-avatar f5"></div>
+                        <div class="friend-info">
+                            <div class="friend-name">TankYouSir</div>
+                            <div class="friend-status-text away">Let us Throw</div>
+                        </div>
+                        <div class="friend-right">
+                            <span class="status-dot away"></span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Collapsible sections -->
+                <div class="friend-section">Recently Played</div>
+                <div class="friend-section">Ignore List</div>
+
+                <!-- Bottom action bar -->
+                <div class="friend-actions">
+                    <div class="friend-action" title="Ajouter un ami">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </div>
+                    <div class="friend-action" title="Rechercher un ami">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                    </div>
+                    <div class="friend-action" title="Inviter un ami">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/><path d="M20 8v2h2v-2h-2zm-2 2h2v2h-2z" opacity=".6"/></svg>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TEAM PAGE (Arranging Team) -->
+        <div class="page" id="page-team">
+            <div class="team-wrap">
+
+                <div class="team-panel your-team">
+                    <div class="team-panel-header">Your Team</div>
+                    <div class="team-body">
+                        <div class="team-member">
+                            <div class="tm-emblem"></div>
+                            <div class="tm-info">
+                                <div class="tm-name">TheHellReaper</div>
+                                <div class="tm-level">Level 30</div>
+                                <div class="tm-trophies">
+                                    <div class="tm-trophy victorious" title="Victorious"></div>
+                                </div>
+                            </div>
+                            <div class="tm-stats">Normal: W: 876</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="team-panel map-options">
+                    <div class="team-panel-header">Map Options</div>
+                    <div class="map-options-body">
+                        <div class="map-image"></div>
+                        <div class="map-options-bottom"></div>
+                    </div>
+                </div>
+
+                <div class="team-panel all-chat">
+                    <div class="team-panel-header">All Chat</div>
+                    <div class="chat-body"></div>
+                    <div class="chat-input-row">
+                        <input type="text" class="chat-input" placeholder="">
+                        <button class="chat-send">Send</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="invite-wrap">
+                <div class="invite-btn-wrap">
+                    <button class="invite-btn" onclick="openInvites()">Invite</button>
+                </div>
+                <div class="invite-list">
+                    <div class="invite-member">
+                        <span class="invite-name">TheHellReaper</span>
+                        <span class="invite-role">Owner</span>
+                    </div>
+                </div>
+                <div class="invite-actions">
+                    <button class="invite-action-btn quit" onclick="showPage('play')">Quit</button>
+                    <button class="invite-action-btn start" disabled></button>
+                </div>
             </div>
         </div>
 
         <!-- PLAY PAGE -->
         <div class="page" id="page-play">
-            <div class="play-layout">
-                <div class="play-left-col">
-                    <h3>Game Type</h3>
-                    <div class="gt-item active" onclick="selectGT(this)">PvP</div>
-                    <div class="gt-item" onclick="selectGT(this)">Co-op vs. AI</div>
-                    <div class="gt-item" onclick="selectGT(this)">Custom</div>
-                    <div class="gt-item" onclick="selectGT(this)">Tutorials</div>
+            <div class="play-bg"></div>
+            <div class="stars"></div>
+
+            <div class="gamemode-wrap">
+
+                <div class="mode-selector">
+
+                    <div class="mode-tabs">
+                        <div class="mode-tab selected" onclick="selectModeTab(this)">PvP</div>
+                        <div class="mode-tab" onclick="selectModeTab(this)">Co-op vs. AI</div>
+                        <div class="mode-tab" onclick="selectModeTab(this)">Custom</div>
+                        <div class="mode-tab" onclick="selectModeTab(this)">Tutorials</div>
+                    </div>
+
+                    <div class="mode-col">
+                        <div class="mode-col-header">Game Mode</div>
+                        <div class="mode-col-body" id="modeList">
+                            <div class="mode-option selected" data-mode="classic" data-title="Classic" data-desc="Work with your allies to siege the enemy base and destroy their Nexus." onclick="selectGameMode(this)">Classic</div>
+                            <div class="mode-option" data-mode="dominion" data-title="Dominion" data-desc="Fight a fast-paced war of attrition over strategic capture points." onclick="selectGameMode(this)">Dominion</div>
+                            <div class="mode-option" data-mode="aram" data-title="ARAM" data-desc="All Random All Mid: battle across a single lane with randomly selected champions on the Howling Abyss." onclick="selectGameMode(this)">ARAM</div>
+                        </div>
+                    </div>
+
+                    <div class="mode-col">
+                        <div class="mode-col-header">Game Map</div>
+                        <div class="mode-col-body" id="mapList">
+                            <div class="mode-option selected" data-for="classic" onclick="selectMapOpt(this)">
+                                <div class="map-name">Summoner's Rift</div>
+                                <div class="map-sub">5v5</div>
+                            </div>
+                            <div class="mode-option" data-for="classic" onclick="selectMapOpt(this)">
+                                <div class="map-name">Twisted Treeline</div>
+                                <div class="map-sub">3v3</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mode-col">
+                        <div class="mode-col-header">Game Type</div>
+                        <div class="mode-col-body" id="typeList">
+                            <div class="mode-option selected" data-title="Team Builder" data-subtitle="Summoner's Rift" data-desc="Work with your allies to siege the enemy base and destroy their Nexus." data-desc2="Average game length is 30-45 minutes." onclick="selectGameType(this)">
+                                <div class="map-name">Normal</div>
+                                <div class="map-sub">Team Builder</div>
+                            </div>
+                            <div class="mode-option" data-title="Normal" data-subtitle="Summoner's Rift &mdash; Blind Pick" data-desc="Each player picks their champion without seeing the enemy team's choices." data-desc2="Average game length is 30-45 minutes." onclick="selectGameType(this)">
+                                <div class="map-name">Normal</div>
+                                <div class="map-sub">Blind Pick</div>
+                            </div>
+                            <div class="mode-option" data-title="Normal" data-subtitle="Summoner's Rift &mdash; Draft Pick" data-desc="Teams take turns banning and picking champions in a controlled draft." data-desc2="Average game length is 30-45 minutes." onclick="selectGameType(this)">
+                                <div class="map-name">Normal</div>
+                                <div class="map-sub">Draft Pick</div>
+                            </div>
+                            <div class="mode-option" data-title="Ranked Solo/Duo" data-subtitle="Summoner's Rift &mdash; Draft Pick" data-desc="Competitive ranked matches for solo players or duo queues." data-desc2="Average game length is 30-45 minutes." onclick="selectGameType(this)">
+                                <div class="map-name">Ranked Solo/Duo</div>
+                                <div class="map-sub">Draft Pick</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="play-center-col">
-                    <div class="play-header-row">
-                        <div class="play-col-header">Game Mode</div>
-                        <div class="play-col-header">Game Map</div>
+
+                <div class="mode-preview">
+                    <div class="preview-art"></div>
+                    <div class="preview-info">
+                        <div class="preview-title" id="playPreviewTitle">Team Builder</div>
+                        <div class="preview-subtitle" id="playPreviewSubtitle">Summoner's Rift</div>
+                        <div class="preview-desc" id="playPreviewDesc">Work with your allies to siege the enemy base and destroy their Nexus.</div>
+                        <div class="preview-desc" id="playPreviewDesc2">Average game length is 30-45 minutes.</div>
+                        <button class="home-btn" onclick="showPage('home')">Home</button>
                     </div>
-                    <div class="play-select-row">
-                        <div class="play-mode-list">
-                            <div class="pm-item active" onclick="selectPM(this,'CLASSIC')">Classic</div>
-                            <div class="pm-item" onclick="selectPM(this,'ARAM')">ARAM</div>
-                        </div>
-                        <div class="play-map-list">
-                            <div class="pm-item active" onclick="selectMapItem(this,11)">Summoner's Rift<br><small>5v5</small></div>
-                            <div class="pm-item" onclick="selectMapItem(this,10)">Twisted Treeline<br><small>3v3</small></div>
-                            <div class="pm-item" onclick="selectMapItem(this,12)">Howling Abyss<br><small>5v5</small></div>
-                        </div>
-                    </div>
-                    <div class="play-preview">
-                        <div class="preview-title" id="preview-title">Classic</div>
-                        <div class="preview-desc" id="preview-desc">Work with your allies to siege the enemy base and destroy their Nexus.</div>
-                    </div>
-                    <div class="play-config">
-                        <div class="pc-row">
-                            <div class="pc-field"><label>Summoner Name</label><input type="text" id="player-name" value="Player1"></div>
-                            <div class="pc-field"><label>Champion</label><select id="champion"></select></div>
-                        </div>
-                        <div class="pc-row">
-                            <div class="pc-field"><label>Spell 1</label><select id="spell1"></select></div>
-                            <div class="pc-field"><label>Spell 2</label><select id="spell2"></select></div>
-                        </div>
-                        <div class="pc-toggles">
-                            <label><input type="checkbox" id="minions" checked> Minions</label>
-                            <label><input type="checkbox" id="cooldowns" checked> Cooldowns</label>
-                            <label><input type="checkbox" id="mana" checked> Mana</label>
+
+                    <div class="last-step">
+                        <div class="last-step-title">Last Step</div>
+                        <div class="last-step-cols">
+                            <div class="last-step-col">
+                                <div class="last-step-label">Solo</div>
+                                <button class="last-step-btn">Join a Team</button>
+                            </div>
+                            <div class="last-step-col">
+                                <div class="last-step-label">Party</div>
+                                <button class="last-step-btn" onclick="showPage('team')">Build a Team</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="play-launch">
-                        <button class="launch-btn-gold" id="launch-btn" onclick="launchGame()">LAUNCH GAME</button>
-                        <div class="launch-status" id="status"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- STORE PAGE -->
+        <div class="page" id="page-store">
+            <div class="store">
+
+                <!-- Left menu -->
+                <div class="store-menu">
+                    <div class="menu-item purchase-rp">Purchase RP</div>
+                    <div class="menu-item gifting">Gifting Center</div>
+                    <div class="menu-separator"></div>
+                    <div class="menu-item active" onclick="showStoreSection(this,'featured')">Featured</div>
+                    <div class="menu-item" onclick="showStoreSection(this,'champions')">Champions</div>
+                    <div class="menu-item" onclick="showStoreSection(this,'skins')">Skins</div>
+                    <div class="menu-item" onclick="showStoreSection(this,'wards')">Ward Skins</div>
+                    <div class="menu-item" onclick="showStoreSection(this,'icons')">Summoner Icons</div>
+                    <div class="menu-item" onclick="showStoreSection(this,'runes')">Runes</div>
+                    <div class="menu-item" onclick="showStoreSection(this,'boosts')">Boosts</div>
+                    <div class="menu-item" onclick="showStoreSection(this,'bundles')">Bundles</div>
+                    <div class="menu-item" onclick="showStoreSection(this,'account')">Account</div>
+                    <div class="menu-item" onclick="showStoreSection(this,'codes')">Codes</div>
+                    <div class="menu-item" onclick="showStoreSection(this,'purchases')">Purchases</div>
+                </div>
+
+                <!-- ============ FEATURED VIEW ============ -->
+                <div class="store-view" data-view="featured">
+
+                <!-- Center content -->
+                <div class="store-center">
+
+                    <!-- Promo banner -->
+                    <div class="promo">
+                        <div class="promo-bg"></div>
+
+                        <div class="promo-content">
+                            <div class="promo-label">NEW SKINS</div>
+                            <div class="promo-title-small">THE</div>
+                            <div class="promo-title-big">BEAUTIFUL SET</div>
+                            <div class="promo-desc">
+                                Celebrate the world's most widely viewed<br>
+                                sporting event with the Beautiful Set!
+                            </div>
+                            <div class="promo-btn">
+                                <div class="promo-btn-inner">UNLOCK</div>
+                            </div>
+                        </div>
+
+                        <div class="promo-pagination">
+                            <div class="pag-btn active">1</div>
+                            <div class="pag-btn">2</div>
+                            <div class="pag-btn">3</div>
+                            <div class="pag-btn">4</div>
+                            <div class="pag-btn">5</div>
+                            <div class="pag-btn">6</div>
+                            <div class="pag-btn">7</div>
+                            <div class="pag-btn">8</div>
+                            <div class="pag-btn">9</div>
+                            <div class="pag-btn">10</div>
+                        </div>
                     </div>
-                    <button class="home-link" onclick="showPage('home')">Home</button>
+
+                    <!-- What's New -->
+                    <div class="whats-new-title">What's New</div>
+
+                    <div class="whats-new-grid">
+                        <div class="skin-card">
+                            <div class="skin-card-name">The Beautiful Set</div>
+                            <div class="skin-card-img beautiful-set"></div>
+                            <div class="skin-card-footer">
+                                <div class="skin-price"><span class="rp-dot"></span><span>4638</span></div>
+                                <div class="skin-unlock-label">Unlock</div>
+                            </div>
+                        </div>
+
+                        <div class="skin-card">
+                            <div class="skin-card-name">Striker Lucian</div>
+                            <div class="skin-card-img striker-lucian"></div>
+                            <div class="skin-card-footer">
+                                <div class="skin-price"><span class="rp-dot"></span><span>750</span></div>
+                                <div class="skin-unlock-label">Unlock</div>
+                            </div>
+                        </div>
+
+                        <div class="skin-card">
+                            <div class="skin-card-name">Red Card Twisted Fate</div>
+                            <div class="skin-card-img red-card"></div>
+                            <div class="skin-card-footer">
+                                <div class="skin-price"><span class="rp-dot"></span><span>750</span></div>
+                                <div class="skin-unlock-label">Unlock</div>
+                            </div>
+                        </div>
+
+                        <div class="skin-card">
+                            <div class="skin-card-name">Sweeper Alistar</div>
+                            <div class="skin-card-img sweeper-alistar"></div>
+                            <div class="skin-card-footer">
+                                <div class="skin-price"><span class="rp-dot"></span><span>750</span></div>
+                                <div class="skin-unlock-label">Unlock</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right zone : Featured + Top Sellers -->
+                <div class="store-right">
+
+                    <div>
+                        <div class="store-section-title">Featured Item</div>
+                        <div class="featured-item">
+                            <div class="featured-item-img gragas"></div>
+                            <div class="featured-item-info">
+                                <div class="featured-item-name">Superfan Gragas</div>
+                                <div class="featured-item-price"><span class="rp-dot"></span>750</div>
+                                <div class="featured-item-action">Unlock</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="store-section-title">Featured Item</div>
+                        <div class="featured-item">
+                            <div class="featured-item-img maokai"></div>
+                            <div class="featured-item-info">
+                                <div class="featured-item-name">Goalkeeper Maokai</div>
+                                <div class="featured-item-price"><span class="rp-dot"></span>750</div>
+                                <div class="featured-item-action locked">Requires Champion</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="top-sellers">
+                        <div class="store-section-title">Top Sellers</div>
+                        <div class="sellers-list">
+
+                            <div class="seller">
+                                <div class="seller-img velkoz"></div>
+                                <div class="seller-info">
+                                    <div class="seller-name">Vel'Koz</div>
+                                    <div class="seller-price">
+                                        <span class="rp-dot"></span><span>975</span>
+                                        <span class="or">OR</span>
+                                        <span class="ip-dot">&#10005;</span><span>6300</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="seller">
+                                <div class="seller-img yasuo"></div>
+                                <div class="seller-info">
+                                    <div class="seller-name">High Noon Yasuo</div>
+                                    <div class="seller-price"><span class="rp-dot"></span><span>975</span></div>
+                                </div>
+                            </div>
+
+                            <div class="seller">
+                                <div class="seller-img battlecast"></div>
+                                <div class="seller-info">
+                                    <div class="seller-name">Battlecast Vel'Koz</div>
+                                    <div class="seller-locked">Requires Champion</div>
+                                    <div class="seller-price"><span class="rp-dot"></span><span>1350</span></div>
+                                </div>
+                            </div>
+
+                            <div class="seller">
+                                <div class="seller-img nasus"></div>
+                                <div class="seller-info">
+                                    <div class="seller-name">Infernal Nasus</div>
+                                    <div class="seller-price"><span class="rp-dot"></span><span>1820</span></div>
+                                </div>
+                            </div>
+
+                            <div class="seller">
+                                <div class="seller-img jinx"></div>
+                                <div class="seller-info">
+                                    <div class="seller-name">Mafia Jinx</div>
+                                    <div class="seller-price"><span class="rp-dot"></span><span>975</span></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                </div><!-- /FEATURED VIEW -->
+
+                <!-- ============ CHAMPIONS VIEW ============ -->
+                <div class="store-view" data-view="champions" style="display:none">
+
+                    <!-- Filters -->
+                    <div class="filters">
+                        <div class="filter-block">
+                            <span class="filter-label">Search</span>
+                            <input type="text" class="filter-input">
+                        </div>
+
+                        <div class="filter-block">
+                            <span class="filter-label">Filters</span>
+                            <span class="filter-sublabel">Attributes</span>
+                            <div class="filter-dropdown">Show All</div>
+                        </div>
+
+                        <div class="filter-block">
+                            <span class="filter-sublabel" style="text-align:center">Sale Type</span>
+                            <span class="filter-option">On Sale</span>
+                            <span class="filter-option">Not Owned</span>
+                        </div>
+
+                        <div class="filter-block">
+                            <span class="filter-label">Sort By</span>
+                            <span class="filter-option">Release Date</span>
+                            <span class="filter-option">Price (RP)</span>
+                            <span class="filter-option">Price (IP)</span>
+                            <span class="filter-option">Alphabetical</span>
+                        </div>
+                    </div>
+
+                    <!-- Champions grid -->
+                    <div class="champions">
+                        <div class="champ-grid">
+
+                            <div class="champ-card">
+                                <div class="champ-name">Vel'Koz</div>
+                                <div class="champ-img velkoz"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>975</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>6300</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Aatrox</div>
+                                <div class="champ-img aatrox"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>975</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>6300</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Lissandra</div>
+                                <div class="champ-img lissandra"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>975</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>6300</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Zac</div>
+                                <div class="champ-img zac"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>975</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>6300</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Zed</div>
+                                <div class="champ-img zed"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>975</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>6300</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Syndra</div>
+                                <div class="champ-img syndra"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>975</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>6300</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Zyra</div>
+                                <div class="champ-img zyra"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>975</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>6300</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Hecarim</div>
+                                <div class="champ-img hecarim"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>975</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>6300</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Nautilus</div>
+                                <div class="champ-img nautilus"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>975</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>6300</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Ziggs</div>
+                                <div class="champ-img ziggs"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>975</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>6300</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Sejuani</div>
+                                <div class="champ-img sejuani"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>975</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>6300</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Viktor</div>
+                                <div class="champ-img viktor"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>975</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>6300</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Skarner</div>
+                                <div class="champ-img skarner"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>880</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>4800</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Yorick</div>
+                                <div class="champ-img yorick"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>880</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>4800</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Orianna</div>
+                                <div class="champ-img orianna"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>880</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>4800</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Kayle</div>
+                                <div class="champ-img kayle"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>450</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>1350</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Malzahar</div>
+                                <div class="champ-img malzahar"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>585</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>3150</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Thresh</div>
+                                <div class="champ-img thresh"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>975</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>6300</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Draven</div>
+                                <div class="champ-img draven"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>880</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>4800</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="champ-card">
+                                <div class="champ-name">Elise</div>
+                                <div class="champ-img elise"></div>
+                                <div class="champ-footer">
+                                    <div class="champ-price"><span class="rp-dot"></span><span>880</span><span class="or">OR</span><span class="ip-dot">&#10005;</span><span>4800</span></div>
+                                    <div class="champ-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div><!-- /CHAMPIONS VIEW -->
+
+                <!-- ============ SKINS VIEW ============ -->
+                <div class="store-view" data-view="skins" style="display:none">
+
+                    <!-- Filters -->
+                    <div class="filters skins-filters">
+
+                        <div class="filter-block">
+                            <div class="filter-heading">
+                                <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                                <span class="label">Search</span>
+                            </div>
+                            <input type="text" class="filter-input">
+                        </div>
+
+                        <div class="filter-block">
+                            <div class="filter-heading">
+                                <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                                <span class="label">Filters</span>
+                            </div>
+                            <div class="check" onclick="this.classList.toggle('checked')"><div class="check-box"></div><span class="check-label">On Sale</span></div>
+                            <div class="check checked" onclick="this.classList.toggle('checked')"><div class="check-box"></div><span class="check-label">Champion Owned</span></div>
+                            <div class="check checked" onclick="this.classList.toggle('checked')"><div class="check-box"></div><span class="check-label">Not Owned</span></div>
+                            <div class="check" onclick="this.classList.toggle('checked')"><div class="check-box"></div><span class="check-label">Limited Availability</span></div>
+                            <div class="check" onclick="this.classList.toggle('checked')"><div class="check-box"></div><span class="check-label">Legendary</span></div>
+                            <div class="check" onclick="this.classList.toggle('checked')"><div class="check-box"></div><span class="check-label">Ultimate</span></div>
+                            <div class="check" onclick="this.classList.toggle('checked')"><div class="check-box"></div><span class="check-label">Show All</span></div>
+                        </div>
+
+                        <div class="filter-block">
+                            <div class="filter-heading">
+                                <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg>
+                                <span class="label">Sort By</span>
+                            </div>
+                            <div class="check checked" onclick="selectSort(this)"><div class="check-box"></div><span class="check-label">Release Date</span></div>
+                            <div class="check" onclick="selectSort(this)"><div class="check-box"></div><span class="check-label">Price (RP)</span></div>
+                            <div class="check" onclick="selectSort(this)"><div class="check-box"></div><span class="check-label">Alphabetical</span></div>
+                            <div class="check" onclick="selectSort(this)"><div class="check-box"></div><span class="check-label">Champions</span></div>
+                        </div>
+
+                    </div>
+
+                    <!-- Skins grid -->
+                    <div class="skins-grid-wrap">
+                        <div class="skins-grid">
+
+                            <div class="skins-tile">
+                                <div class="skins-tile-name">Striker Lucian</div>
+                                <div class="skins-splash splash-striker-lucian"></div>
+                                <div class="skins-tile-footer">
+                                    <div class="skins-tile-price"><span class="rp-dot"></span><span>750</span></div>
+                                    <div class="skins-tile-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="skins-tile">
+                                <div class="skins-tile-name">Red Card Twisted Fate</div>
+                                <div class="skins-splash splash-red-card-tf"></div>
+                                <div class="skins-tile-footer">
+                                    <div class="skins-tile-price"><span class="rp-dot"></span><span>750</span></div>
+                                    <div class="skins-tile-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="skins-tile">
+                                <div class="skins-tile-name">Sweeper Alistar</div>
+                                <div class="skins-splash splash-sweeper-alistar"></div>
+                                <div class="skins-tile-footer">
+                                    <div class="skins-tile-price"><span class="rp-dot"></span><span>750</span></div>
+                                    <div class="skins-tile-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="skins-tile">
+                                <div class="skins-tile-name">Superfan Gragas</div>
+                                <div class="skins-splash splash-superfan-gragas"></div>
+                                <div class="skins-tile-footer">
+                                    <div class="skins-tile-price"><span class="rp-dot"></span><span>750</span></div>
+                                    <div class="skins-tile-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="skins-tile">
+                                <div class="skins-tile-name">Goalkeeper Blitzcrank</div>
+                                <div class="skins-splash splash-goalkeeper-blitz"></div>
+                                <div class="skins-tile-footer">
+                                    <div class="skins-tile-price"><span class="rp-dot"></span><span>520</span></div>
+                                    <div class="skins-tile-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="skins-tile">
+                                <div class="skins-tile-name">Striker Ezreal</div>
+                                <div class="skins-splash splash-striker-ezreal"></div>
+                                <div class="skins-tile-footer">
+                                    <div class="skins-tile-price"><span class="rp-dot"></span><span>520</span></div>
+                                    <div class="skins-tile-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="skins-tile">
+                                <div class="skins-tile-name">All-star Akali</div>
+                                <div class="skins-splash splash-allstar-akali"></div>
+                                <div class="skins-tile-footer">
+                                    <div class="skins-tile-price"><span class="rp-dot"></span><span>975</span></div>
+                                    <div class="skins-tile-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="skins-tile">
+                                <div class="skins-tile-name">Red Card Katarina</div>
+                                <div class="skins-splash splash-red-card-kat"></div>
+                                <div class="skins-tile-footer">
+                                    <div class="skins-tile-price"><span class="rp-dot"></span><span>975</span></div>
+                                    <div class="skins-tile-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="skins-tile selected">
+                                <div class="skins-tile-name">Woad Scout Quinn</div>
+                                <div class="skins-splash splash-woad-scout-quinn"></div>
+                                <div class="skins-tile-footer">
+                                    <div class="skins-tile-price"><span class="rp-dot"></span><span>975</span></div>
+                                    <div class="skins-tile-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="skins-tile">
+                                <div class="skins-tile-name">River Spirit Nami</div>
+                                <div class="skins-splash splash-river-spirit-nami"></div>
+                                <div class="skins-tile-footer">
+                                    <div class="skins-tile-price"><span class="rp-dot"></span><span>975</span></div>
+                                    <div class="skins-tile-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="skins-tile">
+                                <div class="skins-tile-name">Night Hunter Rengar</div>
+                                <div class="skins-splash splash-night-hunter-rengar"></div>
+                                <div class="skins-tile-footer">
+                                    <div class="skins-tile-price"><span class="rp-dot"></span><span>975</span></div>
+                                    <div class="skins-tile-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="skins-tile">
+                                <div class="skins-tile-name">Dragonslayer Pantheon</div>
+                                <div class="skins-splash splash-dragonslayer-pantheon"></div>
+                                <div class="skins-tile-footer">
+                                    <div class="skins-tile-price"><span class="rp-dot"></span><span>1350</span></div>
+                                    <div class="skins-tile-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="skins-tile">
+                                <div class="skins-tile-name">Dragonslayer Braum</div>
+                                <div class="skins-splash splash-dragonslayer-braum"></div>
+                                <div class="skins-tile-footer">
+                                    <div class="skins-tile-price"><span class="rp-dot"></span><span>975</span></div>
+                                    <div class="skins-tile-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="skins-tile">
+                                <div class="skins-tile-name">Void Fizz</div>
+                                <div class="skins-splash splash-void-fizz"></div>
+                                <div class="skins-tile-footer">
+                                    <div class="skins-tile-price"><span class="rp-dot"></span><span>1350</span></div>
+                                    <div class="skins-tile-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                            <div class="skins-tile">
+                                <div class="skins-tile-name">Arctic Ops Varus</div>
+                                <div class="skins-splash splash-arctic-ops-varus"></div>
+                                <div class="skins-tile-footer">
+                                    <div class="skins-tile-price"><span class="rp-dot"></span><span>1350</span></div>
+                                    <div class="skins-tile-unlock">Unlock</div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div><!-- /SKINS VIEW -->
+
+            </div>
+        </div>
+
+        <!-- PROFILE PAGE -->
+        <div class="page" id="page-profile">
+            <svg width="0" height="0" style="position:absolute">
+                <defs>
+                    <filter id="torn-edges" x="-5%" y="-5%" width="110%" height="110%">
+                        <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="7" result="noise"/>
+                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="10"/>
+                    </filter>
+                </defs>
+            </svg>
+
+            <div class="parchment-wrap">
+                <div class="parchment-bg"></div>
+                <div class="parchment">
+
+                    <div class="header-row">
+                        <div class="h-username">TheHellReaper</div>
+                        <div class="status-pill">
+                            <span class="warn-icon">&#9888;</span>
+                            <span>Stop Hitting My Friends</span>
+                        </div>
+                        <div class="create-team-btn">Create a Ranked Team</div>
+                    </div>
+
+                    <div class="nav-tabs">
+                        <div class="nav-tab active" onclick="showProfileSection(this,'profile')">Profile</div>
+                        <div class="nav-tab" onclick="showProfileSection(this,'leagues')">Leagues</div>
+                        <div class="nav-tab" onclick="showProfileSection(this,'history')">Match History</div>
+                        <div class="nav-tab" onclick="showProfileSection(this,'champions')">Champions</div>
+                        <div class="nav-tab" onclick="showProfileSection(this,'runes')">Runes</div>
+                        <div class="nav-tab" onclick="showProfileSection(this,'masteries')">Masteries</div>
+                        <div class="nav-tab" onclick="showProfileSection(this,'spells')">Spells</div>
+                        <div class="nav-tab" onclick="showProfileSection(this,'itemsets')">Item Sets</div>
+                        <input type="text" class="find-summoner" placeholder="Find Summoner">
+                    </div>
+
+                    <!-- ===== PROFILE SUB-VIEW ===== -->
+                    <div class="profile-view" data-view="profile">
+
+                    <div class="player-banner">
+                        <div class="player-banner-inner">
+                            <div class="player-emblem"></div>
+                            <div class="player-text">
+                                <div class="player-name-big">TheHellReaper</div>
+                                <div class="player-level">Level 30</div>
+                            </div>
+                            <div class="player-bonuses">
+                                <div class="bonus-row">
+                                    <span>Rerolls [0/2]</span>
+                                    <div class="bonus-icon">?</div>
+                                </div>
+                                <div class="bonus-row">
+                                    <span>First Win of the Day Bonus available</span>
+                                    <div class="bonus-icon gold">1</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-overview">
+                        <div class="stats-title">Stats Overview</div>
+                        <div class="stats-icons">
+                            <div class="stat-item"><div class="stat-icon">&#128065;</div><span class="stat-value">17</span></div>
+                            <div class="stat-item"><div class="stat-icon">&#9876;</div><span class="stat-value">12</span></div>
+                            <div class="stat-item"><div class="stat-icon">&#9675;</div><span class="stat-value">172</span></div>
+                            <div class="stat-item"><div class="stat-icon">&#10005;</div><span class="stat-value">44</span></div>
+                        </div>
+                    </div>
+
+                    <div class="body-row">
+
+                        <div class="body-left">
+                            <div class="subtabs-row">
+                                <div class="subtab active">Ranked</div>
+                                <div class="subtab">Normal</div>
+                                <div class="queue-selector">Classic</div>
+                            </div>
+
+                            <div class="rank-panels">
+                                <div class="rank-panel">
+                                    <div class="rank-title">Ranked Teams (3v3)</div>
+                                    <div class="big-emblem ghost"></div>
+                                </div>
+
+                                <div class="rank-panel">
+                                    <div class="rank-title">Solo/Duo Queue</div>
+                                    <div class="rank-subtitle">Morgana's Scions</div>
+                                    <div class="big-emblem silver"></div>
+                                    <div class="rank-stats-row">
+                                        <div class="rank-stats-left">
+                                            W: 55<br>
+                                            G: 111
+                                        </div>
+                                        <div class="rank-stats-right">
+                                            74<br>
+                                            <span style="font-size:10px">Points</span>
+                                        </div>
+                                    </div>
+                                    <div class="rank-division">Silver Division IV</div>
+                                </div>
+
+                                <div class="rank-panel">
+                                    <div class="rank-title">Ranked Teams (5v5)</div>
+                                    <div class="big-emblem ghost"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="body-right">
+                            <div class="mpc-title">Most Played Champions</div>
+
+                            <div class="champion-row">
+                                <div class="champion-portrait janna"></div>
+                                <div>
+                                    <div class="champion-name">Janna</div>
+                                    <div class="champion-games">Games Played: 16</div>
+                                </div>
+                            </div>
+
+                            <div class="champion-row">
+                                <div class="champion-portrait lulu"></div>
+                                <div>
+                                    <div class="champion-name">Lulu</div>
+                                    <div class="champion-games">Games Played: 14</div>
+                                </div>
+                            </div>
+
+                            <div class="champion-row">
+                                <div class="champion-portrait renekton"></div>
+                                <div>
+                                    <div class="champion-name">Renekton</div>
+                                    <div class="champion-games">Games Played: 11</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    </div><!-- /profile sub-view -->
+
+                    <!-- ===== LEAGUES SUB-VIEW ===== -->
+                    <div class="profile-view" data-view="leagues" style="display:none">
+                        <div class="league-body">
+
+                            <!-- Left column -->
+                            <div class="league-left">
+
+                                <div>
+                                    <div class="section-header">2014 Ranked Team Rewards</div>
+                                    <div class="ranked-team-block">
+                                        <div class="ranked-team-top">
+                                            <div class="ranked-team-text">
+                                                Win Ranked Team matches to unlock and upgrade your<br>
+                                                ward skin. Rewards will be distributed at the end of the<br>
+                                                2014 Season. Visit the <a href="#">Rewards FAQ</a> for more information.
+                                            </div>
+                                            <div class="reward-ward"></div>
+                                        </div>
+
+                                        <div class="progress-wrap">
+                                            <div class="progress-label">Points Earned Towards Next Reward</div>
+                                            <div class="progress-track"><div class="progress-fill"></div></div>
+                                            <div class="progress-labels">
+                                                <span class="unlocked">Unlocked!</span>
+                                                <span class="middle">21 / 45 Points</span>
+                                                <span class="locked">Locked</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="section-header">2014 League Tier Rewards</div>
+                                    <div class="tier-rewards">
+
+                                        <div class="tier-box">
+                                            <div class="tier-subtitle">Current Tier Rewards: Silver</div>
+                                            <div class="tier-card">
+                                                <div class="tier-emblem silver"></div>
+                                                <div class="tier-info">
+                                                    <div class="tier-name">Silver</div>
+                                                    <ul class="tier-perks">
+                                                        <li>Summoner Icon</li>
+                                                        <li>Profile Banner Trim</li>
+                                                        <li>Loading Screen Border</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="tier-box">
+                                            <div class="tier-subtitle">Next Tier Rewards: Gold</div>
+                                            <div class="tier-card">
+                                                <div class="tier-emblem gold"></div>
+                                                <div class="tier-info">
+                                                    <div class="tier-name">Gold</div>
+                                                    <ul class="tier-perks">
+                                                        <li>Summoner Icon</li>
+                                                        <li>Profile Banner Trim</li>
+                                                        <li>Loading Screen Border</li>
+                                                        <li>Game Invite Notifications</li>
+                                                        <li>Victorious Champion Skin</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- Right column -->
+                            <div class="league-right">
+                                <div class="section-header">My Leagues</div>
+
+                                <div class="my-leagues">
+
+                                    <div class="league-list">
+
+                                        <div class="league-entry">
+                                            <div class="league-emblem-wrap">
+                                                <div class="league-emblem-small silver"></div>
+                                            </div>
+                                            <div class="rank-indicator">9 <span class="down">&#9660;</span></div>
+                                            <div class="league-info">
+                                                <div class="league-name-main">TheHellReaper</div>
+                                                <div class="league-tier-name">Silver IV</div>
+                                            </div>
+                                            <div class="league-lp">74 LP</div>
+                                        </div>
+
+                                        <div class="league-entry">
+                                            <div class="league-emblem-wrap">
+                                                <div class="league-emblem-small provisional"></div>
+                                            </div>
+                                            <div class="league-info">
+                                                <div class="league-name-main">Stop Hitting My Friend</div>
+                                                <div class="league-prov">Provisional</div>
+                                            </div>
+                                            <button class="expand-btn">&#8595;</button>
+                                        </div>
+
+                                    </div>
+
+                                    <button class="view-challenger">View Challenger Tier</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div><!-- /leagues sub-view -->
+
+                    <!-- ===== MATCH HISTORY SUB-VIEW ===== -->
+                    <div class="profile-view" data-view="history" style="display:none">
+                        <div class="match-body">
+
+                            <!-- Match list -->
+                            <div class="match-list-wrap">
+                                <div class="match-list">
+
+                                    <div class="match-row">
+                                        <div class="champ-portrait portrait-1"></div>
+                                        <div class="match-info">
+                                            <div class="match-result-line"><span class="victory">Victory</span> <span class="match-type">(custom game)</span></div>
+                                            <div class="match-mode">Classic</div>
+                                            <div class="match-map">Summoner's Rift</div>
+                                        </div>
+                                        <div class="match-right">
+                                            <div class="match-kda">
+                                                <div class="kda-item"><svg class="kda-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6.92 5L5 6.92l12.08 12.08L19 17.08zM14 9l1.29-1.29L12 4.41 10.71 5.7z"/></svg><span>2</span></div>
+                                                <div class="kda-item"><svg class="kda-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg><span>0</span></div>
+                                            </div>
+                                            <div class="match-date">June 19, 2014</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="match-row">
+                                        <div class="champ-portrait portrait-2"></div>
+                                        <div class="match-info">
+                                            <div class="match-result-line"><span class="victory">Victory</span> <span class="match-type">(ranked game)</span></div>
+                                            <div class="match-mode">Classic</div>
+                                            <div class="match-map">Summoner's Rift</div>
+                                        </div>
+                                        <div class="match-right">
+                                            <div class="match-kda">
+                                                <div class="kda-item"><svg class="kda-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6.92 5L5 6.92l12.08 12.08L19 17.08zM14 9l1.29-1.29L12 4.41 10.71 5.7z"/></svg><span>6</span></div>
+                                                <div class="kda-item"><svg class="kda-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg><span>10</span></div>
+                                            </div>
+                                            <div class="match-ip">+277 IP</div>
+                                            <div class="match-date">June 17, 2014</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="match-row">
+                                        <div class="champ-portrait portrait-3"></div>
+                                        <div class="match-info">
+                                            <div class="match-result-line"><span class="victory">Victory</span> <span class="match-type">(custom game)</span></div>
+                                            <div class="match-mode">Classic</div>
+                                            <div class="match-map">Summoner's Rift</div>
+                                        </div>
+                                        <div class="match-right">
+                                            <div class="match-kda">
+                                                <div class="kda-item"><svg class="kda-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6.92 5L5 6.92l12.08 12.08L19 17.08zM14 9l1.29-1.29L12 4.41 10.71 5.7z"/></svg><span>45</span></div>
+                                                <div class="kda-item"><svg class="kda-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg><span>3</span></div>
+                                                <div class="kda-item"><span style="font-size:13px">&#9733;</span><span>11</span></div>
+                                            </div>
+                                            <div class="match-date">June 16, 2014</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="match-row">
+                                        <div class="champ-portrait portrait-4"></div>
+                                        <div class="match-info">
+                                            <div class="match-result-line"><span class="victory">Victory</span> <span class="match-type">(Co-op vs. AI game)</span></div>
+                                            <div class="match-mode">Classic</div>
+                                            <div class="match-map">Summoner's Rift</div>
+                                        </div>
+                                        <div class="match-right">
+                                            <div class="match-kda">
+                                                <div class="kda-item"><svg class="kda-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6.92 5L5 6.92l12.08 12.08L19 17.08zM14 9l1.29-1.29L12 4.41 10.71 5.7z"/></svg><span>6</span></div>
+                                                <div class="kda-item"><svg class="kda-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg><span>1</span></div>
+                                                <div class="kda-item"><span style="font-size:13px">&#9733;</span><span>6</span></div>
+                                            </div>
+                                            <div class="match-ip">+191 IP</div>
+                                            <div class="match-date">June 16, 2014</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="match-row">
+                                        <div class="champ-portrait portrait-5"></div>
+                                        <div class="match-info">
+                                            <div class="match-result-line"><span class="victory">Victory</span> <span class="match-type">(normal game)</span></div>
+                                            <div class="match-mode">Classic</div>
+                                            <div class="match-map">Summoner's Rift</div>
+                                        </div>
+                                        <div class="match-right">
+                                            <div class="match-kda">
+                                                <div class="kda-item"><svg class="kda-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6.92 5L5 6.92l12.08 12.08L19 17.08zM14 9l1.29-1.29L12 4.41 10.71 5.7z"/></svg><span>3</span></div>
+                                                <div class="kda-item"><svg class="kda-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg><span>4</span></div>
+                                                <div class="kda-item"><span style="font-size:13px">&#9733;</span><span>9</span></div>
+                                            </div>
+                                            <div class="match-ip">+246 IP</div>
+                                            <div class="match-date">June 15, 2014</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="match-row">
+                                        <div class="champ-portrait portrait-6"></div>
+                                        <div class="match-info">
+                                            <div class="match-result-line"><span class="defeat">Defeat</span> <span class="match-type">(ranked game)</span></div>
+                                            <div class="match-mode">Classic</div>
+                                            <div class="match-map">Summoner's Rift</div>
+                                        </div>
+                                        <div class="match-right">
+                                            <div class="match-kda">
+                                                <div class="kda-item"><svg class="kda-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6.92 5L5 6.92l12.08 12.08L19 17.08zM14 9l1.29-1.29L12 4.41 10.71 5.7z"/></svg><span>4</span></div>
+                                                <div class="kda-item"><svg class="kda-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg><span>7</span></div>
+                                                <div class="kda-item"><span style="font-size:13px">&#9733;</span><span>2</span></div>
+                                            </div>
+                                            <div class="match-ip">+60 IP</div>
+                                            <div class="match-date">June 12, 2014</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="match-row">
+                                        <div class="champ-portrait portrait-7"></div>
+                                        <div class="match-info">
+                                            <div class="match-result-line"><span class="defeat">Defeat</span> <span class="match-type">(normal game)</span></div>
+                                            <div class="match-mode">Classic</div>
+                                            <div class="match-map">Summoner's Rift</div>
+                                        </div>
+                                        <div class="match-right">
+                                            <div class="match-kda">
+                                                <div class="kda-item"><svg class="kda-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6.92 5L5 6.92l12.08 12.08L19 17.08zM14 9l1.29-1.29L12 4.41 10.71 5.7z"/></svg><span>10</span></div>
+                                                <div class="kda-item"><svg class="kda-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg><span>13</span></div>
+                                                <div class="kda-item"><span style="font-size:13px">&#9733;</span><span>10</span></div>
+                                            </div>
+                                            <div class="match-date">June 10, 2014</div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <!-- Stat Details -->
+                            <div class="stat-details-wrap">
+                                <div class="stat-details-header">
+                                    <div class="stat-details-title">Stat Details</div>
+                                    <div class="stat-details-deco">
+                                        <svg viewBox="0 0 160 10" preserveAspectRatio="none">
+                                            <path d="M 0 5 Q 20 0 40 5 T 80 5 T 120 5 T 160 5" stroke="currentColor" stroke-width="1" fill="none"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="stat-details-empty">
+                                    <div>Select a Match to <span class="link">View Stats</span>.</div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div><!-- /match history sub-view -->
+
+                    <!-- ===== CHAMPIONS SUB-VIEW ===== -->
+                    <div class="profile-view" data-view="champions" style="display:none">
+
+                        <div class="filter-bar">
+                            <div class="search-champions">
+                                <input type="text" placeholder="Search Champions">
+                            </div>
+                            <div class="filter-group">
+                                <span class="filter-group-label">Primary Role</span>
+                                <div class="filter-dropdown">All</div>
+                            </div>
+                            <div class="filter-group" style="margin-left:auto">
+                                <span class="filter-group-label">Availability</span>
+                                <div class="filter-dropdown">All</div>
+                            </div>
+                        </div>
+
+                        <div class="champions-grid-wrap">
+                            <div class="champions-grid">
+                                <div class="champ-cell"><div class="cp-portrait p-aatrox"></div><div class="champ-name-label">Aatrox</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-ahri"></div><div class="champ-name-label">Ahri</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-akali"></div><div class="champ-name-label">Akali</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-alistar"></div><div class="champ-name-label">Alistar</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-amumu"></div><div class="champ-name-label">Amumu</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-anivia"></div><div class="champ-name-label">Anivia</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-annie"></div><div class="champ-name-label">Annie</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-ashe"></div><div class="champ-name-label">Ashe</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-blitzcrank"></div><div class="champ-name-label">Blitzcrank</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-brand"></div><div class="champ-name-label">Brand</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-braum"></div><div class="champ-name-label">Braum</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-caitlyn"></div><div class="champ-name-label">Caitlyn</div></div>
+
+                                <div class="champ-cell"><div class="cp-portrait p-cassiopeia"></div><div class="champ-name-label">Cassiopeia</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-chogath"></div><div class="champ-name-label">Cho'Gath</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-corki"></div><div class="champ-name-label">Corki</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-darius"></div><div class="champ-name-label">Darius</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-diana"></div><div class="champ-name-label">Diana</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-drmundo"></div><div class="champ-name-label">Dr. Mundo</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-draven"></div><div class="champ-name-label">Draven</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-elise"></div><div class="champ-name-label">Elise</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-evelynn"></div><div class="champ-name-label">Evelynn</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-ezreal"></div><div class="champ-name-label">Ezreal</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-fiddlesticks"></div><div class="champ-name-label">Fiddlesticks</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-fiora"></div><div class="champ-name-label">Fiora</div></div>
+
+                                <div class="champ-cell"><div class="cp-portrait p-fizz"><div class="champ-dot">!</div></div><div class="champ-name-label">Fizz</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-galio"></div><div class="champ-name-label">Galio</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-gangplank"></div><div class="champ-name-label">Gangplank</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-garen"></div><div class="champ-name-label">Garen</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-gragas"></div><div class="champ-name-label">Gragas</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-graves"><div class="champ-dot">!</div></div><div class="champ-name-label">Graves</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-hecarim"></div><div class="champ-name-label">Hecarim</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-heimerdinger"></div><div class="champ-name-label">Heimerdinger</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-irelia"></div><div class="champ-name-label">Irelia</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-janna"></div><div class="champ-name-label">Janna</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-jarvan"></div><div class="champ-name-label">Jarvan IV</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-jax"><div class="champ-dot">!</div></div><div class="champ-name-label">Jax</div></div>
+
+                                <div class="champ-cell"><div class="cp-portrait p-jayce"></div><div class="champ-name-label">Jayce</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-jinx"></div><div class="champ-name-label">Jinx</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-karma"></div><div class="champ-name-label">Karma</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-karthus"></div><div class="champ-name-label">Karthus</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-kassadin"></div><div class="champ-name-label">Kassadin</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-katarina"></div><div class="champ-name-label">Katarina</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-kayle"></div><div class="champ-name-label">Kayle</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-kennen"></div><div class="champ-name-label">Kennen</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-khazix"></div><div class="champ-name-label">Kha'Zix</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-kogmaw"></div><div class="champ-name-label">Kog'Maw</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-leblanc"></div><div class="champ-name-label">LeBlanc</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-leesin"></div><div class="champ-name-label">Lee Sin</div></div>
+
+                                <div class="champ-cell"><div class="cp-portrait p-leona"></div><div class="champ-name-label">Leona</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-lissandra"></div><div class="champ-name-label">Lissandra</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-lucian"></div><div class="champ-name-label">Lucian</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-lulu"></div><div class="champ-name-label">Lulu</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-lux"></div><div class="champ-name-label">Lux</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-malphite"></div><div class="champ-name-label">Malphite</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-malzahar"><div class="champ-dot">!</div></div><div class="champ-name-label">Malzahar</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-maokai"></div><div class="champ-name-label">Maokai</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-masteryi"></div><div class="champ-name-label">Master Yi</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-missfortune"></div><div class="champ-name-label">Miss Fortune</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-mordekaiser"></div><div class="champ-name-label">Mordekaiser</div></div>
+                                <div class="champ-cell"><div class="cp-portrait p-morgana"></div><div class="champ-name-label">Morgana</div></div>
+                            </div>
+                        </div>
+
+                    </div><!-- /champions sub-view -->
+
+                    <!-- ===== RUNES SUB-VIEW ===== -->
+                    <div class="profile-view" data-view="runes" style="display:none">
+
+                        <div class="runes-toolbar">
+                            <span class="runes-type-label">Runes Type:</span>
+                            <div class="filter-dropdown runes-dd">All</div>
+
+                            <div class="page-pager">
+                                <div class="page-btn">1</div>
+                                <div class="page-btn">2</div>
+                                <div class="page-btn">3</div>
+                            </div>
+                        </div>
+
+                        <div class="runes-body">
+
+                            <!-- Left col : Tier + categories -->
+                            <div class="runes-left">
+                                <div class="tier-row">
+                                    <span class="tier-label">Tier:</span>
+                                    <div class="tier-check checked" onclick="this.classList.toggle('checked')"><div class="tier-box-cb"></div><span>1</span></div>
+                                    <div class="tier-check checked" onclick="this.classList.toggle('checked')"><div class="tier-box-cb"></div><span>2</span></div>
+                                    <div class="tier-check" onclick="this.classList.toggle('checked')"><div class="tier-box-cb"></div><span>3</span></div>
+                                </div>
+
+                                <div class="cat-list">
+                                    <div class="cat-item active" onclick="selectCat(this)">Marks</div>
+                                    <div class="cat-item" onclick="selectCat(this)">Seals</div>
+                                    <div class="cat-item" onclick="selectCat(this)">Glyphs</div>
+                                    <div class="cat-item" onclick="selectCat(this)">Quintessences</div>
+                                </div>
+                            </div>
+
+                            <!-- Center col : hex grid -->
+                            <div class="runes-center">
+
+                                <div class="page-title-row">
+                                    <div class="page-title">AP build</div>
+                                    <div class="page-title-deco">
+                                        <svg viewBox="0 0 200 10" preserveAspectRatio="none">
+                                            <path d="M 0 5 Q 20 0 40 5 T 80 5 T 120 5 T 160 5 T 200 5" stroke="currentColor" stroke-width="1" fill="none"/>
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <div class="hex-grid">
+                                    <div class="hex quint-glow" style="left:45px;top:20px"></div>
+                                    <div class="hex quint-glow" style="left:260px;top:160px"></div>
+                                    <div class="hex quint-glow" style="left:355px;top:205px"></div>
+
+                                    <div class="hex quint" style="left:60px;top:30px"></div>
+
+                                    <div class="hex glyph" style="left:345px;top:0"></div>
+                                    <div class="hex glyph" style="left:395px;top:0"></div>
+                                    <div class="hex glyph" style="left:445px;top:0"></div>
+                                    <div class="hex glyph" style="left:325px;top:42px"></div>
+                                    <div class="hex glyph" style="left:375px;top:42px"></div>
+                                    <div class="hex glyph" style="left:425px;top:42px"></div>
+                                    <div class="hex glyph" style="left:475px;top:42px"></div>
+                                    <div class="hex glyph" style="left:395px;top:84px"></div>
+                                    <div class="hex glyph" style="left:445px;top:96px"></div>
+
+                                    <div class="hex seal" style="left:205px;top:0"></div>
+                                    <div class="hex seal" style="left:255px;top:22px"></div>
+                                    <div class="hex seal" style="left:195px;top:48px"></div>
+                                    <div class="hex seal" style="left:245px;top:70px"></div>
+                                    <div class="hex seal" style="left:185px;top:96px"></div>
+                                    <div class="hex seal" style="left:235px;top:118px"></div>
+                                    <div class="hex seal" style="left:175px;top:144px"></div>
+                                    <div class="hex seal" style="left:225px;top:166px"></div>
+                                    <div class="hex seal" style="left:165px;top:192px"></div>
+
+                                    <div class="hex quint" style="left:295px;top:170px"></div>
+                                    <div class="hex quint" style="left:370px;top:215px"></div>
+
+                                    <div class="hex mark" style="left:10px;top:200px"></div>
+                                    <div class="hex mark" style="left:56px;top:200px"></div>
+                                    <div class="hex mark" style="left:102px;top:200px"></div>
+                                    <div class="hex mark" style="left:33px;top:246px"></div>
+                                    <div class="hex mark" style="left:79px;top:246px"></div>
+                                    <div class="hex mark" style="left:125px;top:246px"></div>
+                                    <div class="hex mark" style="left:10px;top:292px"></div>
+                                    <div class="hex mark" style="left:56px;top:292px"></div>
+                                    <div class="hex mark" style="left:102px;top:292px"></div>
+                                </div>
+
+                            </div>
+
+                            <!-- Right col : Statistics -->
+                            <div class="runes-right">
+
+                                <div class="stats-header">Statistics</div>
+
+                                <div class="rune-stat">
+                                    <div class="rune-stat-name">Magic Pen.</div>
+                                    <div class="rune-stat-value">+ 6.0</div>
+                                </div>
+
+                                <div class="rune-stat">
+                                    <div class="rune-stat-name">Ability Power</div>
+                                    <div class="rune-stat-value">+ 11</div>
+                                </div>
+
+                                <div class="rune-stat">
+                                    <div class="rune-stat-name">Magic Resist</div>
+                                    <div class="rune-stat-value">+ 12</div>
+                                </div>
+
+                                <div class="runes-actions">
+                                    <button class="rune-action-btn" title="Fermer">
+                                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                                    </button>
+                                    <button class="rune-action-btn" title="Annuler">
+                                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+                                    </button>
+                                    <button class="rune-action-btn" title="Dupliquer">
+                                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                    </button>
+                                    <button class="rune-action-btn" title="Reinit">
+                                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                                    </button>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div><!-- /runes sub-view -->
+
+                    <!-- ===== MASTERIES SUB-VIEW ===== -->
+                    <div class="profile-view" data-view="masteries" style="display:none">
+                        <div class="masteries-body">
+
+                            <!-- Sidebar : Mastery Pages -->
+                            <div class="mastery-sidebar">
+                                <div class="sidebar-title">Mastery Pages</div>
+
+                                <div class="page-tabs">
+                                    <div class="page-tab">1</div>
+                                    <div class="page-tab">2</div>
+                                    <div class="page-tab plus">+</div>
+                                </div>
+
+                                <div class="page-name-box">
+                                    <span class="name">*Mastery Page 1</span>
+                                    <span class="edit-icon">&#9998;</span>
+                                </div>
+
+                                <div class="tree-summary">
+                                    <div class="tree-sum-item"><div class="tree-sum-icon offense"></div><span class="tree-sum-value">0</span></div>
+                                    <div class="tree-sum-item"><div class="tree-sum-icon defense"></div><span class="tree-sum-value">25</span></div>
+                                    <div class="tree-sum-item"><div class="tree-sum-icon utility"></div><span class="tree-sum-value">0</span></div>
+                                </div>
+
+                                <div class="points-avail">Points Available: 5</div>
+
+                                <div class="action-btn-group">
+                                    <div class="masteries-btn">Save Masteries</div>
+                                    <div class="masteries-btn">Return Points</div>
+                                    <div class="masteries-btn-row">
+                                        <div class="masteries-btn">Delete</div>
+                                        <div class="masteries-btn">Revert</div>
+                                    </div>
+                                </div>
+
+                                <div class="info-box">
+                                    <div class="info-box-title">Mastery Points</div>
+                                    <p>Assign mastery points earned by left-clicking skills, or using the mouse wheel.</p>
+                                    <p>Remove mastery points by right clicking or using the mouse wheel.</p>
+                                </div>
+                            </div>
+
+                            <!-- 3 Arbres -->
+                            <div class="trees">
+
+                                <div class="tree offense">
+                                    <div class="mastery-grid">
+                                        <div class="mastery-icon inactive icon-sword"><span class="mrank">0/1</span></div>
+                                        <div class="mastery-icon inactive icon-axe"><span class="mrank">0/4</span></div>
+                                        <div class="mastery-icon inactive icon-magic"><span class="mrank">0/4</span></div>
+                                        <div class="mastery-icon inactive icon-bow"><span class="mrank">0/1</span></div>
+                                        <div class="mastery-icon inactive icon-sword"><span class="mrank">0/3</span></div>
+                                        <div class="mastery-icon inactive icon-sword"><span class="mrank">0/1</span></div>
+                                        <div class="mastery-icon inactive icon-axe"><span class="mrank">0/3</span></div>
+                                        <div></div>
+                                        <div class="mastery-icon inactive icon-fist"><span class="mrank">0/4</span></div>
+                                        <div class="mastery-icon inactive icon-axe"><span class="mrank">0/1</span></div>
+                                        <div class="mastery-icon inactive icon-magic"><span class="mrank">0/3</span></div>
+                                        <div></div>
+                                        <div class="mastery-icon inactive icon-fist"><span class="mrank">0/1</span></div>
+                                        <div class="mastery-icon inactive icon-sword"><span class="mrank">0/3</span></div>
+                                        <div class="mastery-icon inactive icon-magic"><span class="mrank">0/1</span></div>
+                                        <div></div>
+                                        <div class="mastery-icon inactive icon-fist"><span class="mrank">0/4</span></div>
+                                        <div class="mastery-icon inactive icon-axe"><span class="mrank">0/3</span></div>
+                                        <div class="mastery-icon inactive icon-bow"><span class="mrank">0/1</span></div>
+                                        <div></div>
+                                        <div class="mastery-icon inactive icon-axe"><span class="mrank">0/1</span></div>
+                                        <div></div>
+                                        <div class="mastery-icon inactive icon-sword"><span class="mrank">0/1</span></div>
+                                        <div></div>
+                                    </div>
+                                    <div class="tree-label">OFFENSE: 0</div>
+                                </div>
+
+                                <div class="tree defense">
+                                    <div class="mastery-grid">
+                                        <div class="mastery-icon active icon-shield"><span class="mrank">0/1</span></div>
+                                        <div class="mastery-icon active icon-armor"><span class="mrank">3/3</span></div>
+                                        <div class="mastery-icon active icon-helmet"><span class="mrank">4/4</span></div>
+                                        <div class="mastery-icon active icon-potion"><span class="mrank">2/2</span></div>
+                                        <div class="mastery-icon active icon-shield"><span class="mrank">2/2</span></div>
+                                        <div class="mastery-icon active icon-helmet"><span class="mrank">2/2</span></div>
+                                        <div class="mastery-icon active icon-heart"><span class="mrank">1/1</span></div>
+                                        <div></div>
+                                        <div class="mastery-icon active icon-armor" data-title="Tenacious" data-desc="Reduces the duration of crowd control effects by 15%"><span class="mrank">3/3</span></div>
+                                        <div class="mastery-icon active icon-shield"><span class="mrank">2/2</span></div>
+                                        <div class="mastery-icon inactive icon-eye"><span class="mrank">0/1</span></div>
+                                        <div class="mastery-icon inactive icon-magic"><span class="mrank">0/1</span></div>
+                                        <div class="mastery-icon inactive icon-helmet"><span class="mrank">0/1</span></div>
+                                        <div class="mastery-icon inactive icon-armor"><span class="mrank">0/3</span></div>
+                                        <div class="mastery-icon inactive icon-shield"><span class="mrank">0/1</span></div>
+                                        <div></div>
+                                        <div class="mastery-icon inactive icon-tower"><span class="mrank">0/1</span></div>
+                                        <div class="mastery-icon inactive icon-heart"><span class="mrank">0/3</span></div>
+                                        <div class="mastery-icon inactive icon-shield"><span class="mrank">0/3</span></div>
+                                        <div></div>
+                                        <div class="mastery-icon inactive icon-armor"><span class="mrank">0/1</span></div>
+                                        <div></div>
+                                        <div class="mastery-icon inactive icon-helmet"><span class="mrank">0/1</span></div>
+                                        <div></div>
+                                    </div>
+                                    <div class="tree-label">DEFENSE: 25</div>
+                                </div>
+
+                                <div class="tree utility">
+                                    <div class="mastery-grid">
+                                        <div class="mastery-icon inactive icon-leaf"><span class="mrank">0/1</span></div>
+                                        <div class="mastery-icon inactive icon-mana"><span class="mrank">0/3</span></div>
+                                        <div class="mastery-icon inactive icon-heart"><span class="mrank">0/3</span></div>
+                                        <div class="mastery-icon inactive icon-boot"><span class="mrank">0/1</span></div>
+                                        <div class="mastery-icon inactive icon-coin"><span class="mrank">0/3</span></div>
+                                        <div class="mastery-icon inactive icon-scroll"><span class="mrank">0/2</span></div>
+                                        <div class="mastery-icon inactive icon-skull"><span class="mrank">0/3</span></div>
+                                        <div></div>
+                                        <div class="mastery-icon inactive icon-scroll"><span class="mrank">0/1</span></div>
+                                        <div class="mastery-icon inactive icon-leaf"><span class="mrank">0/1</span></div>
+                                        <div class="mastery-icon inactive icon-boot"><span class="mrank">0/3</span></div>
+                                        <div></div>
+                                        <div class="mastery-icon inactive icon-mana"><span class="mrank">0/3</span></div>
+                                        <div class="mastery-icon inactive icon-scroll"><span class="mrank">0/3</span></div>
+                                        <div class="mastery-icon inactive icon-skull"><span class="mrank">0/3</span></div>
+                                        <div></div>
+                                        <div class="mastery-icon inactive icon-eye"><span class="mrank">0/1</span></div>
+                                        <div class="mastery-icon inactive icon-scroll"><span class="mrank">0/3</span></div>
+                                        <div class="mastery-icon inactive icon-coin"><span class="mrank">0/3</span></div>
+                                        <div></div>
+                                        <div class="mastery-icon inactive icon-leaf"><span class="mrank">0/1</span></div>
+                                        <div></div>
+                                        <div class="mastery-icon inactive icon-boot"><span class="mrank">0/1</span></div>
+                                        <div></div>
+                                    </div>
+                                    <div class="tree-label">UTILITY: 0</div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Tooltip -->
+                        <div class="mastery-tooltip" id="masteryTooltip">
+                            <div class="tooltip-title"></div>
+                            <div class="tooltip-rank"></div>
+                            <div class="tooltip-body"></div>
+                        </div>
+                    </div><!-- /masteries sub-view -->
+
+                    <!-- ===== SPELLS SUB-VIEW ===== -->
+                    <div class="profile-view" data-view="spells" style="display:none">
+                        <div class="spells-body">
+
+                            <!-- Spells grid -->
+                            <div class="spells-grid-wrap">
+                                <div class="spells-title">Summoner Spells</div>
+
+                                <div class="spells-grid">
+                                    <div class="spell-slot sp-heal" data-name="Heal" data-cd="240s" data-lvl="1" data-range="900" data-desc="Restores 90-345 health (depending on champion level) and grants 30% movement speed for 2 seconds to you and the most wounded nearby ally champion."></div>
+                                    <div class="spell-slot sp-ghost" data-name="Ghost" data-cd="180s" data-lvl="1" data-range="Self" data-desc="Your champion ignores unit collision and gains 28% increased movement speed for 10 seconds."></div>
+                                    <div class="spell-slot sp-barrier" data-name="Barrier" data-cd="180s" data-lvl="4" data-range="Self" data-desc="Shields your champion for 115-455 damage (depending on champion level) for 2 seconds."></div>
+                                    <div class="spell-slot sp-exhaust" data-name="Exhaust" data-cd="210s" data-lvl="4" data-range="650" data-desc="Exhausts target enemy champion, reducing their movement speed by 30% and damage dealt by 40% for 2.5 seconds."></div>
+
+                                    <div class="spell-slot sp-clarity" data-name="Clarity" data-cd="240s" data-lvl="6" data-range="600" data-desc="Restores 40% of your champion's maximum mana and restores 25% for nearby allies."></div>
+                                    <div class="spell-slot sp-mark" data-name="Mark" data-cd="80s" data-lvl="1" data-range="1700" data-desc="Throws a snowball in a long line that marks the first enemy struck. Reactivate to dash to the marked target. (Howling Abyss only)"></div>
+                                    <div class="spell-slot sp-cleanse" data-name="Cleanse" data-cd="210s" data-lvl="6" data-range="Self" data-desc="Removes all disables (excluding suppression and airborne) and summoner spell debuffs from your champion and reduces incoming disable durations by 65% for 3 seconds."></div>
+                                    <div class="spell-slot sp-revive" data-name="Revive" data-cd="600s" data-lvl="9" data-range="Self" data-desc="Returns you to your spawning point. Available only in certain game modes."></div>
+
+                                    <div class="spell-slot sp-flash selected" data-name="Flash" data-cd="300s" data-lvl="7" data-range="400" data-desc="Teleports your champion a short distance toward your cursor's location."></div>
+                                    <div class="spell-slot sp-teleport" data-name="Teleport" data-cd="300s" data-lvl="7" data-range="Global" data-desc="After channeling for 4 seconds, teleports your champion to target friendly minion, turret or ward."></div>
+                                    <div class="spell-slot sp-smite" data-name="Smite" data-cd="60s" data-lvl="9" data-range="500" data-desc="Deals 390-1000 true damage (depending on champion level) to target epic or large monster, or lane minion."></div>
+                                    <div class="spell-slot sp-ignite" data-name="Ignite" data-cd="180s" data-lvl="9" data-range="600" data-desc="Ignites target enemy champion, dealing 70-410 true damage over 5 seconds, granting you vision of the target, reducing healing effects on them for the duration."></div>
+
+                                    <div class="spell-slot sp-clairvoyance" data-name="Clairvoyance" data-cd="60s" data-lvl="8" data-range="Global" data-desc="Reveals a small area of the map for 5 seconds. Detects invisible units."></div>
+                                </div>
+                            </div>
+
+                            <!-- Detail panel -->
+                            <div class="spell-detail-wrap">
+
+                                <div class="spell-header">
+                                    <div class="spell-big-icon sp-flash"></div>
+                                    <div class="spell-header-info">
+                                        <div class="spell-name">Flash</div>
+                                        <div class="spell-meta">
+                                            <div class="spell-meta-item">
+                                                <span class="spell-meta-label">COOLDOWN:</span>
+                                                <span class="spell-meta-cd">300s</span>
+                                            </div>
+                                            <div class="spell-meta-item">
+                                                <span class="spell-meta-label">REQUIRED LVL:</span>
+                                                <span class="spell-meta-lvl">7</span>
+                                            </div>
+                                            <div class="spell-meta-item">
+                                                <span class="spell-meta-label">RANGE:</span>
+                                                <span class="spell-meta-range">400</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="spell-description">Teleports your champion a short distance toward your cursor's location.</div>
+
+                                <div class="spell-lore">The signature move of countless champions &mdash; a short-range blink that can secure a kill, save a life, or swap entire lanes in a heartbeat.</div>
+
+                                <div class="spell-preview">
+                                    <div class="champion-silhouette"></div>
+                                    <div class="preview-label">Spell preview</div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div><!-- /spells sub-view -->
+
+                    <!-- ===== ITEM SETS SUB-VIEW ===== -->
+                    <div class="profile-view" data-view="itemsets" style="display:none">
+                        <div class="itemsets-body">
+
+                            <!-- COL 1 : sets list -->
+                            <div class="col-sets">
+                                <div class="sets-actions">
+                                    <button class="set-act-btn add" title="New">
+                                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                                    </button>
+                                    <button class="set-act-btn save" title="Save">
+                                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+                                    </button>
+                                    <button class="set-act-btn undo" title="Undo">
+                                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+                                    </button>
+                                    <button class="set-act-btn del" title="Delete">
+                                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                                    </button>
+                                </div>
+
+                                <div class="sets-list">
+                                    <div class="set-item selected" onclick="selectItemSet(this)">
+                                        <div class="set-name">Support</div>
+                                        <div class="set-sub">(5 Champions)</div>
+                                    </div>
+                                    <div class="set-item" onclick="selectItemSet(this)">
+                                        <div class="set-name">Caitlyn</div>
+                                        <div class="set-sub">Caitlyn AD Carry</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- COL 2 : categories -->
+                            <div class="col-cats">
+                                <div class="search-items">
+                                    <input type="text" placeholder="Search Items">
+                                    <span class="clear-x">&#10005;</span>
+                                </div>
+
+                                <div class="items-cat-list">
+                                    <div class="cat-all">All Items</div>
+
+                                    <div class="cat-section-title">Tools</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Consumable</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Gold Income</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Vision &amp; Trinkets</div>
+
+                                    <div class="cat-section-title">Defense</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Health</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Armor</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Magic Resist</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Health Regen</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Tenacity</div>
+
+                                    <div class="cat-section-title">Attack</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Damage</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Critical Strike</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Attack Speed</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Life Steal</div>
+
+                                    <div class="cat-section-title">Magic</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Ability Power</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Cooldown Reduction</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Spell Vamp</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Mana</div>
+                                    <div class="cat-check" onclick="this.classList.toggle('checked')"><div class="cat-box"></div>Mana Regen</div>
+                                </div>
+                            </div>
+
+                            <!-- COL 3 : items list -->
+                            <div class="col-items">
+                                <div class="items-list">
+                                    <div class="item-row"><div class="item-icon it-necklace"></div><div class="item-info"><div class="item-name">Bonetooth Necklace</div><div class="item-price"><div class="gold-icon"></div>0</div></div></div>
+                                    <div class="item-row"><div class="item-icon it-ward"></div><div class="item-info"><div class="item-name">Warding Totem (Trinket)</div><div class="item-price"><div class="gold-icon"></div>0</div></div></div>
+                                    <div class="item-row"><div class="item-icon it-orb-blue"></div><div class="item-info"><div class="item-name">Scrying Orb (Trinket)</div><div class="item-price"><div class="gold-icon"></div>0</div></div></div>
+                                    <div class="item-row"><div class="item-icon it-lens"></div><div class="item-info"><div class="item-name">Sweeping Lens (Trinket)</div><div class="item-price"><div class="gold-icon"></div>0</div></div></div>
+                                    <div class="item-row"><div class="item-icon it-potion"></div><div class="item-info"><div class="item-name">Health Potion</div><div class="item-price"><div class="gold-icon"></div>35</div></div></div>
+                                    <div class="item-row"><div class="item-icon it-elixir"></div><div class="item-info"><div class="item-name">Elixir of Fortitude</div><div class="item-price"><div class="gold-icon"></div>350</div></div></div>
+                                    <div class="item-row"><div class="item-icon it-coin"></div><div class="item-info"><div class="item-name">Ancient Coin</div><div class="item-price"><div class="gold-icon"></div>365</div></div></div>
+                                    <div class="item-row"><div class="item-icon it-feather"></div><div class="item-info"><div class="item-name">Faerie Charm</div><div class="item-price"><div class="gold-icon"></div>125</div></div></div>
+                                    <div class="item-row"><div class="item-icon it-bone"></div><div class="item-info"><div class="item-name">Giant's Belt</div><div class="item-price"><div class="gold-icon"></div>1000</div></div></div>
+                                </div>
+                            </div>
+
+                            <!-- COL 4 : editor -->
+                            <div class="col-editor">
+                                <div class="editor-title">Support</div>
+
+                                <div class="editor-tabs">
+                                    <div class="editor-tab active">Items</div>
+                                    <div class="editor-tab">Maps and Champions</div>
+                                </div>
+
+                                <div class="editor-body">
+                                    <div class="editor-info">This Item Set is assigned to 5 champions.</div>
+                                    <div class="editor-info">This Item Set is assigned to all maps.</div>
+
+                                    <div class="build-section">
+                                        <div class="build-section-header">
+                                            <div class="build-section-title">Starting Items</div>
+                                            <div class="build-section-close">&#10005;</div>
+                                        </div>
+                                        <div class="build-grid">
+                                            <div class="build-item"><div class="build-item-icon it-coin"></div><div class="build-item-price"><div class="gold-icon"></div>365</div></div>
+                                            <div class="build-item"><div class="build-item-icon it-potion"></div><div class="build-item-price"><div class="gold-icon"></div>35</div></div>
+                                            <div class="build-item"><div class="build-item-icon it-potion"></div><div class="build-item-price"><div class="gold-icon"></div>35</div></div>
+                                            <div class="build-item"><div class="build-item-icon it-ward"></div><div class="build-item-price"><div class="gold-icon"></div>75</div></div>
+                                            <div class="build-item"><div class="build-item-icon it-feather"></div><div class="build-item-price"><div class="gold-icon"></div>0</div></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="build-section">
+                                        <div class="build-section-header">
+                                            <div class="build-section-title">Mid Game</div>
+                                            <div class="build-section-close">&#10005;</div>
+                                        </div>
+                                        <div class="build-grid">
+                                            <div class="build-item"><div class="build-item-icon it-coin"></div><div class="build-item-price"><div class="gold-icon"></div>2200</div></div>
+                                            <div class="build-item"><div class="build-item-icon it-chalice"></div><div class="build-item-price"><div class="gold-icon"></div>880</div></div>
+                                            <div class="build-item"><div class="build-item-icon it-sheath"></div><div class="build-item-price"><div class="gold-icon"></div>1000</div></div>
+                                            <div class="build-item"><div class="build-item-icon it-boots"></div><div class="build-item-price"><div class="gold-icon"></div>1200</div></div>
+                                            <div class="build-item"><div class="build-item-icon it-eye"></div><div class="build-item-price"><div class="gold-icon"></div>800</div></div>
+                                            <div class="build-item"><div class="build-item-icon it-bulwark"></div><div class="build-item-price"><div class="gold-icon"></div>1900</div></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="build-section">
+                                        <div class="build-section-header">
+                                            <div class="build-section-title">Finished build</div>
+                                            <div class="build-section-close">&#10005;</div>
+                                        </div>
+                                        <div class="build-grid">
+                                            <div class="build-item"><div class="build-item-icon it-coin"></div><div class="build-item-price"><div class="gold-icon"></div>2200</div></div>
+                                            <div class="build-item"><div class="build-item-icon it-locket"></div><div class="build-item-price"><div class="gold-icon"></div>2450</div></div>
+                                            <div class="build-item"><div class="build-item-icon it-zeke"></div><div class="build-item-price"><div class="gold-icon"></div>1600</div></div>
+                                            <div class="build-item"><div class="build-item-icon it-bulwark"></div><div class="build-item-price"><div class="gold-icon"></div>3000</div></div>
+                                            <div class="build-item"><div class="build-item-icon it-banner"></div><div class="build-item-price"><div class="gold-icon"></div>2800</div></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div><!-- /itemsets sub-view -->
+
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- INVITES MODAL -->
+    <div class="invites-overlay hidden" id="invitesOverlay" onclick="if(event.target===this)closeInvites()">
+        <div class="invites-modal">
+
+            <button class="invites-modal-close" onclick="closeInvites()">&#10005;</button>
+
+            <div class="invites-instructions">
+                Instructions: Click the plus sign next to the name to add to invite list
+            </div>
+
+            <div class="invites-header">
+                <div class="invites-title">Invites</div>
+            </div>
+
+            <div class="invites-body">
+
+                <!-- Left : Available players -->
+                <div class="invites-col">
+                    <div class="invites-banner">
+                        <div class="invites-banner-wing"></div>
+                        <div class="invites-banner-title">Available Players</div>
+                        <div class="invites-banner-wing right"></div>
+                    </div>
+
+                    <div class="invites-listbox">
+                        <input type="text" class="invites-search" placeholder="Type friend name to filter">
+
+                        <div class="friends-list-inv">
+                            <div class="friend-row-inv">
+                                <div class="friend-card-inv">
+                                    <div class="friend-avatar-inv av-decimiss"></div>
+                                    <div class="friend-name-inv">Decimiss</div>
+                                </div>
+                                <button class="friend-add-inv" title="Ajouter" onclick="addInvitee(this)">+</button>
+                            </div>
+                            <div class="friend-row-inv">
+                                <div class="friend-card-inv">
+                                    <div class="friend-avatar-inv av-kellynn"></div>
+                                    <div class="friend-name-inv">Kellynn</div>
+                                </div>
+                                <button class="friend-add-inv" title="Ajouter" onclick="addInvitee(this)">+</button>
+                            </div>
+                            <div class="friend-row-inv">
+                                <div class="friend-card-inv">
+                                    <div class="friend-avatar-inv av-ryiotious"></div>
+                                    <div class="friend-name-inv">Ryiotious</div>
+                                </div>
+                                <button class="friend-add-inv" title="Ajouter" onclick="addInvitee(this)">+</button>
+                            </div>
+                            <div class="friend-row-inv">
+                                <div class="friend-card-inv">
+                                    <div class="friend-avatar-inv av-tank"></div>
+                                    <div class="friend-name-inv">TankYouSir</div>
+                                </div>
+                                <button class="friend-add-inv" title="Ajouter" onclick="addInvitee(this)">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="invites-tabs">
+                        <div class="invites-tab active">Friends</div>
+                        <div class="invites-tab">Chat Rooms</div>
+                    </div>
+                </div>
+
+                <!-- Right : Invite List -->
+                <div class="invites-col">
+                    <div class="invites-banner">
+                        <div class="invites-banner-wing"></div>
+                        <div class="invites-banner-title" id="inviteListTitle">Invite List (0/15)</div>
+                        <div class="invites-banner-wing right"></div>
+                    </div>
+
+                    <div class="add-invite-row">
+                        <input type="text" class="add-invite-input">
+                        <button class="add-invite-btn">Add to Invite List</button>
+                    </div>
+
+                    <div class="invite-list-box" id="inviteListBox"></div>
+
+                    <button class="invite-players-btn">Invite Players</button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- OPTIONS MODAL -->
+    <div class="modal-overlay hidden" id="optionsOverlay" onclick="if(event.target===this)closeOptions()">
+        <div class="options-modal">
+
+            <div class="modal-header">
+                <div class="modal-title">Options</div>
+                <div class="modal-close" onclick="closeOptions()">&#10005;</div>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="opt-section">
+                    <div class="opt-section-title">Chat Preferences</div>
+                    <div class="opt-check" onclick="this.classList.toggle('checked')"><div class="opt-box"></div>Enable Language Filter</div>
+                    <div class="opt-check" onclick="this.classList.toggle('checked')"><div class="opt-box"></div>Enable Friend Notifications</div>
+                </div>
+
+                <div class="opt-section">
+                    <div class="opt-section-title">Sound Preferences</div>
+
+                    <div class="opt-slider-label">SFX Volume</div>
+                    <div class="opt-slider">
+                        <div class="opt-slider-track"></div>
+                        <div class="opt-slider-handle" style="left:calc(50% + 6px)"></div>
+                    </div>
+                    <div class="opt-check checked" onclick="this.classList.toggle('checked')"><div class="opt-box"></div>SFX</div>
+
+                    <div class="opt-slider-label">Music Volume</div>
+                    <div class="opt-slider">
+                        <div class="opt-slider-track"></div>
+                        <div class="opt-slider-handle" style="left:calc(50% + 6px)"></div>
+                    </div>
+                    <div class="opt-check checked" onclick="this.classList.toggle('checked')"><div class="opt-box"></div>Music</div>
+                </div>
+
+                <div class="opt-section">
+                    <div class="opt-section-title">General Preferences</div>
+                    <div class="opt-check" onclick="this.classList.toggle('checked')"><div class="opt-box"></div>Disable Menu Animations</div>
+                    <div class="opt-check" onclick="this.classList.toggle('checked')"><div class="opt-box"></div>Enable Newbie Help Tips</div>
+                    <div class="opt-check" onclick="this.classList.toggle('checked')"><div class="opt-box"></div>Suppress Notification Popups</div>
+                    <div class="opt-check checked" onclick="this.classList.toggle('checked')"><div class="opt-box"></div>Warn me when I click a link in chat</div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="modal-btn save" disabled>SAVE</button>
+                <button class="modal-btn cancel" onclick="closeOptions()">CANCEL</button>
+            </div>
+
         </div>
     </div>
 
     <!-- BOTTOM BAR -->
-    <div class="bottombar">
-        <div class="bb-left"></div>
-        <div class="bb-right">
-            <div class="bb-icon bb-friends" title="Friends (6)">
-                <svg width="18" height="14" viewBox="0 0 18 14"><circle cx="6" cy="4" r="3.5"/><circle cx="13" cy="4" r="3.5"/><ellipse cx="6" cy="12" rx="5" ry="3.5"/><ellipse cx="13" cy="12" rx="5" ry="3.5"/></svg>
-                <span class="bb-count">6</span>
-            </div>
-            <div class="bb-icon bb-chat" title="Chat">
-                <svg width="18" height="15" viewBox="0 0 18 15"><rect x="1" y="1" width="16" height="10" rx="2"/><polygon points="4,11 8,15 8,11"/></svg>
-            </div>
-            <div class="bb-icon bb-notif" title="Notifications">
-                <span class="bb-excl">!</span>
-            </div>
+    <div class="bottom-bar">
+        <div class="bottom-btn">
+            <span class="bottom-icon">&#128101;</span>
+            <span>6</span>
+        </div>
+        <div class="bottom-btn">
+            <span class="bottom-icon">&#128172;</span>
+        </div>
+        <div class="bottom-btn alert">
+            <span class="bottom-icon">!</span>
         </div>
     </div>
 
-    <script src="https://unpkg.com/@tauri-apps/api@2/dist/core.min.js"></script>
-    <script src="js/app.js"></script>
+</div>
+
+<!-- LOGIN SCREEN (shown first) -->
+<div id="login-screen">
+    <div class="login-window">
+
+        <div class="login-titlebar">
+            <div class="login-title-text" data-tauri-drag-region>League of Legends 4.10.14_06_16_19_01</div>
+            <div class="login-win-btns">
+                <button class="login-win-btn" type="button" onclick="minimizeWindow()">&mdash;</button>
+                <button class="login-win-btn close" type="button" onclick="closeWindow()">&times;</button>
+            </div>
+        </div>
+
+        <div class="login-body">
+
+            <!-- Left panel : LOGIN form -->
+            <div class="login-left" data-panel="login">
+
+                <div class="login-logo">
+                    <img src="img/logo-old.png" alt="League of Legends">
+                </div>
+
+                <div class="login-section-title">Account Login</div>
+
+                <div class="form-field">
+                    <label>Username</label>
+                    <input type="text" id="login-username">
+                </div>
+
+                <div class="form-field">
+                    <label>Password</label>
+                    <input type="password" id="login-password">
+                </div>
+
+                <div class="remember-row">
+                    <div class="remember-check" onclick="this.classList.toggle('checked')">
+                        <div class="remember-box"></div>
+                        <span>Remember Username</span>
+                    </div>
+                    <button class="login-btn" onclick="doLogin()">Log In</button>
+                </div>
+
+                <div class="login-links">
+                    <div>Don't have an account? <a href="#" onclick="showRegister();return false">Sign up now!</a></div>
+                    <div><a href="#" onclick="return false">Forgot your username?</a></div>
+                    <div><a href="#" onclick="return false">Forgot your password?</a></div>
+                </div>
+
+                <div class="free-banner">Playing League of Legends is FREE!</div>
+
+                <div class="login-bottom">
+                    <img class="riot-logo" src="img/riot-logo.png" alt="Riot Games">
+                    <div class="client-settings">
+                        <div class="client-settings-title">Client settings:</div>
+                        <div class="opt-line" onclick="this.classList.toggle('checked')">
+                            <div class="remember-box"></div>
+                            <span>Disable Login Music</span>
+                        </div>
+                        <div class="opt-line" onclick="this.classList.toggle('checked')">
+                            <div class="remember-box"></div>
+                            <span>Disable Menu Animations</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Left panel : REGISTER form -->
+            <div class="login-left" data-panel="register" style="display:none">
+
+                <div class="login-logo">
+                    <img src="img/logo-old.png" alt="League of Legends">
+                </div>
+
+                <div class="login-section-title">Create an Account</div>
+
+                <div class="form-field">
+                    <label>Username</label>
+                    <input type="text" id="register-username">
+                </div>
+
+                <div class="form-field">
+                    <label>Password</label>
+                    <input type="password" id="register-password">
+                </div>
+
+                <div class="form-field">
+                    <label>Confirm Password</label>
+                    <input type="password" id="register-password-confirm">
+                </div>
+
+                <div class="form-field">
+                    <label>Email</label>
+                    <input type="email" id="register-email">
+                </div>
+
+                <div class="remember-row">
+                    <div class="remember-check" onclick="this.classList.toggle('checked')">
+                        <div class="remember-box"></div>
+                        <span>I accept the Terms of Use</span>
+                    </div>
+                    <button class="login-btn" onclick="doRegister()">Sign Up</button>
+                </div>
+
+                <div class="login-links">
+                    <div>Already have an account? <a href="#" onclick="showLogin();return false">Back to Log In</a></div>
+                </div>
+
+                <div class="free-banner">Join millions of players for FREE!</div>
+
+                <div class="login-bottom">
+                    <img class="riot-logo" src="img/riot-logo.png" alt="Riot Games">
+                    <div class="client-settings">
+                        <div class="client-settings-title">Client settings:</div>
+                        <div class="opt-line" onclick="this.classList.toggle('checked')">
+                            <div class="remember-box"></div>
+                            <span>Disable Login Music</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right panel : splash -->
+            <div class="login-right">
+                <button class="refresh-btn" title="Refresh">&#8635;</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/@tauri-apps/api@2/dist/core.min.js"></script>
+<script src="js/core.js"></script>
+<script src="js/login.js"></script>
+<script src="js/modals.js"></script>
+<script src="js/pages/store.js"></script>
+<script src="js/pages/play.js"></script>
+<script src="js/pages/profile.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>

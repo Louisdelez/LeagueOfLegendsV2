@@ -1,0 +1,82 @@
+/* ============  PALETTE LoL 2014  ============ */
+:root{
+    --bg-deep:        #010A13;
+    --bg-panel:       #0A1428;
+    --bg-panel-2:     #091C2C;
+    --bg-panel-3:     #0D2235;
+    --bg-row:         #0A1A28;
+    --gold-1:         #C8AA6E;
+    --gold-2:         #785A28;
+    --gold-3:         #463714;
+    --gold-hi:        #F0E6D2;
+    --text-main:      #CDBE91;
+    --text-soft:      #A09B8C;
+    --text-mute:      #5B5A56;
+    --blue-link:      #0596AA;
+    --blue-link-2:    #0AC8B9;
+    --blue-btn:       #1E2328;
+    --red-play-1:     #C8302A;
+    --red-play-2:     #8B1F1B;
+    --red-watch-1:    #8B1F1B;
+    --red-watch-2:    #5C1411;
+    --team-blue:      #0F6FA6;
+    --team-red:       #C8302A;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{
+    background:#000;
+    width:100%;
+    height:100vh;
+    font-family:'Inter',sans-serif;
+    overflow:hidden;
+}
+
+/* ============  CLIENT WINDOW 1280x720  ============ */
+.client{
+    position:relative;
+    width:100%;
+    height:100vh;
+    background:
+        radial-gradient(ellipse at 30% 40%, #0F2540 0%, #010A13 60%, #000 100%);
+    color:var(--text-main);
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    overflow:hidden;
+}
+
+.client::before{
+    content:"";
+    position:absolute;inset:0;
+    background-image:
+        radial-gradient(circle at 20% 60%, rgba(120,90,40,.08), transparent 40%),
+        radial-gradient(circle at 80% 30%, rgba(30,100,180,.06), transparent 50%);
+    pointer-events:none;
+}
+
+/* ============  TITLE BAR  ============ */
+.titlebar{
+    position:absolute;top:0;left:0;right:0;height:22px;
+    background:linear-gradient(to bottom,#0A1428,#06101E);
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 8px;
+    font-size:11px;color:#6A5E40;
+    border-bottom:1px solid #000;
+    z-index:10;
+}
+.title-text{flex:1;padding-left:4px;letter-spacing:.2px;cursor:default}
+.win-btns{display:flex;gap:2px}
+.win-btn{
+    width:26px;height:18px;
+    display:flex;align-items:center;justify-content:center;
+    color:#8A7A5A;font-size:14px;
+    cursor:pointer;
+    background:transparent;
+    border:none;
+    padding:0;
+    font-family:inherit;
+    line-height:1;
+}
+.win-btn:hover{background:rgba(255,255,255,.05)}
+.win-btn.close:hover{background:#C8302A;color:#fff}
+

@@ -4,17 +4,17 @@
   "version": "1.0.0",
   "identifier": "com.leaguesandbox.launcher",
   "build": {
-    "frontendDist": "../src",
-    "devUrl": "http://localhost:1420"
+    "frontendDist": "../src"
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "title": "LeagueSandbox Launcher",
-        "width": 1280,
-        "height": 720,
+        "width": 820,
+        "height": 560,
         "resizable": false,
-        "decorations": true,
+        "decorations": false,
         "center": true
       }
     ],
