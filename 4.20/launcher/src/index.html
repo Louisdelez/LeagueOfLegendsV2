@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeagueSandbox Launcher</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="header">
+        <h1>LeagueSandbox</h1>
+        <span class="version">Version 4.20 Private Server</span>
+    </div>
+
+    <div class="main">
+        <div class="config-panel">
+            <h2>Configuration de la partie</h2>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nom d'invocateur</label>
+                    <input type="text" id="player-name" value="Player1" placeholder="Votre nom...">
+                </div>
+                <div class="form-group">
+                    <label>Champion</label>
+                    <select id="champion"></select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Map</label>
+                    <select id="map"></select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Sort d'invocateur 1</label>
+                    <select id="spell1"></select>
+                </div>
+                <div class="form-group">
+                    <label>Sort d'invocateur 2</label>
+                    <select id="spell2"></select>
+                </div>
+            </div>
+
+            <div class="separator"></div>
+
+            <div class="toggles">
+                <label class="toggle">
+                    <input type="checkbox" id="minions" checked>
+                    Minions
+                </label>
+                <label class="toggle">
+                    <input type="checkbox" id="cooldowns" checked>
+                    Cooldowns
+                </label>
+                <label class="toggle">
+                    <input type="checkbox" id="mana" checked>
+                    Mana
+                </label>
+            </div>
+        </div>
+
+        <button class="launch-btn" id="launch-btn" onclick="launchGame()">
+            Lancer la partie
+        </button>
+
+        <div class="status" id="status"></div>
+    </div>
+
+    <div class="footer">
+        <span>LeagueSandbox Private Server</span>
+        <span>Patch 4.20</span>
+    </div>
+
+    <script src="https://unpkg.com/@tauri-apps/api@2/dist/core.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

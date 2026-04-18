@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-config-schema/schema.json",
+  "productName": "LeagueSandbox Launcher",
+  "version": "1.0.0",
+  "identifier": "com.leaguesandbox.launcher",
+  "build": {
+    "frontendDist": "../src",
+    "devUrl": "http://localhost:1420"
+  },
+  "app": {
+    "title": "LeagueSandbox Launcher",
+    "windows": [
+      {
+        "title": "LeagueSandbox Launcher",
+        "width": 1280,
+        "height": 720,
+        "resizable": false,
+        "decorations": true,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  }
+}
