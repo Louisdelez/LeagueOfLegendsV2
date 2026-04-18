@@ -3,76 +3,266 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LeagueSandbox Launcher</title>
+    <title>LeagueSandbox</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="header">
-        <h1>LeagueSandbox</h1>
-        <span class="version">Version 4.20 Private Server</span>
+    <!-- TOP BAR -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <div class="logo">LEAGUE<span>SANDBOX</span></div>
+        </div>
+        <div class="topbar-center">
+            <button class="play-btn" id="play-btn" onclick="showPage('play')">PLAY</button>
+        </div>
+        <div class="topbar-right">
+            <div class="summoner-info">
+                <div class="summoner-icon">30</div>
+                <div class="summoner-details">
+                    <span class="summoner-name" id="summoner-name-display">Player1</span>
+                    <div class="currency">
+                        <span class="ip">9999 IP</span>
+                        <span class="rp">9999 RP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="main">
-        <div class="config-panel">
-            <h2>Configuration de la partie</h2>
+    <!-- NAV TABS -->
+    <div class="nav-tabs">
+        <button class="tab active" onclick="showPage('home')" data-page="home">Home</button>
+        <button class="tab" onclick="showPage('profile')" data-page="profile">Profile</button>
+        <button class="tab" onclick="showPage('play')" data-page="play">Play</button>
+        <button class="tab" onclick="showPage('champions')" data-page="champions">Champions</button>
+        <button class="tab" onclick="showPage('settings')" data-page="settings">Settings</button>
+    </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Nom d'invocateur</label>
-                    <input type="text" id="player-name" value="Player1" placeholder="Votre nom...">
-                </div>
-                <div class="form-group">
-                    <label>Champion</label>
-                    <select id="champion"></select>
-                </div>
-            </div>
+    <!-- PAGES -->
+    <div class="content">
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Map</label>
-                    <select id="map"></select>
+        <!-- HOME PAGE -->
+        <div class="page active" id="page-home">
+            <div class="home-layout">
+                <div class="home-main">
+                    <div class="welcome-banner">
+                        <h2>Welcome to LeagueSandbox</h2>
+                        <p>Private Server - Patch 4.20</p>
+                        <button class="btn-gold big" onclick="showPage('play')">PLAY NOW</button>
+                    </div>
+                    <div class="news-section">
+                        <div class="news-item">
+                            <div class="news-icon">NEW</div>
+                            <div class="news-text">
+                                <h3>Launcher v1.0</h3>
+                                <p>Custom Tauri launcher with champion select, map choice, and game options.</p>
+                            </div>
+                        </div>
+                        <div class="news-item">
+                            <div class="news-icon">MAP</div>
+                            <div class="news-text">
+                                <h3>All Maps Available</h3>
+                                <p>Summoner's Rift, Twisted Treeline, Howling Abyss, Crystal Scar</p>
+                            </div>
+                        </div>
+                        <div class="news-item">
+                            <div class="news-icon">120+</div>
+                            <div class="news-text">
+                                <h3>Champions</h3>
+                                <p>All Season 4 champions available with abilities and skins.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Sort d'invocateur 1</label>
-                    <select id="spell1"></select>
+                <div class="home-sidebar">
+                    <div class="sidebar-panel">
+                        <h3>Server Status</h3>
+                        <div class="status-online">ONLINE</div>
+                        <p class="status-detail">127.0.0.1:5119</p>
+                    </div>
+                    <div class="sidebar-panel">
+                        <h3>Quick Play</h3>
+                        <p class="status-detail">Select champion and map, then click PLAY to start a game.</p>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Sort d'invocateur 2</label>
-                    <select id="spell2"></select>
-                </div>
-            </div>
-
-            <div class="separator"></div>
-
-            <div class="toggles">
-                <label class="toggle">
-                    <input type="checkbox" id="minions" checked>
-                    Minions
-                </label>
-                <label class="toggle">
-                    <input type="checkbox" id="cooldowns" checked>
-                    Cooldowns
-                </label>
-                <label class="toggle">
-                    <input type="checkbox" id="mana" checked>
-                    Mana
-                </label>
             </div>
         </div>
 
-        <button class="launch-btn" id="launch-btn" onclick="launchGame()">
-            Lancer la partie
-        </button>
+        <!-- PLAY PAGE (Game Config) -->
+        <div class="page" id="page-play">
+            <div class="play-layout">
+                <!-- Left: Game Type -->
+                <div class="play-sidebar-left">
+                    <h3>Game Type</h3>
+                    <div class="game-type-list">
+                        <div class="game-type-item active" onclick="selectGameType(this, 'pvp')">PvP</div>
+                        <div class="game-type-item" onclick="selectGameType(this, 'coop')">Co-op vs. AI</div>
+                        <div class="game-type-item" onclick="selectGameType(this, 'custom')">Custom</div>
+                    </div>
+                </div>
 
-        <div class="status" id="status"></div>
+                <!-- Center: Config -->
+                <div class="play-center">
+                    <div class="config-section">
+                        <h3>Game Mode</h3>
+                        <div class="mode-cards">
+                            <div class="mode-card active" onclick="selectMode(this, 'CLASSIC')" data-mode="CLASSIC">
+                                <div class="mode-name">Classic</div>
+                            </div>
+                            <div class="mode-card" onclick="selectMode(this, 'ARAM')" data-mode="ARAM">
+                                <div class="mode-name">ARAM</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="config-section">
+                        <h3>Game Map</h3>
+                        <div class="map-cards">
+                            <div class="map-card active" onclick="selectMap(this, 11)" data-map="11">
+                                <div class="map-name">Summoner's Rift</div>
+                                <div class="map-players">5v5</div>
+                            </div>
+                            <div class="map-card" onclick="selectMap(this, 10)" data-map="10">
+                                <div class="map-name">Twisted Treeline</div>
+                                <div class="map-players">3v3</div>
+                            </div>
+                            <div class="map-card" onclick="selectMap(this, 12)" data-map="12">
+                                <div class="map-name">Howling Abyss</div>
+                                <div class="map-players">5v5</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Map Preview -->
+                    <div class="map-preview" id="map-preview">
+                        <div class="map-preview-title">Summoner's Rift</div>
+                        <div class="map-preview-desc">Work with your allies to siege the enemy base and destroy their Nexus.</div>
+                    </div>
+
+                    <div class="config-section">
+                        <h3>Configuration</h3>
+                        <div class="config-row">
+                            <div class="config-field">
+                                <label>Summoner Name</label>
+                                <input type="text" id="player-name" value="Player1">
+                            </div>
+                            <div class="config-field">
+                                <label>Champion</label>
+                                <select id="champion"></select>
+                            </div>
+                        </div>
+                        <div class="config-row">
+                            <div class="config-field">
+                                <label>Summoner Spell 1</label>
+                                <select id="spell1"></select>
+                            </div>
+                            <div class="config-field">
+                                <label>Summoner Spell 2</label>
+                                <select id="spell2"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="config-section">
+                        <div class="toggles-row">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="minions" checked>
+                                <span class="toggle-text">Minions</span>
+                            </label>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="cooldowns" checked>
+                                <span class="toggle-text">Cooldowns</span>
+                            </label>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="mana" checked>
+                                <span class="toggle-text">Mana Costs</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="launch-section">
+                        <button class="btn-gold big launch" id="launch-btn" onclick="launchGame()">
+                            LAUNCH GAME
+                        </button>
+                        <div class="launch-status" id="status"></div>
+                    </div>
+                </div>
+
+                <!-- Right: Info -->
+                <div class="play-sidebar-right">
+                    <div class="sidebar-panel">
+                        <h3>Selected Champion</h3>
+                        <div class="champion-preview" id="champion-preview">
+                            <div class="champion-name" id="champ-display">Ezreal</div>
+                            <div class="champion-title">the Prodigal Explorer</div>
+                        </div>
+                    </div>
+                    <div class="sidebar-panel">
+                        <h3>Summoner Spells</h3>
+                        <div class="spell-preview">
+                            <span id="spell1-display">Flash</span>
+                            <span id="spell2-display">Heal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFILE PAGE -->
+        <div class="page" id="page-profile">
+            <div class="profile-content">
+                <div class="profile-header">
+                    <div class="profile-icon-big">30</div>
+                    <div class="profile-info">
+                        <h2 id="profile-name">Player1</h2>
+                        <div class="rank-badge">DIAMOND</div>
+                    </div>
+                </div>
+                <div class="profile-tabs">
+                    <button class="ptab active">Profile</button>
+                    <button class="ptab">Leagues</button>
+                    <button class="ptab">Match History</button>
+                    <button class="ptab">Champions</button>
+                    <button class="ptab">Runes</button>
+                    <button class="ptab">Masteries</button>
+                </div>
+                <div class="profile-body">
+                    <p>LeagueSandbox Private Server — All champions unlocked, all skins available.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHAMPIONS PAGE -->
+        <div class="page" id="page-champions">
+            <div class="champions-grid" id="champions-grid"></div>
+        </div>
+
+        <!-- SETTINGS PAGE -->
+        <div class="page" id="page-settings">
+            <div class="settings-content">
+                <h2>Server Settings</h2>
+                <div class="settings-form">
+                    <div class="config-field">
+                        <label>Server IP</label>
+                        <input type="text" value="127.0.0.1" disabled>
+                    </div>
+                    <div class="config-field">
+                        <label>Server Port</label>
+                        <input type="text" value="5119" disabled>
+                    </div>
+                    <div class="config-field">
+                        <label>Game Version</label>
+                        <input type="text" value="4.20.0.315" disabled>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="footer">
+    <!-- BOTTOM BAR -->
+    <div class="bottombar">
         <span>LeagueSandbox Private Server</span>
-        <span>Patch 4.20</span>
+        <span>Patch 4.20.0.315</span>
     </div>
 
     <script src="https://unpkg.com/@tauri-apps/api@2/dist/core.min.js"></script>
