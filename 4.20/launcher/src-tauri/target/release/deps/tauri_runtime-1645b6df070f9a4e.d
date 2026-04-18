@@ -1,0 +1,11 @@
+D:\LeagueOfLegendsV2\4.20\launcher\src-tauri\target\release\deps\tauri_runtime-1645b6df070f9a4e.d: C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\lib.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\dpi.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\monitor.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\webview.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\window.rs
+
+D:\LeagueOfLegendsV2\4.20\launcher\src-tauri\target\release\deps\libtauri_runtime-1645b6df070f9a4e.rlib: C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\lib.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\dpi.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\monitor.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\webview.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\window.rs
+
+D:\LeagueOfLegendsV2\4.20\launcher\src-tauri\target\release\deps\libtauri_runtime-1645b6df070f9a4e.rmeta: C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\lib.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\dpi.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\monitor.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\webview.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\window.rs
+
+C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\lib.rs:
+C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\dpi.rs:
+C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\monitor.rs:
+C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\webview.rs:
+C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-runtime-2.10.1\src\window.rs:

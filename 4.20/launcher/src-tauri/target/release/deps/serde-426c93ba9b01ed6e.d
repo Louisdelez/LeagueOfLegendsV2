@@ -1,0 +1,14 @@
+D:\LeagueOfLegendsV2\4.20\launcher\src-tauri\target\release\deps\serde-426c93ba9b01ed6e.d: C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs D:\LeagueOfLegendsV2\4.20\launcher\src-tauri\target\release\build\serde-e63531b5e3bb2643\out/private.rs
+
+D:\LeagueOfLegendsV2\4.20\launcher\src-tauri\target\release\deps\libserde-426c93ba9b01ed6e.rlib: C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs D:\LeagueOfLegendsV2\4.20\launcher\src-tauri\target\release\build\serde-e63531b5e3bb2643\out/private.rs
+
+D:\LeagueOfLegendsV2\4.20\launcher\src-tauri\target\release\deps\libserde-426c93ba9b01ed6e.rmeta: C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs D:\LeagueOfLegendsV2\4.20\launcher\src-tauri\target\release\build\serde-e63531b5e3bb2643\out/private.rs
+
+C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs:
+C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs:
+C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs:
+C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs:
+C:\Users\loicd\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs:
+D:\LeagueOfLegendsV2\4.20\launcher\src-tauri\target\release\build\serde-e63531b5e3bb2643\out/private.rs:
+
+# env-dep:OUT_DIR=D:\\LeagueOfLegendsV2\\4.20\\launcher\\src-tauri\\target\\release\\build\\serde-e63531b5e3bb2643\\out

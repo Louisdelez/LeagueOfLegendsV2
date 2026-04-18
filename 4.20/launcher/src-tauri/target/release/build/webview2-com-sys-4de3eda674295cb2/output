@@ -1,0 +1,2 @@
+cargo:rustc-link-search=native=D:\LeagueOfLegendsV2\4.20\launcher\src-tauri\target\release\build\webview2-com-sys-4de3eda674295cb2\out\x64
+cargo:rustc-link-lib=advapi32
