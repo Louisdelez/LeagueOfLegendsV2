@@ -45,8 +45,9 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#070C12; color:#A09B8
 
 /* HOME: TWO COLUMNS */
 .home-two-col { display:flex; width:100%; height:100%; }
-.home-left { flex:1; padding:0; display:flex; flex-direction:column; border-right:1px solid #1A1D23; }
-.home-right { width:310px; background:#0A0E14; overflow-y:auto; }
+.home-left { flex:0 0 680px; padding:0; display:flex; flex-direction:column; border-right:1px solid #1A1D23; }
+.home-right { width:310px; background:#0A0E14; overflow-y:auto; border-right:1px solid #1A1D23; }
+.home-empty { flex:1; background:#070C12; }
 
 /* SPECTATE BOX */
 .spectate-box { background:linear-gradient(180deg,#0D1117 0%,#111820 100%); border-bottom:1px solid #1A1D23; padding-bottom:10px; }
