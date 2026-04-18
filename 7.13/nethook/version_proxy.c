@@ -713,27 +713,42 @@ __asm__(
 // thiscall → stdcall (ecx ignored, same stack cleanup)
 // Args: data, arg1, observer, &type, alloc_block
 static volatile int g_fakeVT1Hits = 0;
+static DWORD g_origVT1Target = 0; // original thunk destination
+
 int __attribute__((stdcall)) FakeHandlerVT1(
     void *data, DWORD arg1, void *observer, void *typePtr, void *allocBlock)
 {
-    int h = ++g_fakeVT1Hits;
-    if (allocBlock) {
-        memset(allocBlock, 0, 0x20);
-        if (data) {
-            BYTE *raw = (BYTE*)data;
-            if (raw[0] == 0x66 || raw[0] == 0x65) {
+    BYTE *raw = data ? (BYTE*)data : NULL;
+    BYTE opc = raw ? raw[0] : 0;
+
+    // LS packets: handle ourselves
+    if (opc == 0x65 || opc == 0x66 || opc == 0x67) {
+        int h = ++g_fakeVT1Hits;
+        if (allocBlock) {
+            memset(allocBlock, 0, 0x20);
+            if (opc == 0x66 || opc == 0x65) {
                 *(long long*)allocBlock = *(long long*)(raw + 1);
-            } else if (raw[0] == 0x67) {
+            } else {
                 *(long long*)allocBlock = 1;
             }
         }
+        if (h <= 10)
+            Log("FakeVT1 #%d LS opc=0x%02X (handled)", h, opc);
+        return 1;
     }
-    if (h <= 15) {
-        BYTE *raw = data ? (BYTE*)data : NULL;
-        Log("FakeVT1 #%d opc=0x%02X data=%p arg1=%lu observer=%p typePtr=%p",
-            h, raw ? raw[0] : 0xFF, data, arg1, observer, typePtr);
+
+    // Game packets: forward to original handler
+    if (g_origVT1Target) {
+        int h = ++g_fakeVT1Hits;
+        typedef int (__stdcall *OrigVT1_t)(void*, DWORD, void*, void*, void*);
+        OrigVT1_t origFunc = (OrigVT1_t)g_origVT1Target;
+        int ret = origFunc(data, arg1, observer, typePtr, allocBlock);
+        if (h <= 30)
+            Log("FakeVT1 #%d GAME opc=0x%02X ret=%d", h, opc, ret);
+        return ret;
     }
-    return 1;
+
+    return 0;
 }
 
 // Pure C implementation — __stdcall with 5 args to match ret $20
@@ -1715,9 +1730,15 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
             }
 
             // PATCH15: handler vtable[1] → FakeHandlerVT1 (watchdog)
+            // Save original thunk target first, then redirect
             {
                 BYTE *thunk = (BYTE*)hExe + 0x4398D0;
                 if (thunk[0] == 0xE9) {
+                    // Save original JMP target: thunk + 5 + rel32
+                    DWORD origRel = *(DWORD*)(thunk + 1);
+                    g_origVT1Target = (DWORD)thunk + 5 + origRel;
+                    Log("PATCH15: orig vtable[1] target = 0x%08lX", g_origVT1Target);
+
                     extern int __attribute__((stdcall)) FakeHandlerVT1(
                         void*, DWORD, void*, void*, void*);
                     DWORD oldProt;
@@ -1728,7 +1749,7 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                         *(DWORD*)(thunk + 1) = rel;
                         FlushInstructionCache(GetCurrentProcess(), thunk, 5);
                         VirtualProtect(thunk, 5, oldProt, &oldProt);
-                        Log("PATCH15: handler vtable[1] -> FakeHandlerVT1");
+                        Log("PATCH15: handler vtable[1] -> FakeHandlerVT1 (LS only, game -> orig)");
                     }
                 }
             }
@@ -2551,10 +2572,15 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                 }
 
-                // PATCH15: handler vtable[1] thunk → FakeHandlerVT1
+                // PATCH15: handler vtable[1] thunk → FakeHandlerVT1 (LS only)
                 {
                     BYTE *thunk = (BYTE*)hExe + 0x4398D0;
                     if (thunk[0] == 0xE9) {
+                        if (!g_origVT1Target) {
+                            DWORD origRel = *(DWORD*)(thunk + 1);
+                            g_origVT1Target = (DWORD)thunk + 5 + origRel;
+                            Log("PATCH15: orig vtable[1] = 0x%08lX", g_origVT1Target);
+                        }
                         extern int __attribute__((stdcall)) FakeHandlerVT1(
                             void*, DWORD, void*, void*, void*);
                         DWORD oldProt;
@@ -2564,7 +2590,7 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                             *(DWORD*)(thunk+1) = target - ((DWORD)thunk + 5);
                             FlushInstructionCache(GetCurrentProcess(), thunk, 5);
                             VirtualProtect(thunk, 5, oldProt, &oldProt);
-                            Log("PATCH15: handler vtable[1] -> FakeHandlerVT1");
+                            Log("PATCH15: vtable[1] -> FakeHandlerVT1 (LS→accept, game→orig)");
                         }
                     }
                 }
