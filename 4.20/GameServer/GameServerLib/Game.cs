@@ -318,6 +318,7 @@ namespace LeagueSandbox.GameServer
             bool firstCycle = true;
             
             float timeToForcedStart = Config.ForcedStart;
+            Console.WriteLine($"[GAMELOOP] Starting. ForcedStart={timeToForcedStart}ms IsRunning={IsRunning} IsPaused={IsPaused}");
 
             while (!SetToExit)
             {
@@ -366,10 +367,19 @@ namespace LeagueSandbox.GameServer
 
                     if(!IsRunning && timeToForcedStart > 0)
                     {
-                        if(timeToForcedStart <= deltaTime && !CheckIfAllPlayersLeft())
+                        if(timeToForcedStart <= deltaTime)
                         {
-                            _logger.Info($"Patience is over. The game will start earlier.");
-                            _gameStartHandler.ForceStart();
+                            bool allLeft = CheckIfAllPlayersLeft();
+                            Console.WriteLine($"[FORCE] timer expired! allLeft={allLeft} dt={deltaTime:F1} ttfs={timeToForcedStart:F1}");
+                            if (!allLeft)
+                            {
+                                _logger.Info($"Patience is over. The game will start earlier.");
+                                _gameStartHandler.ForceStart();
+                            }
+                        }
+                        else if (timeToForcedStart < 2000 && timeToForcedStart > 1000)
+                        {
+                            Console.WriteLine($"[FORCE] countdown: {timeToForcedStart:F0}ms remaining");
                         }
                         timeToForcedStart -= deltaTime;
                     }

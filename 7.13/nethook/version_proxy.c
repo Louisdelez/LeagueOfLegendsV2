@@ -1326,7 +1326,8 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                                 VirtualFree(tipPkt, 0, MEM_RELEASE);
                             }
 
-                            // Opcode 92 (StartGame) DISABLED — makes game exit faster
+                            // Opcode 92 (StartGame) — DISABLED: let server ForceStart handle it
+                            // Server will send GameStart + CreateHero + TimeSync + all needed packets
                         }
                     }
                 }
