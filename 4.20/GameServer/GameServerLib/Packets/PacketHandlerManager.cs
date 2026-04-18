@@ -413,6 +413,33 @@ namespace PacketDefinitions420
                 Console.WriteLine("[TIMING] Sent 37B timing sync on CHL_LOADING_SCREEN");
             }
 
+            // 7.13: send loading screen data immediately (ForceStart timer unreliable)
+            try {
+                var players = _playerManager.GetPlayers(false);
+                _game.PacketNotifier.NotifyLoadScreenInfo(peerInfo.ClientId, players);
+                Console.WriteLine("[LS] Sent TeamRosterUpdate");
+
+                // Send RequestRename + RequestReskin for each player
+                foreach (var player in players) {
+                    var rename = new LeaguePackets.LoadScreen.RequestRename {
+                        PlayerID = player.PlayerId,
+                        SkinID = 0,
+                        PlayerName = player.Name ?? "Player"
+                    };
+                    SendPacket(peerInfo.ClientId, rename.GetBytes(), Channel.CHL_LOADING_SCREEN);
+
+                    var reskin = new LeaguePackets.LoadScreen.RequestReskin {
+                        PlayerID = player.PlayerId,
+                        SkinID = 0,
+                        SkinName = player.Champion?.Model ?? "Ezreal"
+                    };
+                    SendPacket(peerInfo.ClientId, reskin.GetBytes(), Channel.CHL_LOADING_SCREEN);
+                    Console.WriteLine($"[LS] Sent Rename+Reskin for {player.Name} ({player.Champion?.Model})");
+                }
+            } catch (System.Exception ex) {
+                Console.WriteLine($"[LS] Error sending LS data: {ex.Message}");
+            }
+
 #if false
             // OLD probe (disabled)
             // the handler at [edi+0x34]. The handler accepts: type=3, channel=7,

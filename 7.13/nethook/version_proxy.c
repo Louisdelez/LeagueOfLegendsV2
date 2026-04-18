@@ -600,53 +600,19 @@ int __attribute__((stdcall)) FakeHandlerVT1(
     int h = ++g_fakeVT1Hits;
     if (allocBlock) {
         memset(allocBlock, 0, 0x20);
-        // [+0..7] = player/entity ID (int64, must be > 0)
-        // Read from raw packet data: bytes 1-8 = PlayerID for Rename/Reskin
         if (data) {
             BYTE *raw = (BYTE*)data;
             if (raw[0] == 0x66 || raw[0] == 0x65) {
-                // Rename/Reskin: PlayerID at offset 1
                 *(long long*)allocBlock = *(long long*)(raw + 1);
             } else if (raw[0] == 0x67) {
-                // TeamRoster: use player ID 1
                 *(long long*)allocBlock = 1;
             }
         }
-        // [+0x18] = handler index (0 = first registered handler)
     }
-    if (h <= 5) {
-        Log("FakeVT1 #%d data=%p arg1=%lu alloc=%p [+0x18]=0",
-            h, data, arg1, allocBlock);
-        // Dump globals [0x1E77214] and [0x1E77218]
-        HMODULE hExe = GetModuleHandleA(NULL);
-        DWORD *handlerTable = (DWORD*)((BYTE*)hExe + (0x1E77214 - 0x400000));
-        DWORD *handlerCount = (DWORD*)((BYTE*)hExe + (0x1E77218 - 0x400000));
-        Log("  [0x1E77214]=%p [0x1E77218]=%lu", (void*)*handlerTable, *handlerCount);
-        if (*handlerCount > 0 && *handlerTable) {
-            DWORD *tbl = (DWORD*)*handlerTable;
-            for (DWORD i = 0; i < *handlerCount && i < 3; i++) {
-                DWORD obj = tbl[i];
-                if (obj) {
-                    DWORD vt = *(DWORD*)obj;
-                    Log("  table[%lu]=%p vtable=%p", i, (void*)obj, (void*)vt);
-                    // Dump vtable[0..7] at runtime
-                    if (vt && !IsBadReadPtr((void*)vt, 32)) {
-                        DWORD *vtp = (DWORD*)vt;
-                        Log("    vt: [0]=%p [1]=%p [2]=%p [3]=%p",
-                            (void*)vtp[0],(void*)vtp[1],(void*)vtp[2],(void*)vtp[3]);
-                        Log("    vt: [4]=%p [5]=%p [6]=%p [7]=%p",
-                            (void*)vtp[4],(void*)vtp[5],(void*)vtp[6],(void*)vtp[7]);
-                    }
-                }
-            }
-        }
-        // Also dump the alloc_block fields that vtable[6] will read
-        if (allocBlock) {
-            DWORD *ab = (DWORD*)allocBlock;
-            Log("  alloc: [0]=%p [4]=%p [8]=%p [C]=%p [10]=%p [14]=%p [18]=%p",
-                (void*)ab[0],(void*)ab[1],(void*)ab[2],(void*)ab[3],
-                (void*)ab[4],(void*)ab[5],(void*)ab[6]);
-        }
+    if (h <= 15) {
+        BYTE *raw = data ? (BYTE*)data : NULL;
+        Log("FakeVT1 #%d opc=0x%02X data=%p arg1=%lu observer=%p typePtr=%p",
+            h, raw ? raw[0] : 0xFF, data, arg1, observer, typePtr);
     }
     return 1;
 }
@@ -709,6 +675,141 @@ __asm__(
     "    popfl\n"
     "    popal\n"
     "    jmp *_g_tramp_5BA9A0_addr\n"
+);
+
+// Detour for 0xBB8200 — LS packet filter
+// Original: returns true only for timing sync (37B, 0x10).
+// Our version: also intercepts TeamRoster/Rename/Reskin and injects into handler.
+static BYTE tramp_BB8200[32];
+static volatile DWORD g_tramp_BB8200_addr = 0;
+static volatile int g_lsInjectHits = 0;
+
+// stdcall: 1 arg on stack, returns bool in AL
+// Buffer for LS packets that arrive before handler init
+#define LS_BUF_MAX 8
+#define LS_PKT_MAX 512
+static BYTE g_lsBuf[LS_BUF_MAX][LS_PKT_MAX];
+static int g_lsBufLen[LS_BUF_MAX];
+static volatile int g_lsBufCount = 0;
+static volatile int g_lsReady = 0; // set to 1 after handler init
+
+static void InjectLSPacket(BYTE *buf, int len) {
+    HMODULE hExe = GetModuleHandleA(NULL);
+    if (!hExe) return;
+    DWORD *dObjGlobal = (DWORD*)((BYTE*)hExe + (0x1E77200 - 0x400000));
+    if (!*dObjGlobal) return;
+    DWORD dv = *(DWORD*)*dObjGlobal;
+    DWORD vt3 = *(DWORD*)(dv + 0x0C);
+    typedef int (__thiscall *InjectFn)(void*,void*,void*,DWORD,void*,DWORD);
+    InjectFn inject = (InjectFn)vt3;
+    BYTE out[0x20]; DWORD meta[8];
+    memset(out, 0, 0x20); memset(meta, 0, sizeof(meta));
+    int r = inject((void*)*dObjGlobal, buf, out, 0, meta, 1);
+    int h = ++g_lsInjectHits;
+    if (h <= 20) {
+        Log("LS_INJECT #%d len=%d opc=0x%02X result=%d meta=%p",
+            h, len, buf[0], r, (void*)meta[0]);
+    }
+}
+
+int __attribute__((stdcall, used)) Detour_BB8200_C(DWORD *pktInfo) {
+    if (!pktInfo) return 0;
+    DWORD type = pktInfo[0];
+    if (type != 3) return 0;
+    BYTE channel = ((BYTE*)pktInfo)[8];
+    if (channel != 7) return 0;
+
+    DWORD *dataStruct = (DWORD*)pktInfo[4]; // [+0x10] = data struct ptr
+    if (!dataStruct) return 0;
+    DWORD len = dataStruct[3];   // [+0xC] = length
+    BYTE *buf = (BYTE*)dataStruct[2]; // [+0x8] = buffer
+    if (!buf) return 0;
+
+    // Timing sync: original behavior
+    if (len == 37 && buf[0] == 0x10) return 1;
+
+    // LS data packet
+    if (g_lsReady) {
+        InjectLSPacket(buf, len);
+    } else {
+        // Buffer for later replay
+        int idx = g_lsBufCount;
+        if (idx < LS_BUF_MAX && len <= LS_PKT_MAX) {
+            memcpy(g_lsBuf[idx], buf, len);
+            g_lsBufLen[idx] = len;
+            g_lsBufCount = idx + 1;
+            Log("LS_BUFFER #%d len=%d opc=0x%02X (waiting for handler init)", idx+1, len, buf[0]);
+        }
+    }
+    return 1;
+}
+
+extern void Detour_BB8200(void);
+__asm__(
+    ".text\n"
+    ".globl _Detour_BB8200\n"
+    "_Detour_BB8200:\n"
+    "    mov 4(%esp), %eax\n"    // arg0
+    "    push %eax\n"
+    "    call _Detour_BB8200_C\n" // stdcall: callee cleans
+    "    ret $4\n"                // stdcall return
+);
+
+// Custom type 3 (CHL_LOADING_SCREEN) handler for PATCH18
+// Called from the packet type switch. [ebp+8] = connection object.
+// The function prologue at 0x475A10 is: push ebp; mov ebp,esp; sub esp,0xC; ...
+// When we jump here from the switch table, we're inside that function's frame.
+// We need to: read packet data from connection object, inject into LS handler.
+static volatile int g_type3Hits = 0;
+
+void __attribute__((cdecl, used)) HandleType3(DWORD connObj) {
+    int h = ++g_type3Hits;
+    if (h <= 10) {
+        BYTE *co = (BYTE*)connObj;
+        // Log key fields of connection object to find packet data
+        Log("TYPE3 #%d connObj=%p", h, (void*)connObj);
+        if (!IsBadReadPtr(co, 0x2000)) {
+            // Look for LS packet data — check common buffer offsets
+            // Type 2 checks [+0xDAC] and [+0x1314], uses [+0x10EC]
+            Log("  [+0x04]=%08X [+0x08]=%08X [+0x0C]=%08X",
+                *(DWORD*)(co+4), *(DWORD*)(co+8), *(DWORD*)(co+0xC));
+            // The packet data might be at a buffer pointer field
+            // Check field that type2 uses: [+0x10EC]
+            DWORD f10EC = *(DWORD*)(co+0x10EC);
+            Log("  [+0x10EC]=%08X [+0xDAC]=%08X [+0x1314]=%08X",
+                f10EC, *(DWORD*)(co+0xDAC), *(DWORD*)(co+0x1314));
+            // Scan for pointer to our TeamRoster data (starts with 0x67)
+            for (int off = 0; off < 0x1400; off += 4) {
+                DWORD val = *(DWORD*)(co+off);
+                if (val > 0x10000 && !IsBadReadPtr((void*)val, 4)) {
+                    BYTE *p = (BYTE*)val;
+                    if (p[0] == 0x67 && p[1] == 0x06 && h <= 3) {
+                        Log("  FOUND 0x67 at [+0x%X] -> %08X (TeamRoster?)", off, val);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Assembly trampoline: called from jump table inside function at 0x475A10
+// Stack frame: ebp-0xC, so [ebp+8] = connObj
+extern void Type3Handler(void);
+__asm__(
+    ".text\n"
+    ".globl _Type3Handler\n"
+    "_Type3Handler:\n"
+    "    pushal\n"
+    "    pushfl\n"
+    "    mov 8(%ebp), %eax\n"     // [ebp+8] = connObj (ebp is still valid)
+    "    push %eax\n"
+    "    call _HandleType3\n"
+    "    add $4, %esp\n"
+    "    popfl\n"
+    "    popal\n"
+    "    mov %ebp, %esp\n"        // epilogue: same as NOP at 0x475B20
+    "    pop %ebp\n"
+    "    ret\n"
 );
 
 typedef int (WINAPI *sendto_t)(SOCKET, const char*, int, int, const struct sockaddr*, int);
@@ -1030,6 +1131,22 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                         Log("WD: injection complete, handler[+0x2C]=%p",
                             (void*)*(DWORD*)(hp+0x2C));
 
+                        // Replay buffered LS packets via LSRECV (not just inject)
+                        g_lsReady = 1;
+                        if (g_lsBufCount > 0) {
+                            Log("WD: replaying %d buffered LS packets via LSRECV", g_lsBufCount);
+                            typedef void (__thiscall *LSRecvFn)(void*, void*);
+                            LSRecvFn lsRecv = (LSRecvFn)((DWORD)hExe + 0x2FBCE0);
+                            for (int bi = 0; bi < g_lsBufCount; bi++) {
+                                Log("WD: LSRECV replay #%d opc=0x%02X len=%d",
+                                    bi+1, g_lsBuf[bi][0], g_lsBufLen[bi]);
+                                lsRecv((void*)*lsH, g_lsBuf[bi]);
+                            }
+                            Log("WD: LSRECV replay done");
+                        }
+                        *(DWORD*)(hp+8) = 1;
+                        Log("WD: handler[+8] set to 1");
+
                         // Quick dispatch of opcode 3
                         Sleep(500);
 
@@ -1057,15 +1174,38 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                                 VirtualFree(fakeOp3, 0, MEM_RELEASE);
                             }
 
-                            // Dispatch opcode 85 (S2C_HandleTipUpdate) — same ID as 4.20!
-                            // This should display a tip on the loading screen
+                            // Dispatch opcode 68 (CreateHero candidate) with obfuscated data
+                            {
+                                BYTE *hero = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
+                                if (hero) {
+                                    memset(hero, 0x0E, 0x200);
+                                    *(WORD*)(hero+4) = 68;
+                                    hero[6]=0xE3; hero[7]=0x0E; hero[8]=0x0E; hero[9]=0x7D;
+                                    hero[0x0A]=0x0E; hero[0x0B]=0x0E; hero[0x0C]=0x0E; hero[0x0D]=0x0E;
+                                    hero[0x0E]=0xE3; hero[0x0F]=0xE3; hero[0x10]=0xE3;
+                                    hero[0x11]=0x0E; hero[0x12]=0x0E;
+                                    hero[0x13]=0x0E; hero[0x14]=0x0E; hero[0x15]=0x0E; hero[0x16]=0x0E;
+                                    hero[0x17]=0x43; hero[0x18]=0x0E; hero[0x19]=0x0E; hero[0x1A]=0x0E;
+                                    hero[0x1B]=0xFE; hero[0x1C]=0x9D; hero[0x1D]=0x26; hero[0x1E]=0xDF;
+                                    hero[0x1F]=0x8D; hero[0x20]=0x4A; hero[0x21]=0x20;
+                                    hero[0x22]=0xE5; hero[0x23]=0x0E; hero[0x24]=0x0E; hero[0x25]=0x0E;
+                                    hero[0x26]=0x05; hero[0x27]=0xC0; hero[0x28]=0x4A; hero[0x29]=0x8D;
+                                    hero[0x2A]=0x26; hero[0x2B]=0x9D;
+                                    Log("WD: dispatch opcode 68 (CreateHero) obfuscated...");
+                                    dispatch((void*)hero);
+                                    Log("WD: opcode 68 done!");
+                                    VirtualFree(hero, 0, MEM_RELEASE);
+                                }
+                            }
+
+                            // Dispatch opcode 85 (S2C_HandleTipUpdate)
                             BYTE *tipPkt = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
                             if (tipPkt) {
                                 memset(tipPkt, 0, 0x200);
-                                *(WORD*)(tipPkt + 4) = 85;  // opcode 0x55
-                                // Tip data at [+0x0F]: text bytes (will be deobfuscated by handler)
-                                // Just set all zeros — the handler will produce empty/garbled text
-                                // but at least the tip UI element should appear
+                                *(WORD*)(tipPkt + 4) = 85;
+                                BYTE enc[] = {0xFE,0x9D,0x26,0xDF,0x8D,0x4A,0x20,0xD0,
+                                              0x74,0xD0,0x05,0xC0,0x4A,0x8D,0x26,0x9D};
+                                memcpy(tipPkt + 0x0F, enc, sizeof(enc));
                                 Log("WD: dispatching opcode 85 (TipUpdate)...");
                                 dispatch(tipPkt);
                                 Log("WD: opcode 85 done!");
@@ -1088,20 +1228,18 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                 Log("WD: tick %d session=%p [+0x40]=%02X disp=%p handler=%p",
                     tick, (void*)session, flag40, (void*)*dispObj, (void*)*lsHandler);
                 if (session) {
-                    // Force set LS flag and call tick
-                    if (!(flag40 & 3)) {
-                        ((BYTE*)session)[0x40] |= 1;  // force LS data available
-                        flag40 = ((BYTE*)session)[0x40];
-                        if (tick == 0 || tick == 2)
-                            Log("WD: FORCED [+0x40]=%02X", flag40);
-                    }
-                    if (flag40 & 3) {
-                        typedef void (__thiscall *LSTickFn)(void*);
-                        LSTickFn lsTick = (LSTickFn)((DWORD)hExe + 0x543CC0);
-                        lsTick((void*)session);
-                        BYTE newFlag = ((BYTE*)session)[0x40];
-                        if (tick < 3)
-                            Log("WD: LS tick done [+0x40]=%02X", newFlag);
+                    BYTE *sp = (BYTE*)session;
+                    BYTE *hp = (BYTE*)*lsHandler;
+                    // Force LS flags
+                    sp[0x40] |= 1;
+                    if (tick < 5) {
+                        Log("WD: tick %d session=%p [+0x40]=%02X handler[+8]=%08X [+2C]=%08X",
+                            tick, (void*)session, sp[0x40],
+                            *(DWORD*)(hp+8), *(DWORD*)(hp+0x2C));
+                        // Dump handler fields that might control rendering
+                        Log("WD: h[+34]=%08X [+38]=%08X [+3C]=%08X [+40]=%08X",
+                            *(DWORD*)(hp+0x34), *(DWORD*)(hp+0x38),
+                            *(DWORD*)(hp+0x3C), *(DWORD*)(hp+0x40));
                     }
                 }
                 // Draw player info directly on game window via GDI overlay
@@ -1159,8 +1297,40 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     VirtualFree(op3, 0, MEM_RELEASE);
                 }
 
-                // Opcodes 4,8,15 crash with zeroed data (deobfuscation OOB)
-                // Only opcode 3 and 85 work safely with minimal data
+                // Try opcode 68 (0x44) — candidate for CreateHero
+                // CreateHero structure (4.20): NetID(4) ClientID(4) NetNodeID(1)
+                // SkillLevel(1) Bitfield(1) BotRank(1) SpawnPosIdx(1) SkinID(4)
+                // Name(string) Skin(string) ...
+                // Wire layout: [0..3]=header [4..5]=opcode [6..]=payload
+                {
+                    BYTE *hero = (BYTE*)VirtualAlloc(NULL, 0x200, MEM_COMMIT, PAGE_READWRITE);
+                    if (hero) {
+                        memset(hero, 0x0E, 0x200);      // 0x0E = obfuscated zero
+                        *(WORD*)(hero+4) = 68;           // opcode (NOT obfuscated)
+                        // All payload fields below are PRE-OBFUSCATED
+                        // (deobfuscation inverse: rol3 → inv_LUT → NOT → ror2 → bit_reverse)
+                        hero[6]=0xE3; hero[7]=0x0E; hero[8]=0x0E; hero[9]=0x7D; // NetID 0x40000001
+                        hero[0x0A]=0x0E; hero[0x0B]=0x0E; hero[0x0C]=0x0E; hero[0x0D]=0x0E; // ClientID 0
+                        hero[0x0E]=0xE3;                 // NetNodeID=1
+                        hero[0x0F]=0xE3;                 // SkillLevel=1
+                        hero[0x10]=0xE3;                 // TeamIsOrder=1
+                        hero[0x11]=0x0E;                 // BotRank=0
+                        hero[0x12]=0x0E;                 // SpawnPosIdx=0
+                        hero[0x13]=0x0E; hero[0x14]=0x0E; hero[0x15]=0x0E; hero[0x16]=0x0E; // SkinID=0
+                        // Name: sized string len=7 + "Player1"
+                        hero[0x17]=0x43; hero[0x18]=0x0E; hero[0x19]=0x0E; hero[0x1A]=0x0E; // len=7
+                        hero[0x1B]=0xFE; hero[0x1C]=0x9D; hero[0x1D]=0x26; hero[0x1E]=0xDF;
+                        hero[0x1F]=0x8D; hero[0x20]=0x4A; hero[0x21]=0x20; // "Player1"
+                        // Skin: sized string len=6 + "Ezreal"
+                        hero[0x22]=0xE5; hero[0x23]=0x0E; hero[0x24]=0x0E; hero[0x25]=0x0E; // len=6
+                        hero[0x26]=0x05; hero[0x27]=0xC0; hero[0x28]=0x4A; hero[0x29]=0x8D;
+                        hero[0x2A]=0x26; hero[0x2B]=0x9D; // "Ezreal"
+                        Log("WD: dispatch opcode 68 (CreateHero?) with obfuscated data...");
+                        dispatch(hero);
+                        Log("WD: opcode 68 done!");
+                        VirtualFree(hero, 0, MEM_RELEASE);
+                    }
+                }
 
                 // Opcode 85: S2C_HandleTipUpdate with ENCODED text
                 // Deobfuscation inverse applied: bit_reverse -> ror 2 -> NOT -> inv_LUT -> rol 3
@@ -1345,19 +1515,15 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     (void*)&fakeReader, (void*)&fakeReaderVtable);
             }
 
-            // PATCH15: Replace handler vtable[1] thunk with a C stub that:
-            // 1. Sets alloc_block[+0x18] = 0 (first handler index)
-            // 2. Returns 1 (success)
-            // alloc_block is 5th stack arg (thiscall: ecx=this, 5 stack args)
+            // PATCH15: handler vtable[1] → FakeHandlerVT1 (watchdog)
             {
                 BYTE *thunk = (BYTE*)hExe + 0x4398D0;
                 if (thunk[0] == 0xE9) {
-                    // Redirect thunk to our C function
                     extern int __attribute__((stdcall)) FakeHandlerVT1(
                         void*, DWORD, void*, void*, void*);
                     DWORD oldProt;
                     if (VirtualProtect(thunk, 5, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                        thunk[0] = 0xE9; // jmp rel32
+                        thunk[0] = 0xE9;
                         DWORD target = (DWORD)FakeHandlerVT1;
                         DWORD rel = target - ((DWORD)thunk + 5);
                         *(DWORD*)(thunk + 1) = rel;
@@ -1367,8 +1533,6 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                     }
                 }
             }
-
-            // vtable[3] NOT patched — let real code run with our FakeHandlerVT1
 
             // Inject loading-screen data via dispatch vtable[3].
             // Handler now properly initialized (fullInit=1, [+8]=valid, [+0xC]=1).
@@ -1815,26 +1979,19 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                     }
                 }
 
-                // PATCH11: force handler at 0xBB8200 to ALWAYS return true.
-                // Original: checks type==3 AND field2==7 AND len==37 AND data[0]==0x10.
-                // Replace with: mov al, 1; ret 4 (5 bytes)
+                // PATCH11: Hook 0xBB8200 to intercept ALL CHL_LOADING_SCREEN packets.
+                // Original: returns true only for timing (len=37,data[0]=0x10).
+                // New: also inject TeamRoster/Rename/Reskin into LS handler.
+                // Struct arg: [+0]=type, [+8]=channel, [+0x10]→{[+8]=buf, [+C]=len}
                 {
                     BYTE *p11 = base + (0xBB8200 - 0x400000);
-                    Log("PATCH11: @0xBB8200=%02X %02X %02X %02X %02X", p11[0],p11[1],p11[2],p11[3],p11[4]);
-                    if (p11[0] == 0x8B && p11[0x14] == 0x8B && p11[0x15] == 0x40) {
-                        // Widen filter: after type=3 + channel=7 pass, return true
-                        // immediately (skip len==37 and data[0]==0x10 checks).
-                        // This lets TeamRoster(0x67), PlayerName(0x66), Champion(0x65) through.
-                        DWORD oldProt;
-                        if (VirtualProtect(p11 + 0x14, 5, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                            p11[0x14] = 0xB0; p11[0x15] = 0x01;  // mov al, 1
-                            p11[0x16] = 0xC2; p11[0x17] = 0x04; p11[0x18] = 0x00;  // ret 4
-                            FlushInstructionCache(GetCurrentProcess(), p11 + 0x14, 5);
-                            VirtualProtect(p11 + 0x14, 5, oldProt, &oldProt);
-                            Log("PATCH11: filter widened — accept ALL type=3 channel=7 packets");
-                        }
-                    } else {
-                        Log("PATCH11: byte mismatch, skipping");
+                    Log("PATCH11: @0xBB8200=%02X %02X %02X %02X %02X",
+                        p11[0],p11[1],p11[2],p11[3],p11[4]);
+                    if (p11[0] == 0x8B) {
+                        MakeTrampolineN(p11, tramp_BB8200, 7);
+                        g_tramp_BB8200_addr = (DWORD)tramp_BB8200;
+                        PatchJmpN(p11, (void*)Detour_BB8200, 7);
+                        Log("PATCH11: detour installed — intercept LS packets for injection");
                     }
                 }
 
@@ -2184,14 +2341,14 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved) {
                 // Entry at 0x075B28 points to 0x475B20 (NO-OP return).
                 // Patch to point to 0x475A6C (type 2 processing, skip encrypt check).
                 {
-                    BYTE *jt = (BYTE*)hExe + 0x075B28;  // jump table entry for type 3
+                    BYTE *jt = (BYTE*)hExe + 0x075B28;  // jump table entry for type 3 → our handler
                     DWORD oldProt;
                     if (VirtualProtect(jt, 4, PAGE_EXECUTE_READWRITE, &oldProt)) {
-                        DWORD newTarget = (DWORD)hExe + 0x075A6C;  // type 2 handler after check
+                        DWORD newTarget = (DWORD)Type3Handler;
                         *(DWORD*)jt = newTarget;
                         FlushInstructionCache(GetCurrentProcess(), jt, 4);
                         VirtualProtect(jt, 4, oldProt, &oldProt);
-                        Log("PATCH18: type 3 jump table -> 0x%08lX (process like type 2)", newTarget);
+                        Log("PATCH18: type 3 jump table -> 0x%08lX (custom LS handler)", newTarget);
                     }
                 }
 
