@@ -103,7 +103,9 @@ static void Log(const char *fmt, ...);
 // D3D9 EndScene hook for overlay rendering (GDI-on-backbuffer approach)
 #include <d3d9.h>
 typedef HRESULT (WINAPI *EndScene_t)(IDirect3DDevice9*);
+typedef HRESULT (WINAPI *Present_t)(IDirect3DDevice9*,const RECT*,const RECT*,HWND,const RGNDATA*);
 static EndScene_t g_origEndScene = NULL;
+static Present_t g_origPresent = NULL;
 static volatile int g_endSceneHits = 0;
 static HFONT g_overlayFont = NULL;
 
@@ -141,23 +143,77 @@ HRESULT WINAPI HookEndScene(IDirect3DDevice9 *dev) {
         }
     }
 
-    // Draw text via D3DX font
+    // Test: draw a bright colored rect to verify rendering pipeline
+    {
+        D3DRECT clearRect = {20, 20, 200, 60};
+        dev->lpVtbl->Clear(dev, 1, &clearRect, D3DCLEAR_TARGET, 0xFFFF0000, 0, 0);
+        D3DRECT clearRect2 = {20, 65, 400, 90};
+        dev->lpVtbl->Clear(dev, 1, &clearRect2, D3DCLEAR_TARGET, 0xFF00FF00, 0, 0);
+    }
+
+    // Draw text via D3DX font with state save/restore
     if (g_d3dxFont) {
+        // Save D3D state block
+        IDirect3DStateBlock9 *sb = NULL;
+        dev->lpVtbl->CreateStateBlock(dev, D3DSBT_ALL, &sb);
+
+        // Set clean render states for 2D text
+        dev->lpVtbl->SetRenderState(dev, D3DRS_ZENABLE, FALSE);
+        dev->lpVtbl->SetRenderState(dev, D3DRS_ALPHABLENDENABLE, TRUE);
+        dev->lpVtbl->SetRenderState(dev, D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+        dev->lpVtbl->SetRenderState(dev, D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+        dev->lpVtbl->SetRenderState(dev, D3DRS_SCISSORTESTENABLE, FALSE);
+        dev->lpVtbl->SetRenderState(dev, D3DRS_STENCILENABLE, FALSE);
+        dev->lpVtbl->SetFVF(dev, D3DFVF_XYZRHW | D3DFVF_DIFFUSE);
+
         DWORD *fontVtbl = *(DWORD**)g_d3dxFont;
         typedef int (WINAPI *DrawTextA_t)(void*, void*, LPCSTR, int, RECT*, DWORD, DWORD);
         DrawTextA_t drawText = (DrawTextA_t)fontVtbl[14];
 
-        RECT r1 = {50, 100, 900, 150};
-        int ret = drawText(g_d3dxFont, NULL, "Player1 (Test) - Ezreal", -1, &r1, DT_LEFT | DT_NOCLIP, 0xFF00FFFF);
-        RECT r2 = {50, 140, 900, 190};
-        drawText(g_d3dxFont, NULL, "Team Blue | Loading 100%", -1, &r2, DT_LEFT | DT_NOCLIP, 0xFF4488FF);
-        RECT r3 = {50, 650, 900, 700};
-        drawText(g_d3dxFont, NULL, "LeagueSandbox Private Server", -1, &r3, DT_LEFT | DT_NOCLIP, 0xFFFFDD00);
+        RECT r1 = {80, 80, 900, 130};
+        int ret = drawText(g_d3dxFont, NULL, "Player1 - Ezreal", -1, &r1, DT_LEFT | DT_NOCLIP, 0xFF00FFFF);
+        RECT r2 = {80, 120, 900, 170};
+        drawText(g_d3dxFont, NULL, "Team Blue  |  Loading 100%", -1, &r2, DT_LEFT | DT_NOCLIP, 0xFF6699FF);
+        RECT r3 = {80, 600, 900, 650};
+        drawText(g_d3dxFont, NULL, "LeagueSandbox Private Server", -1, &r3, DT_LEFT | DT_NOCLIP, 0xFFFFCC00);
+
+        // Restore state
+        if (sb) {
+            sb->lpVtbl->Apply(sb);
+            sb->lpVtbl->Release(sb);
+        }
+
         if (g_endSceneHits <= 3)
-            Log("D3D: DrawTextA ret=%d vtbl[14]=%p", ret, (void*)fontVtbl[14]);
+            Log("D3D: DrawTextA ret=%d", ret);
     }
 
     return g_origEndScene(dev);
+}
+
+HRESULT WINAPI HookPresent(IDirect3DDevice9 *dev, const RECT *src, const RECT *dst, HWND hw, const RGNDATA *rgn) {
+    int h = ++g_endSceneHits;
+    if (h <= 3) Log("D3D: Present dev=%p src=%p dst=%p hw=%p", dev, src, dst, (void*)hw);
+
+    // Draw colored bars to verify rendering
+    D3DRECT r = {20, 20, 300, 50};
+    dev->lpVtbl->Clear(dev, 1, &r, D3DCLEAR_TARGET, 0xFFFF0000, 0, 0);
+    D3DRECT r2 = {20, 55, 500, 80};
+    dev->lpVtbl->Clear(dev, 1, &r2, D3DCLEAR_TARGET, 0xFF00FF00, 0, 0);
+
+    // D3DX text
+    if (g_d3dxFont) {
+        dev->lpVtbl->BeginScene(dev);
+        DWORD *fontVtbl = *(DWORD**)g_d3dxFont;
+        typedef int (WINAPI *DrawTextA_t)(void*, void*, LPCSTR, int, RECT*, DWORD, DWORD);
+        DrawTextA_t drawText = (DrawTextA_t)fontVtbl[14];
+        RECT tr1 = {30, 25, 600, 70};
+        drawText(g_d3dxFont, NULL, "Player1 - Ezreal  |  Team Blue", -1, &tr1, DT_LEFT|DT_NOCLIP, 0xFFFFFFFF);
+        RECT tr2 = {30, 56, 600, 90};
+        drawText(g_d3dxFont, NULL, "LeagueSandbox Private Server", -1, &tr2, DT_LEFT|DT_NOCLIP, 0xFF000000);
+        dev->lpVtbl->EndScene(dev);
+    }
+
+    return g_origPresent(dev, src, dst, hw, rgn);
 }
 
 static FILE *logfile = NULL;
@@ -1325,12 +1381,16 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                                         void *endScene = (void*)vtbl[42]; // EndScene=42
                                         void *present = (void*)vtbl[17];  // Present=17
                                         Log("D3D: EndScene=%p Present=%p", endScene, present);
-                                        // Hook EndScene (render BEFORE end)
+                                        // Hook both EndScene and Present
                                         static BYTE tramp_EndScene[32];
                                         MakeTrampoline5(endScene, tramp_EndScene);
                                         g_origEndScene = (EndScene_t)tramp_EndScene;
                                         PatchJmp5(endScene, HookEndScene);
-                                        Log("D3D: EndScene hooked!");
+                                        static BYTE tramp_Present[32];
+                                        MakeTrampoline5(present, tramp_Present);
+                                        g_origPresent = (Present_t)tramp_Present;
+                                        PatchJmp5(present, HookPresent);
+                                        Log("D3D: EndScene+Present hooked!");
                                         tmpDev->lpVtbl->Release(tmpDev);
                                     } else {
                                         Log("D3D: CreateDevice failed hr=0x%08lX", hr);
@@ -1343,23 +1403,60 @@ static DWORD WINAPI FlagWatchdog(LPVOID arg) {
                         Log("D3D: d3d9.dll not loaded yet");
                     }
                 }
-                // Draw player info directly on game window via GDI overlay
-                if (tick < 5) {
+                // Draw player card via GDI overlay
+                {
                     HWND gw = FindWindowA(NULL, "League of Legends (TM) Client");
                     if (gw) {
                         HDC hdc = GetDC(gw);
                         if (hdc) {
+                            // Player card background
+                            HBRUSH bgBrush = CreateSolidBrush(RGB(10, 20, 40));
+                            RECT cardRect = {30, 100, 600, 260};
+                            FillRect(hdc, &cardRect, bgBrush);
+                            DeleteObject(bgBrush);
+                            // Blue team border
+                            HBRUSH borderBrush = CreateSolidBrush(RGB(30, 100, 200));
+                            RECT borderLeft = {30, 100, 35, 260};
+                            FillRect(hdc, &borderLeft, borderBrush);
+                            DeleteObject(borderBrush);
+                            // Player name
                             SetBkMode(hdc, TRANSPARENT);
-                            SetTextColor(hdc, RGB(255, 255, 255));
-                            HFONT font = CreateFontA(32, 0, 0, 0, FW_BOLD, 0, 0, 0,
+                            HFONT nameFont = CreateFontA(28, 0, 0, 0, FW_BOLD, 0, 0, 0,
                                 DEFAULT_CHARSET, 0, 0, ANTIALIASED_QUALITY, 0, "Arial");
-                            HFONT old = (HFONT)SelectObject(hdc, font);
-                            TextOutA(hdc, 100, 200, "Player1 - Ezreal", 17);
-                            TextOutA(hdc, 100, 250, "Loading...", 10);
+                            HFONT old = (HFONT)SelectObject(hdc, nameFont);
+                            SetTextColor(hdc, RGB(255, 255, 255));
+                            TextOutA(hdc, 50, 115, "Player1", 7);
+                            // Champion name
+                            HFONT champFont = CreateFontA(22, 0, 0, 0, FW_NORMAL, 0, 0, 0,
+                                DEFAULT_CHARSET, 0, 0, ANTIALIASED_QUALITY, 0, "Arial");
+                            SelectObject(hdc, champFont);
+                            SetTextColor(hdc, RGB(180, 200, 255));
+                            TextOutA(hdc, 50, 150, "Ezreal", 6);
+                            // Team info
+                            SetTextColor(hdc, RGB(100, 160, 255));
+                            TextOutA(hdc, 50, 178, "Team Blue  |  Summoner's Rift", 29);
+                            // Loading bar background
+                            HBRUSH barBg = CreateSolidBrush(RGB(30, 30, 50));
+                            RECT barRect = {50, 210, 580, 230};
+                            FillRect(hdc, &barRect, barBg);
+                            DeleteObject(barBg);
+                            // Loading bar fill (100%)
+                            HBRUSH barFill = CreateSolidBrush(RGB(30, 160, 255));
+                            RECT fillRect = {50, 210, 580, 230};
+                            FillRect(hdc, &fillRect, barFill);
+                            DeleteObject(barFill);
+                            // Loading percentage
+                            SetTextColor(hdc, RGB(255, 255, 255));
+                            HFONT pctFont = CreateFontA(16, 0, 0, 0, FW_BOLD, 0, 0, 0,
+                                DEFAULT_CHARSET, 0, 0, ANTIALIASED_QUALITY, 0, "Arial");
+                            SelectObject(hdc, pctFont);
+                            TextOutA(hdc, 300, 235, "100%", 4);
                             SelectObject(hdc, old);
-                            DeleteObject(font);
+                            DeleteObject(nameFont);
+                            DeleteObject(champFont);
+                            DeleteObject(pctFont);
                             ReleaseDC(gw, hdc);
-                            if (tick == 0) Log("WD: drew text on game window");
+                            if (tick == 0) Log("WD: drew player card on game window");
                         }
                     }
                 }
